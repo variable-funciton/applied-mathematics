@@ -2,6 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
+from topics import ex_ch1  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -13,6 +14,7 @@ CURRICULUM = {
             ("2. ベクトル関数", vf.tab_vector_function),
             ("3. 曲線", vf.tab_curve),
             ("4. 曲面(曲面積・接平面)", vf.tab_surface),
+            ("演習(第1章)", ex_ch1.tab),
         ],
         "第2章 スカラー場とベクトル場": [
             ("1. スカラー場とベクトル場", vector.tab_fields),
