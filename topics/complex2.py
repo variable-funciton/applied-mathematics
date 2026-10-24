@@ -1,4 +1,4 @@
-"""④ 複素関数:極形式/絶対値と偏角/正則関数/コーシー・リーマン/逆関数/複素積分/コーシーの積分定理・積分表示/関数の展開/代数学の基本定理"""
+"""④ 複素関数:極形式/絶対値と偏角/正則関数/コーシー・リーマン/逆関数/複素積分/コーシーの積分定理・積分表示/関数の展開"""
 from math import factorial
 
 import numpy as np
@@ -570,50 +570,3 @@ def tab_expansion():
     with st.expander("練習問題"):
         st.markdown("**問9** $\\dfrac{1}{1+z^2}$ を $z=0$ のまわりで展開し、収束半径を求めよ。")
         st.latex(r"1-z^2+z^4-\cdots,\quad R=1\ (\text{特異点}\ \pm i\ \text{までの距離})")
-
-
-# ============================================================
-# 2-6. 代数学の基本定理
-# ============================================================
-def tab_fundamental():
-    st.info("n 次多項式 p(z) は、複素数の範囲で必ず n 個の根をもつ。円 |z| = R を p で写すと、"
-            "R が大きいときは原点のまわりを n 回まわり、R が小さいときはまわらない。"
-            "その間で回数が変わるには、円が根を通過しなければならない。")
-    st.latex(r"p(z)=a_nz^n+\cdots+a_0\ (a_n\ne0)\ \Longrightarrow\ p(z)=a_n(z-\alpha_1)\cdots(z-\alpha_n)")
-    c1, c2 = st.columns(2)
-    txt = c1.text_input("係数(次数の高い順、カンマ区切り。複素数は 1+2j の形)", "1, 0, -2, 2", key="fd_c")
-    R = c2.slider("円の半径 R", 0.05, 3.0, 0.5, 0.05, key="fd_R")
-    try:
-        co = np.array([complex(v.strip().replace("i", "j")) for v in txt.split(",") if v.strip()])
-        while len(co) and co[0] == 0:
-            co = co[1:]
-        assert len(co) >= 2
-    except Exception:
-        st.error("係数を正しく入力してください(例:1, 0, -2, 2)")
-        return
-    roots = np.roots(co)
-    th = np.linspace(0, 2 * PI, 4001)
-    zc = R * np.exp(1j * th)
-    w = np.polyval(co, zc)
-    on = np.min(np.abs(w)) < 1e-6
-    wind = (np.unwrap(np.angle(w))[-1] - np.unwrap(np.angle(w))[0]) / (2 * PI)
-    inside = int(np.sum(np.abs(roots) < R))
-    cA, cB = st.columns(2)
-    with cA:
-        fig = go.Figure(go.Scatter(x=zc.real, y=zc.imag, mode="lines", line=dict(color=C1, width=3), name="|z| = R"))
-        fig.add_trace(go.Scatter(x=roots.real, y=roots.imag, mode="markers", marker=dict(color=C2, size=11, symbol="x"),
-                                 name="根"))
-        _plane(fig, m=3.2, height=440, title="z 平面")
-        show(fig)
-    with cB:
-        fig = go.Figure(go.Scatter(x=w.real, y=w.imag, mode="lines", line=dict(color=C3, width=2), name="p(円)"))
-        fig.add_trace(go.Scatter(x=[0], y=[0], mode="markers", marker=dict(color="black", size=10), name="原点"))
-        m = float(np.abs(w).max()) * 1.1 + 0.5
-        _plane(fig, m=m, height=440, title="w = p(z) 平面")
-        show(fig)
-    m1, m2, m3 = st.columns(3)
-    m1.metric("次数 n", len(co) - 1)
-    m2.metric("像が原点のまわりを回る回数", "—" if on else f"{round(wind, 3) + 0.0:.3f}")
-    m3.metric("円の内側の根の個数", inside)
-    st.dataframe([{"根": fmt_c(r, 5), "|根|": f"{abs(r):.4f}"} for r in roots], hide_index=True, width="stretch")
-    st.caption("R を 0 から少しずつ大きくしていくと、円が根を越えるたびに回る回数が 1 増える(偏角の原理)。")

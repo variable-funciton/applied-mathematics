@@ -36,11 +36,18 @@ BASE = {
 
 def tab_shift():
     st.info("t 側で「縮める・指数をかける・ずらす」と、s 側でそれぞれ決まった変化が起こる。")
-    st.latex(r"\mathcal L[f(at)]=\frac1aF\!\left(\frac sa\right),\qquad \mathcal L[e^{\alpha t}f(t)]=F(s-\alpha),"
-             r"\qquad \mathcal L[f(t-\tau)U(t-\tau)]=e^{-\tau s}F(s)")
+    st.markdown("$\\mathcal L[f(t)]=F(s)$ とする。")
+    st.markdown("**相似法則**(t 軸方向に $\\frac1a$ 倍に縮める)")
+    st.latex(r"\mathcal L[f(at)]=\frac1a\,F\!\left(\frac sa\right)\qquad(a>0)")
+    st.markdown("**第1移動法則**(指数関数 $e^{\\alpha t}$ をかけると、**s 軸方向**に α だけずれる)")
+    st.latex(r"\mathcal L[e^{\alpha t}f(t)]=F(s-\alpha)")
+    st.markdown("**第2移動法則**(**t 軸方向**に τ だけ遅らせると、$e^{-\\tau s}$ がかかる)")
+    st.latex(r"\mathcal L[f(t-\tau)\,U(t-\tau)]=e^{-\tau s}F(s)\qquad(\tau\ge0,\ U\text{ は単位ステップ関数})")
+    st.divider()
     c1, c2 = st.columns(2)
     name = c1.selectbox("もとの関数 f(t)", list(BASE), key="ls_f")
-    law = c2.radio("法則", ["相似法則", "第1移動法則(s 軸の移動)", "第2移動法則(t 軸の移動)"], key="ls_law")
+    law = c2.radio("確かめる法則", ["相似法則", "第1移動法則(s 軸の移動)", "第2移動法則(t 軸の移動)"], key="ls_law")
+    st.markdown(f"**{law.split('(')[0]}** を確かめる")
     B = BASE[name]
     f, F, s0 = B["f"], B["F"], B["s0"]
 
@@ -112,8 +119,16 @@ FD = {
 def tab_diff_int():
     st.info("t で微分すると s 倍(初期値の補正つき)、t で積分すると 1/s 倍。"
             "これで微分方程式が s の代数方程式に変わる。")
-    st.latex(r"\mathcal L[f']=sF(s)-f(0),\quad \mathcal L[f'']=s^2F(s)-sf(0)-f'(0),\quad "
-             r"\mathcal L\!\left[\int_0^tf(u)\,du\right]=\frac{F(s)}{s},\quad \mathcal L[tf(t)]=-F'(s)")
+    st.markdown("$\\mathcal L[f(t)]=F(s)$ とする。")
+    st.markdown("**微分法則**(t で微分すると、s 倍して初期値を引く)")
+    st.latex(r"\mathcal L[f'(t)]=sF(s)-f(0)")
+    st.latex(r"\mathcal L[f''(t)]=s^2F(s)-sf(0)-f'(0)")
+    st.markdown("**積分法則**(0 から t まで積分すると、s で割る)")
+    st.latex(r"\mathcal L\!\left[\int_0^tf(u)\,du\right]=\frac{F(s)}{s}")
+    st.markdown("**像関数の微分法則**(t をかけると、F を s で微分して −1 倍)")
+    st.latex(r"\mathcal L[t\,f(t)]=-F'(s)")
+    st.divider()
+    st.markdown("**4つの法則を、数値積分(定義どおりの計算)と比べて確かめる**")
     c1, c2 = st.columns(2)
     name = c1.selectbox("f(t)", list(FD), key="ldi_f")
     s = c2.slider("s", 0.5, 4.0, 1.5, 0.1, key="ldi_s")
@@ -125,11 +140,11 @@ def tab_diff_int():
     Fs = D["F"](s)
     dF = (D["F"](s + 1e-5) - D["F"](s - 1e-5)) / 2e-5
     rows = [
-        {"法則": "L[f']", "数値積分": trapz(D["d"](t) * e, t), "公式": s * Fs - D["f0"], "公式の形": "sF − f(0)"},
-        {"法則": "L[f'']", "数値積分": trapz(D["dd"](t) * e, t), "公式": s * s * Fs - s * D["f0"] - D["d0"],
+        {"法則": "微分法則 L[f']", "数値積分": trapz(D["d"](t) * e, t), "公式": s * Fs - D["f0"], "公式の形": "sF − f(0)"},
+        {"法則": "微分法則 L[f'']", "数値積分": trapz(D["dd"](t) * e, t), "公式": s * s * Fs - s * D["f0"] - D["d0"],
          "公式の形": "s²F − s f(0) − f'(0)"},
-        {"法則": "L[∫₀ᵗ f]", "数値積分": trapz(I * e, t), "公式": Fs / s, "公式の形": "F / s"},
-        {"法則": "L[t f]", "数値積分": trapz(t * ft * e, t), "公式": -dF, "公式の形": "−F'(s)"},
+        {"法則": "積分法則 L[∫₀ᵗ f]", "数値積分": trapz(I * e, t), "公式": Fs / s, "公式の形": "F / s"},
+        {"法則": "像関数の微分 L[t f]", "数値積分": trapz(t * ft * e, t), "公式": -dF, "公式の形": "−F'(s)"},
     ]
     for r in rows:
         r["数値積分"] = f"{r['数値積分']:.6f}"

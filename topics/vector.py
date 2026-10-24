@@ -112,6 +112,28 @@ def field_quiver(F, R, n=17, length=None, normalize=True):
 # ---------- 勾配 ----------
 def tab_gradient():
     st.info("勾配 $\\nabla f$ は「$f$ が最も急に増える向き」を指し、等高線に直交する。")
+    st.subheader("ナブラと勾配")
+    st.markdown("偏微分を成分にもつ記号(演算子)**ナブラ** $\\nabla$ を使う。")
+    st.latex(r"\nabla=\left(\frac{\partial}{\partial x},\ \frac{\partial}{\partial y},\ \frac{\partial}{\partial z}\right)"
+             r"=\vec i\,\frac{\partial}{\partial x}+\vec j\,\frac{\partial}{\partial y}+\vec k\,\frac{\partial}{\partial z}")
+    st.markdown("スカラー場 $f$ に $\\nabla$ を作用させたベクトル場を、$f$ の**勾配**という。")
+    st.latex(r"\mathrm{grad}\,f=\nabla f=\left(\frac{\partial f}{\partial x},\ \frac{\partial f}{\partial y},"
+             r"\ \frac{\partial f}{\partial z}\right)\qquad\left(2\text{変数なら}\ \nabla f="
+             r"\left(\frac{\partial f}{\partial x},\ \frac{\partial f}{\partial y}\right)\right)")
+
+    st.subheader("方向微分係数")
+    st.markdown("点 $P$ から単位ベクトル $\\vec u$($|\\vec u|=1$)の向きに進むとき、$f$ が変化する割合を"
+                "**方向微分係数**という。")
+    st.latex(r"D_{\vec u}f(P)=\lim_{h\to0}\frac{f(P+h\vec u)-f(P)}{h}")
+    st.markdown("- **意味**:$\\vec u$ の向きに単位の長さだけ進んだときの $f$ の増え方(坂道の**傾き**)。"
+                "曲面 $z=f(x,y)$ を $\\vec u$ の向きの垂直な平面で切った断面の、点 $P$ での接線の傾き。\n"
+                "- $\\vec u=(1,0)$ なら $f_x$、$\\vec u=(0,1)$ なら $f_y$(偏微分係数は方向微分係数の特別な場合)。\n"
+                "- 連鎖律から、勾配との内積で計算できる:")
+    st.latex(r"D_{\vec u}f=\nabla f\cdot\vec u=|\nabla f|\cos\varphi\qquad(\varphi:\ \nabla f\ \text{と}\ \vec u\ \text{のなす角})")
+    st.markdown("よって $\\varphi=0$(**$\\nabla f$ の向き**)で最大値 $|\\nabla f|$、"
+                "$\\varphi=90^\\circ$(等高線の向き)で 0 になる。")
+    st.divider()
+
     name = st.selectbox("スカラー場 f", list(SCALARS), key="g_f")
     S = SCALARS[name]
     R = S["R"]
@@ -131,7 +153,7 @@ def tab_gradient():
     m1.metric("f(x₀, y₀)", f"{float(S['f'](x0, y0)):.4f}")
     m2.metric("∇f(x₀, y₀)", f"({gx:.3f}, {gy:.3f})")
     m3.metric("|∇f|(最大の傾き)", f"{gnorm:.4f}")
-    m4.metric("方向微分 D_u f", f"{Du:.4f}")
+    m4.metric("方向微分係数 D_u f", f"{Du:.4f}")
 
     g = np.linspace(-R, R, 160)
     X, Y = np.meshgrid(g, g)
@@ -164,10 +186,23 @@ def tab_gradient():
             f2.add_trace(go.Scatter(x=[th_max], y=[gnorm], mode="markers",
                                     marker=dict(size=11, color=C2, symbol="star"),
                                     name="最大(∇f の向き)"))
-        layout(f2, title="方向微分 D_u f と角度 θ", height=330, xlab="θ(度)", ylab="D_u f")
+        layout(f2, title="方向微分係数 D_u f と角度 θ", height=330, xlab="θ(度)", ylab="D_u f")
         show(f2)
         st.latex(r"D_{\boldsymbol u}f=\nabla f\cdot\boldsymbol u=|\nabla f|\cos\varphi")
         st.caption("φ は ∇f と u のなす角。φ = 0 で最大 |∇f|、φ = 90°(等高線の向き)で 0。")
+
+    st.markdown("**方向微分係数を「断面の傾き」として見る**")
+    hs = np.linspace(-0.6 * R, 0.6 * R, 301)
+    gh = S["f"](x0 + hs * u[0], y0 + hs * u[1])
+    f0 = float(S["f"](x0, y0))
+    fig4 = go.Figure(go.Scatter(x=hs, y=gh, mode="lines", line=dict(color=C1, width=2.5),
+                                name="断面 g(h) = f(P + h u)"))
+    fig4.add_trace(go.Scatter(x=hs, y=f0 + Du * hs, mode="lines", line=dict(color=C3, dash="dash"),
+                              name=f"接線(傾き D_u f = {Du:.3f})"))
+    fig4.add_trace(go.Scatter(x=[0], y=[f0], mode="markers", marker=dict(color="black", size=9), name="h = 0(点 P)"))
+    layout(fig4, height=320, xlab="h(u の向きに進んだ距離)", ylab="f")
+    show(fig4)
+    st.caption("方向 u の角度 θ を変えると断面が変わり、接線の傾き(方向微分係数)も変わる。")
 
     if st.checkbox("曲面 z = f(x, y) を3Dで見る", key="g_3d"):
         f3 = go.Figure(go.Surface(x=g, y=g, z=S["f"](X, Y), colorscale="RdBu_r", opacity=0.9,
@@ -181,9 +216,9 @@ def tab_gradient():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $f(x,y)=x^2y+y^3$ の点 $(1,1)$ における勾配と、"
-                    "$\\boldsymbol u=\\frac{1}{\\sqrt2}(1,1)$ 方向の方向微分を求めよ。")
+                    "$\\boldsymbol u=\\frac{1}{\\sqrt2}(1,1)$ 方向の方向微分係数を求めよ。")
         st.latex(r"\nabla f=(2xy,\ x^2+3y^2)=(2,\ 4),\qquad D_{\boldsymbol u}f=\frac{2+4}{\sqrt2}=3\sqrt2")
-        st.markdown("**問2** 方向微分が 0 になる向きは、等高線とどんな関係にあるか。")
+        st.markdown("**問2** 方向微分係数が 0 になる向きは、等高線とどんな関係にあるか。")
         st.write("$\\nabla f\\cdot\\boldsymbol u=0$ より $\\boldsymbol u\\perp\\nabla f$。"
                  "その向きに進んでも $f$ は変わらないので、**等高線の接線方向**。"
                  "よって $\\nabla f$ は等高線に直交する。")
@@ -193,11 +228,23 @@ def tab_gradient():
 def tab_div_rot():
     st.info("発散 div は「湧き出しの強さ」、回転 rot は「渦の強さ」。"
             "どちらも **小さな円での流出量・循環を面積で割った極限** として定義できる。")
+    st.subheader("定義(ナブラで表す)")
+    st.markdown("ベクトル場 $\\vec F=(F_1,\\ F_2,\\ F_3)$ に対し、$\\nabla$ との**内積**を発散、**外積**を回転という。")
+    st.latex(r"\mathrm{div}\,\vec F=\nabla\cdot\vec F=\frac{\partial F_1}{\partial x}+\frac{\partial F_2}{\partial y}"
+             r"+\frac{\partial F_3}{\partial z}\qquad(\text{スカラー場})")
+    st.latex(r"\mathrm{rot}\,\vec F=\nabla\times\vec F=\begin{vmatrix}\vec i&\vec j&\vec k\\"
+             r"\dfrac{\partial}{\partial x}&\dfrac{\partial}{\partial y}&\dfrac{\partial}{\partial z}\\F_1&F_2&F_3\end{vmatrix}")
+    st.latex(r"=\left(\frac{\partial F_3}{\partial y}-\frac{\partial F_2}{\partial z},\ \ "
+             r"\frac{\partial F_1}{\partial z}-\frac{\partial F_3}{\partial x},\ \ "
+             r"\frac{\partial F_2}{\partial x}-\frac{\partial F_1}{\partial y}\right)\qquad(\text{ベクトル場})")
+    st.markdown("**平面のベクトル場** $\\vec F=(P(x,y),\\ Q(x,y),\\ 0)$ では、rot は z 成分だけが残る。"
+                "以下ではこの z 成分を rot F と書く。")
+    st.latex(r"\nabla\cdot\vec F=\frac{\partial P}{\partial x}+\frac{\partial Q}{\partial y},\qquad "
+             r"\nabla\times\vec F=\left(0,\ 0,\ \frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}\right)")
+    st.divider()
     name, F = pick_field("dr")
-    st.latex(F["tex"] + r",\qquad \mathrm{div}\,\boldsymbol F=\frac{\partial P}{\partial x}"
-             r"+\frac{\partial Q}{\partial y}=" + F["dtex"]
-             + r",\qquad \mathrm{rot}\,\boldsymbol F=\frac{\partial Q}{\partial x}"
-             r"-\frac{\partial P}{\partial y}=" + F["rtex"])
+    st.latex(F["tex"])
+    st.latex(r"\nabla\cdot\boldsymbol F=" + F["dtex"] + r",\qquad (\nabla\times\boldsymbol F)_z=" + F["rtex"])
 
     R = 2.0
     c1, c2, c3, c4 = st.columns(4)
@@ -387,3 +434,111 @@ def tab_green():
         st.write("原点を囲む小さな円 $C_\\varepsilon$ をとり、$C$ と $C_\\varepsilon$ で挟まれた領域に"
                  "グリーンの定理を使うと rot F = 0 より $\\oint_C=\\oint_{C_\\varepsilon}$。"
                  "円周上では $\\boldsymbol F\\cdot d\\boldsymbol r=d\\theta$ なので $2\\pi$。")
+
+
+# ---------- スカラー場とベクトル場 ----------
+def _stream(F, p0, h=0.01, n=600, R=2.2, sgn=1):
+    """dr/dt = F(r) を p0 から追う(ルンゲ・クッタ)。向きだけを使い、速さ1で進む"""
+    def v(p):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            w = np.array([F["P"](*p), F["Q"](*p)], float)
+        m = np.hypot(*w)
+        return w / m if np.isfinite(m) and m > 1e-9 else None
+    pts = [np.array(p0, float)]
+    for _ in range(n):
+        p = pts[-1]
+        k1 = v(p)
+        if k1 is None:
+            break
+        k2 = v(p + sgn * h / 2 * k1)
+        k3 = v(p + sgn * h / 2 * k2) if k2 is not None else None
+        k4 = v(p + sgn * h * k3) if k3 is not None else None
+        if k4 is None:
+            break
+        q = p + sgn * h / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
+        if np.abs(q).max() > R or (F.get("singular") and np.hypot(*q) < 0.05):
+            break
+        pts.append(q)
+    return np.array(pts)
+
+
+def tab_fields():
+    st.info("空間(または平面)の各点に「数」を対応させたものを**スカラー場**、"
+            "「ベクトル」を対応させたものを**ベクトル場**という。")
+    st.markdown(
+        "- **スカラー場** $f(x,y,z)$ の例:温度の分布、山の高さ、電位、圧力。"
+        "平面なら、**等高線**や**色の濃さ**で表す。\n"
+        "- **ベクトル場** $\\vec F(x,y,z)=(F_1,\\ F_2,\\ F_3)$ の例:風や水の流れの速度、重力・電場などの力。"
+    )
+    st.subheader("ベクトル場の図の読み方(2変数の場合)")
+    st.markdown(
+        "平面のベクトル場 $\\vec F(x,y)=(P(x,y),\\ Q(x,y))$ は、**格子状に選んだたくさんの点 $(x,y)$ に、"
+        "その点でのベクトル $\\vec F(x,y)$ を矢印として描く**ことで図示する。\n"
+        "- 矢印の**根元**:ベクトルを計算した点 $(x,y)$\n"
+        "- 矢印の**向き**:その点での $\\vec F$ の向き(流れなら、そこにある水がどちらへ流れるか)\n"
+        "- 矢印の**長さ**:$|\\vec F|$ の大きさ(そのまま描くと重なって見づらいので、縮小したり、"
+        "向きだけ揃えて長さを一定にしたりする。そのときは色や太さで大きさを表すことが多い)\n\n"
+        "本当はすべての点にベクトルがあるが、全部は描けないので代表の点だけを描いている。"
+        "矢印をつないでいくと、流れに乗った粒子の道筋(**流線**)が見えてくる。"
+    )
+    name, F = pick_field("fl")
+    st.latex(F["tex"])
+    R = 2.0
+    c1, c2, c3 = st.columns(3)
+    mode = c1.radio("矢印の長さ", ["向きだけ(長さ一定)", "大きさに比例"], key="fl_mode")
+    n = c2.slider("矢印の本数(1辺)", 5, 25, 13, key="fl_n")
+    flow = c3.checkbox("点から流線を描く", value=True, key="fl_flow")
+    d1, d2 = st.columns(2)
+    x0 = d1.slider("点の x", -1.9, 1.9, 0.9, 0.1, key="fl_x")
+    y0 = d2.slider("点の y", -1.9, 1.9, 0.3, 0.1, key="fl_y")
+
+    g = np.linspace(-R, R, n)
+    X, Y = np.meshgrid(g, g)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        U, V = F["P"](X, Y) + 0 * X, F["Q"](X, Y) + 0 * X
+        M = np.hypot(U, V)
+    if F.get("singular"):
+        bad = np.hypot(X, Y) < 0.6 * (g[1] - g[0])
+        U, V, M = np.where(bad, np.nan, U), np.where(bad, np.nan, V), np.where(bad, np.nan, M)
+    fig = go.Figure()
+    gb = np.linspace(-R, R, 121)
+    XB, YB = np.meshgrid(gb, gb)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        MB = np.hypot(F["P"](XB, YB) + 0 * XB, F["Q"](XB, YB) + 0 * XB)
+    fig.add_trace(go.Heatmap(x=gb, y=gb, z=np.clip(MB, 0, np.nanpercentile(MB, 95)), colorscale="Blues", opacity=0.45,
+                             colorbar=dict(title="|F|", thickness=12), hoverinfo="skip"))
+    fig.add_trace(quiver(X, Y, U, V, length=0.8 * (g[1] - g[0]), normalize=mode.startswith("向き"),
+                         color="#333333", name="F(x, y)"))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        F0 = np.array([F["P"](x0, y0), F["Q"](x0, y0)], float)
+    m0 = np.hypot(*F0)
+    if np.isfinite(m0) and m0 > 1e-12:
+        fig.add_trace(arrow(x0, y0, *(F0 / m0 * 0.5), color=C2, name="点での F"))
+    if flow:
+        fwd = _stream(F, (x0, y0), R=R + 0.2)
+        bwd = _stream(F, (x0, y0), R=R + 0.2, sgn=-1)
+        line = np.vstack([bwd[::-1], fwd[1:]])
+        fig.add_trace(go.Scatter(x=line[:, 0], y=line[:, 1], mode="lines", line=dict(color=C2, width=3),
+                                 name="流線(矢印にいつも接する曲線)"))
+    fig.add_trace(go.Scatter(x=[x0], y=[y0], mode="markers", marker=dict(color="black", size=9), name="点"))
+    layout(fig, height=540, equal=True, xlab="x", ylab="y", xrange=(-R, R), yrange=(-R, R))
+    cA, cB = st.columns([3, 2])
+    with cA:
+        show(fig)
+    with cB:
+        st.markdown("**点 (x, y) でのベクトル**")
+        if np.isfinite(m0):
+            st.latex(rf"\vec F({x0:g},\ {y0:g})=\left({F0[0]:.3f},\ {F0[1]:.3f}\right)")
+            st.latex(rf"|\vec F|={m0:.3f}")
+        else:
+            st.write("この点では F は定義されない。")
+        st.caption("赤い矢印は向きだけを表す(長さは一定)。背景の色は |F| の大きさ。")
+        st.markdown("**流線**は、各点で矢印に接する曲線。流れに置いた小さな粒子(木の葉など)が描く道筋になる。"
+                    "式で書くと $\\dfrac{d\\vec r}{dt}=\\vec F(\\vec r)$ の解。")
+    with st.expander("練習問題"):
+        st.markdown("**問1** $\\vec F=(-y,\\ x)$ の点 $(1,0),\\ (0,1),\\ (-1,0),\\ (0,-1)$ でのベクトルを求め、"
+                    "流線がどんな形になるか答えよ。")
+        st.write("順に $(0,1),\\ (-1,0),\\ (0,-1),\\ (1,0)$。どの点でも位置ベクトル $(x,y)$ と直交するので、"
+                 "流線は**原点中心の円**(反時計回り)。")
+        st.markdown("**問2** スカラー場 $f=x^2+y^2$ の等高線はどんな図形か。")
+        st.write("$x^2+y^2=c$ なので、原点中心の同心円。")

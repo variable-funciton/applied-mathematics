@@ -32,7 +32,21 @@ def _ijk(v):
 def tab_products():
     st.info("ベクトルは1行3列 $(a_1,\\ a_2,\\ a_3)$ で表す。基本ベクトルは "
             "$\\vec{i}=(1,0,0),\\ \\vec{j}=(0,1,0),\\ \\vec{k}=(0,0,1)$。")
-    st.markdown("**ベクトル a, b の成分**")
+    st.subheader("定義")
+    st.markdown("$\\vec a=(a_1,\\ a_2,\\ a_3),\\ \\vec b=(b_1,\\ b_2,\\ b_3)$ とする。")
+    st.markdown("**内積**(スカラー):成分どうしをかけて足す")
+    st.latex(r"\vec a\cdot\vec b=a_1b_1+a_2b_2+a_3b_3")
+    st.markdown("2つのベクトルのなす角を $\\theta\\ (0\\le\\theta\\le\\pi)$ とすると、"
+                "内積は**大きさの積と cos θ のかけ算**でも表せる(余弦定理から導かれる)。")
+    st.latex(r"\vec a\cdot\vec b=|\vec a|\,|\vec b|\cos\theta\qquad\left(\cos\theta=\frac{\vec a\cdot\vec b}{|\vec a|\,|\vec b|}\right)")
+    st.markdown("**外積**(ベクトル)")
+    st.latex(r"\vec a\times\vec b=\left(a_2b_3-a_3b_2,\ \ a_3b_1-a_1b_3,\ \ a_1b_2-a_2b_1\right)"
+             r"=\begin{vmatrix}\vec i&\vec j&\vec k\\a_1&a_2&a_3\\b_1&b_2&b_3\end{vmatrix}")
+    st.markdown("- 向き:$\\vec a$ にも $\\vec b$ にも垂直で、$\\vec a$ から $\\vec b$ へ右ねじを回したときに進む向き\n"
+                "- 大きさ:$|\\vec a\\times\\vec b|=|\\vec a|\\,|\\vec b|\\sin\\theta$"
+                "(= $\\vec a,\\vec b$ が作る平行四辺形の面積)")
+    st.divider()
+    st.markdown("**ベクトル a, b の成分を動かして確かめる**")
     c = st.columns(6)
     a = np.array([c[i].slider(f"a{i + 1}", -3, 3, v, key=f"vp_a{i}") for i, v in enumerate((2, 1, 0))], float)
     b = np.array([c[i + 3].slider(f"b{i + 1}", -3, 3, v, key=f"vp_b{i}") for i, v in enumerate((1, 2, 1))], float)
@@ -47,18 +61,22 @@ def tab_products():
     cos = dot / (na * nb) if na * nb > 0 else np.nan
 
     st.latex(rf"\vec a={_row(a)}={_ijk(a)},\qquad \vec b={_row(b)}={_ijk(b)}")
-    cA, cB = st.columns([2, 3])
+    cA, cB = st.columns([1, 1])
     with cA:
         st.markdown("**内積**")
-        st.latex(rf"\vec a\cdot\vec b=a_1b_1+a_2b_2+a_3b_3="
-                 rf"({a[0]:g})({b[0]:g})+({a[1]:g})({b[1]:g})+({a[2]:g})({b[2]:g})={dot:g}")
+        st.latex(rf"\vec a\cdot\vec b=({a[0]:g})({b[0]:g})+({a[1]:g})({b[1]:g})+({a[2]:g})({b[2]:g})")
+        st.latex(rf"={dot:g}")
         if np.isfinite(cos):
+            st.latex(rf"|\vec a|={na:.4g},\quad |\vec b|={nb:.4g}")
             st.latex(rf"\cos\theta=\frac{{\vec a\cdot\vec b}}{{|\vec a||\vec b|}}=\frac{{{dot:g}}}"
-                     rf"{{{na:.4g}\times{nb:.4g}}}={cos:.4f},\quad \theta={np.degrees(np.arccos(np.clip(cos, -1, 1))):.2f}^\circ")
+                     rf"{{{na:.4g}\times{nb:.4g}}}={cos:.4f}")
+            st.latex(rf"\theta={np.degrees(np.arccos(np.clip(cos, -1, 1))):.2f}^\circ")
         st.markdown("**外積**")
         st.latex(r"\vec a\times\vec b=\begin{vmatrix}\vec i&\vec j&\vec k\\"
-                 rf"{a[0]:g}&{a[1]:g}&{a[2]:g}\\{b[0]:g}&{b[1]:g}&{b[2]:g}\end{{vmatrix}}"
-                 rf"={_row(cr)}")
+                 rf"{a[0]:g}&{a[1]:g}&{a[2]:g}\\{b[0]:g}&{b[1]:g}&{b[2]:g}\end{{vmatrix}}")
+        st.latex(rf"=\left(({a[1]:g})({b[2]:g})-({a[2]:g})({b[1]:g}),\ ({a[2]:g})({b[0]:g})-({a[0]:g})({b[2]:g}),"
+                 rf"\ ({a[0]:g})({b[1]:g})-({a[1]:g})({b[0]:g})\right)")
+        st.latex(rf"={_row(cr)}")
         st.latex(rf"|\vec a\times\vec b|={np.linalg.norm(cr):.4f}\ (\text{{平行四辺形の面積}})")
         st.caption(f"確認:(a×b)·a = {cr @ a:g}、(a×b)·b = {cr @ b:g}(a×b は a にも b にも垂直)")
         if use_c:
@@ -95,15 +113,22 @@ def tab_products():
         st.latex(r"\vec i\cdot\vec i=\vec j\cdot\vec j=\vec k\cdot\vec k=1,\quad \vec i\cdot\vec j=\vec j\cdot\vec k=\vec k\cdot\vec i=0")
         st.latex(r"\vec i\times\vec j=\vec k,\quad \vec j\times\vec k=\vec i,\quad \vec k\times\vec i=\vec j,\quad"
                  r"\vec b\times\vec a=-\vec a\times\vec b")
-        st.latex(r"|\vec a\times\vec b|=|\vec a||\vec b|\sin\theta,\qquad \vec a\perp\vec b\iff\vec a\cdot\vec b=0,"
-                 r"\qquad \vec a\parallel\vec b\iff\vec a\times\vec b=\vec 0")
+        st.latex(r"\vec a\perp\vec b\iff\vec a\cdot\vec b=0,\qquad \vec a\parallel\vec b\iff\vec a\times\vec b=\vec 0")
+        st.markdown("**平行四辺形の面積**($\\vec a,\\ \\vec b$ を2辺とする)")
+        st.latex(r"S=|\vec a\times\vec b|=|\vec a|\,|\vec b|\sin\theta=\sqrt{|\vec a|^2|\vec b|^2-(\vec a\cdot\vec b)^2}")
+        st.caption("三角形の面積はこの半分。平面のベクトル $(a_1,a_2),(b_1,b_2)$ なら $S=|a_1b_2-a_2b_1|$。")
+        st.markdown("**スカラー三重積**($\\vec a,\\ \\vec b,\\ \\vec c$ を3辺とする平行六面体の体積)")
+        st.latex(r"(\vec a\times\vec b)\cdot\vec c=\begin{vmatrix}a_1&a_2&a_3\\b_1&b_2&b_3\\c_1&c_2&c_3\end{vmatrix},"
+                 r"\qquad V=\left|(\vec a\times\vec b)\cdot\vec c\right|")
+        st.latex(r"(\vec a\times\vec b)\cdot\vec c=(\vec b\times\vec c)\cdot\vec a=(\vec c\times\vec a)\cdot\vec b")
+        st.caption("四面体の体積は V の 1/6。値が 0 ⇔ 3つのベクトルが同一平面上にある。")
     with st.expander("練習問題"):
         st.markdown("**問1** $\\vec a=(1,2,2),\\ \\vec b=(2,-1,2)$ のなす角と、"
                     "$\\vec a,\\vec b$ の両方に垂直な単位ベクトルを求めよ。")
         st.latex(r"\vec a\cdot\vec b=2-2+4=4,\ |\vec a|=|\vec b|=3,\ \cos\theta=\frac49")
         st.latex(r"\vec a\times\vec b=(4+2,\ 4-2,\ -1-4)=(6,\ 2,\ -5),\quad \pm\frac{1}{\sqrt{65}}(6,\ 2,\ -5)")
         st.markdown("**問2** 3点 $A(1,0,0),\\ B(0,2,0),\\ C(0,0,3)$ を頂点とする三角形の面積を求めよ。")
-        st.latex(r"\overrightarrow{AB}\times\overrightarrow{AC}=(-1,2,0)\times(-1,0,3)=(6,\ 3,\ 2),\quad"
+        st.latex(r"\overrightarrow{AB}\times\overrightarrow{AC}=(-1,2,0)\times(-1,0,3)=(6,\ 3,\ 2),\quad "
                  r"S=\frac12\sqrt{36+9+4}=\frac72")
 
 
@@ -285,6 +310,32 @@ def tab_curve():
         st.latex(r"|\vec r'|=\sqrt{2-2\cos t}=2\sin\frac t2,\quad s=\int_0^{2\pi}2\sin\frac t2\,dt=8")
 
 
+def _num(v, d=3):
+    v = float(v)
+    return "0" if abs(v) < 10 ** (-d - 1) else f"{v:.{d}g}"
+
+
+def _coef(c, var):
+    """係数 c と変数 var から ' + 0.5x' / ' - x' のような項(c = 0 なら空)"""
+    c = float(c)
+    if abs(c) < 1e-9:
+        return ""
+    sgn = "-" if c < 0 else "+"
+    m = abs(c)
+    return sgn + ("" if abs(m - 1) < 1e-9 else _num(m)) + var
+
+
+def _lin(c, var, x0):
+    """c(var − x0) の項(符号つき)"""
+    c = float(c)
+    if abs(c) < 1e-9:
+        return ""
+    inner = var if abs(x0) < 1e-9 else f"({var}{'-' if x0 > 0 else '+'}{_num(abs(x0))})"
+    sgn = "-" if c < 0 else "+"
+    m = abs(c)
+    return sgn + ("" if abs(m - 1) < 1e-9 else _num(m)) + inner
+
+
 # ============================================================
 # 4. 曲面
 # ============================================================
@@ -374,14 +425,19 @@ def tab_surface():
         show(fig)
     with cB:
         st.latex(rf"\vec r_0={vec_tex(p)}")
-        st.latex(rf"\vec r_u={vec_tex(ru)},\ \ \vec r_v={vec_tex(rv)}")
-        st.latex(rf"\vec n=\vec r_u\times\vec r_v={vec_tex(n)}")
+        st.latex(rf"\vec r_u={vec_tex(ru)}")
+        st.latex(rf"\vec r_v={vec_tex(rv)}")
+        st.latex(r"\vec n=\vec r_u\times\vec r_v")
+        st.latex(rf"\quad={vec_tex(n)}")
         if nn > 1e-9:
             d = float(n @ p)
-            st.markdown("**接平面の方程式**")
-            st.latex(rf"{n[0]:.3g}(x-{p[0]:.3g})+{n[1]:.3g}(y-{p[1]:.3g})+{n[2]:.3g}(z-{p[2]:.3g})=0"
-                     .replace("+-", "-").replace("--", "+"))
-            st.latex(rf"\Longleftrightarrow\ {n[0]:.3g}x+{n[1]:.3g}y+{n[2]:.3g}z={d:.3g}".replace("+-", "-"))
+            st.markdown("**接平面の方程式** $\\ \\vec n\\cdot(\\vec x-\\vec r_0)=0$")
+            terms = [_lin(n[k], v, p[k]) for k, v in enumerate("xyz")]
+            terms = [t for t in terms if t]
+            body = r"\\&".join(terms)
+            st.latex(r"\begin{aligned}&" + body.lstrip("+") + r"=0\end{aligned}")
+            rhs = "".join(_coef(n[k], v) for k, v in enumerate("xyz")).lstrip("+") or "0"
+            st.latex(r"\Longleftrightarrow\ " + rhs + f"={_num(d)}")
         else:
             st.warning("この点では r_u × r_v = 0(パラメータの特異点:球面の極など)。法線が決まりません。")
         st.markdown("**曲面積**")
@@ -393,8 +449,8 @@ def tab_surface():
 
     with st.expander("z = f(x, y) の形の曲面"):
         st.latex(r"\vec r(x,y)=(x,\ y,\ f(x,y)),\quad \vec r_x\times\vec r_y=(-f_x,\ -f_y,\ 1)")
-        st.latex(r"\text{接平面:}\ z-z_0=f_x(x_0,y_0)(x-x_0)+f_y(x_0,y_0)(y-y_0),\qquad "
-                 r"S=\iint_D\sqrt{1+f_x^2+f_y^2}\,dxdy")
+        st.latex(r"\text{接平面:}\ z-z_0=f_x(x_0,y_0)(x-x_0)+f_y(x_0,y_0)(y-y_0)")
+        st.latex(r"\text{曲面積:}\ S=\iint_D\sqrt{1+f_x^2+f_y^2}\,dxdy")
     with st.expander("練習問題"):
         st.markdown("**問6** 曲面 $z=x^2+y^2$ の点 $(1,1,2)$ における接平面の方程式を求めよ。")
         st.latex(r"f_x=2,\ f_y=2\ \Rightarrow\ z-2=2(x-1)+2(y-1),\ \ z=2x+2y-2")

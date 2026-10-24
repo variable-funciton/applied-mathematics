@@ -334,3 +334,107 @@ def tab_dft_series():
 # ============================================================
 # 2-4'. 既存:FFT とフィルタは fourier.tab_dft
 # ============================================================
+
+
+# ============================================================
+# 1-3. フーリエ級数の収束定理とパーセバルの等式
+# ============================================================
+def tab_convergence_parseval():
+    from topics.fourier import NMAX, partial_sum
+
+    st.info("フーリエ級数はどんな意味で f に収束するのか。各点での収束(収束定理)と、"
+            "2乗平均の意味での収束(パーセバルの等式)の2つを見る。ここでは周期 2π(L = π)で考える。")
+
+    st.subheader("フーリエ級数の収束定理")
+    st.markdown("f が周期 2π で**区分的に滑らか**(有限個の点を除いて f, f′ が連続で、その点で左右の極限が存在する)ならば、"
+                "すべての x で")
+    st.latex(r"\lim_{N\to\infty}S_N(x)=\frac{f(x+0)+f(x-0)}{2},\qquad "
+             r"S_N(x)=\frac{a_0}{2}+\sum_{n=1}^{N}(a_n\cos nx+b_n\sin nx)=\sum_{n=-N}^{N}c_ne^{inx}")
+    st.caption("f が連続な点では f(x) に、不連続点では左右の極限の平均(跳びの真ん中)に収束する。")
+
+    c1, c2 = st.columns(2)
+    name = c1.selectbox("波形", list(WAVES), key="cp_w")
+    k0 = c2.slider("調べる点 x₀ = kπ/24 の k", -24, 24, 0, key="cp_k")
+    x0 = k0 * PI / 24
+    c2.caption(f"x₀ = {k0}π/24 ≈ {x0:.4f}")
+    W = WAVES[name]
+    a, b, energy = coefficients(name, 1.0)
+    fl = float(W["f"](np.array([x0 - 1e-9]), 1.0)[0])
+    fr = float(W["f"](np.array([x0 + 1e-9]), 1.0)[0])
+    target = (fl + fr) / 2
+    Ns = np.arange(1, NMAX + 1)
+    SN = np.array([partial_sum(np.array([x0]), a, b, N)[0] for N in Ns])
+    cA, cB = st.columns(2)
+    with cA:
+        x = np.linspace(-PI, PI, 1201)
+        fig = go.Figure(go.Scatter(x=x, y=W["f"](x, 1.0), mode="lines", line=dict(color=GRAY, width=2), name="f(x)"))
+        fig.add_trace(go.Scatter(x=x, y=partial_sum(x, a, b, 15), mode="lines", line=dict(color=C1), name="S₁₅(x)"))
+        fig.add_trace(go.Scatter(x=[x0], y=[target], mode="markers", marker=dict(color=C2, size=11),
+                                 name="(f(x₀+0)+f(x₀−0))/2"))
+        layout(fig, title="波形と調べる点", xlab="x", height=360)
+        show(fig)
+    with cB:
+        fig = go.Figure(go.Scatter(x=Ns, y=SN, mode="lines+markers", marker=dict(size=4), line=dict(color=C1),
+                                   name="S_N(x₀)"))
+        fig.add_hline(y=target, line=dict(color=C2, dash="dash"), annotation_text=f"{target:.4f}")
+        layout(fig, title="S_N(x₀) を N の関数として見る", xlab="N", height=360, legend=False)
+        show(fig)
+    if abs(fl - fr) > 1e-6:
+        st.warning(f"x₀ は不連続点:f(x₀−0) = {fl:g}、f(x₀+0) = {fr:g}。S_N(x₀) はその平均 {target:g} に収束する。")
+    else:
+        st.write(f"x₀ では f は連続で、S_N(x₀) → f(x₀) = {target:.5f}(N = {NMAX} で {SN[-1]:.5f})。")
+        st.caption("不連続点のすぐ近くでは、収束はとても遅い(ギブス現象の山が近くにあるため)。")
+
+    st.divider()
+    st.subheader("パーセバルの等式")
+    st.markdown("関数と数列それぞれの「大きさ」を、次のノルムで測る。")
+    st.latex(r"\|f\|_{L^2}=\left(\frac{1}{2\pi}\int_{-\pi}^{\pi}|f(x)|^2\,dx\right)^{1/2},\qquad "
+             r"\|\{c_n\}\|_{\ell^2}=\left(\sum_{n=-\infty}^{\infty}|c_n|^2\right)^{1/2}")
+    st.caption("$L^2$ ノルムは関数の2乗平均の平方根、$\\ell^2$ ノルムは数列の各項の2乗の和の平方根"
+               "(ベクトルの長さ $\\sqrt{x_1^2+x_2^2+\\cdots}$ を無限次元にしたもの)。")
+    st.markdown("**パーセバルの等式**:f が $L^2$ の関数(2乗が積分可能)ならば、フーリエ係数 $c_n$ について")
+    st.latex(r"\|f\|_{L^2}=\|\{c_n\}\|_{\ell^2}\quad\text{すなわち}\quad "
+             r"\frac{1}{2\pi}\int_{-\pi}^{\pi}|f(x)|^2dx=\sum_{n=-\infty}^{\infty}|c_n|^2")
+    st.latex(r"\left(\text{実数の形:}\ \frac1\pi\int_{-\pi}^{\pi}|f(x)|^2dx=\frac{a_0^2}{2}+\sum_{n=1}^{\infty}(a_n^2+b_n^2)\right)")
+    st.markdown("さらに、部分和との誤差(2乗平均誤差)は、使わなかった係数の $\\ell^2$ ノルムに等しい:")
+    st.latex(r"\|f-S_N\|_{L^2}^2=\sum_{|n|>N}|c_n|^2\ \xrightarrow{N\to\infty}\ 0")
+    st.caption("各点では収束しない場所(ギブス現象)があっても、2乗平均の意味ではいつも 0 に収束する。")
+
+    N = st.slider("N", 1, NMAX, 10, key="cp_N")
+    fnorm2 = energy / 2
+    cn2 = np.r_[a[0] ** 2 / 4, (a[1:] ** 2 + b[1:] ** 2) / 4]  # |c_n|² (n ≥ 0)、|c_{−n}| = |c_n|
+    partial = cn2[0] + 2 * np.cumsum(cn2[1:])
+    m1, m2, m3 = st.columns(3)
+    m1.metric("‖f‖²_L²", f"{fnorm2:.6f}")
+    m2.metric(f"Σ_{{|n|≤{N}}} |c_n|²", f"{partial[N - 1]:.6f}")
+    m3.metric(f"‖f − S_{N}‖²_L²", f"{fnorm2 - partial[N - 1]:.2e}")
+    cA, cB = st.columns(2)
+    with cA:
+        fig = go.Figure(go.Scatter(x=Ns, y=partial, mode="lines", line=dict(color=C1, width=2.5),
+                                   name="Σ_{|n|≤N} |c_n|²"))
+        fig.add_hline(y=fnorm2, line=dict(color=C2, dash="dash"), annotation_text="‖f‖²")
+        fig.add_vline(x=N, line=dict(color=GRAY, dash="dot"))
+        layout(fig, title="係数の2乗和は ‖f‖² に近づく", xlab="N", height=340, legend=False)
+        show(fig)
+    with cB:
+        err = np.maximum(fnorm2 - partial, 1e-16)
+        fig = go.Figure(go.Scatter(x=Ns, y=err, mode="lines", line=dict(color=C3, width=2.5), name="‖f − S_N‖²"))
+        fig.add_vline(x=N, line=dict(color=GRAY, dash="dot"))
+        fig.update_yaxes(type="log")
+        layout(fig, title="2乗平均誤差 ‖f − S_N‖²(対数目盛)", xlab="N", height=340, legend=False)
+        show(fig)
+    st.caption("誤差の減り方は、なめらかな波形ほど速い(矩形波・のこぎり波は 1/N、三角波は 1/N³ 程度)。")
+
+    with st.expander("応用:級数の和を求める(バーゼル問題)"):
+        st.markdown("$f(x)=x\\ (-\\pi<x<\\pi)$ では $|c_n|=\\dfrac1{|n|}\\ (n\\ne0),\\ c_0=0$。パーセバルの等式より")
+        st.latex(r"\frac{1}{2\pi}\int_{-\pi}^{\pi}x^2dx=\frac{\pi^2}{3}=\sum_{n\ne0}\frac{1}{n^2}=2\sum_{n=1}^{\infty}\frac1{n^2}"
+                 r"\quad\Longrightarrow\quad \sum_{n=1}^{\infty}\frac{1}{n^2}=\frac{\pi^2}{6}")
+        n = np.arange(1, 10001)
+        st.write(f"確認:Σ_{{n≤10000}} 1/n² = {np.sum(1 / n ** 2):.6f}、π²/6 = {PI ** 2 / 6:.6f}")
+    with st.expander("練習問題"):
+        st.markdown("**問1** 矩形波($-1\\ (-\\pi<x<0),\\ 1\\ (0<x<\\pi)$)にパーセバルの等式を使い、"
+                    "$\\displaystyle\\sum_{k=1}^{\\infty}\\frac{1}{(2k-1)^2}$ を求めよ。")
+        st.latex(r"b_{2k-1}=\frac{4}{(2k-1)\pi},\quad \frac1\pi\int_{-\pi}^{\pi}1\,dx=2=\sum_k\frac{16}{(2k-1)^2\pi^2}"
+                 r"\ \Rightarrow\ \sum_{k=1}^{\infty}\frac{1}{(2k-1)^2}=\frac{\pi^2}{8}")
+        st.markdown("**問2** 矩形波のフーリエ級数は $x=0$ でどんな値に収束するか。収束定理から答えよ。")
+        st.write("左右の極限 −1 と 1 の平均で **0**。")

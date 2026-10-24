@@ -67,29 +67,32 @@ def partial_sum(x, a, b, N, fejer=False):
 
 # ---------- フーリエ級数 ----------
 def tab_series():
-    st.info("周期 2π の関数を、いろいろな周波数の cos・sin の和で表す。項を増やすと元の波形に近づいていく。")
-    st.latex(r"f(x)\sim\frac{a_0}{2}+\sum_{n=1}^{\infty}(a_n\cos nx+b_n\sin nx),\quad"
-             r"a_n=\frac1\pi\int_{-\pi}^{\pi}f(x)\cos nx\,dx,\quad b_n=\frac1\pi\int_{-\pi}^{\pi}f(x)\sin nx\,dx")
-    c1, c2, c3 = st.columns([2, 2, 1])
+    st.info("周期 2L の関数を、いろいろな周波数の cos・sin の和で表す。項を増やすと元の波形に近づいていく。")
+    st.markdown("**一般周期 2L のフーリエ級数**")
+    st.latex(r"f(x)\sim\frac{a_0}{2}+\sum_{n=1}^{\infty}\left(a_n\cos\frac{n\pi x}{L}+b_n\sin\frac{n\pi x}{L}\right)")
+    st.latex(r"a_n=\frac1L\int_{-L}^{L}f(x)\cos\frac{n\pi x}{L}\,dx\quad(n=0,1,2,\ldots),\qquad "
+             r"b_n=\frac1L\int_{-L}^{L}f(x)\sin\frac{n\pi x}{L}\,dx\quad(n=1,2,\ldots)")
+    st.caption("L = π とすると、周期 2π のよく使う形 $a_n=\\frac1\\pi\\int_{-\\pi}^{\\pi}f(x)\\cos nx\\,dx$ などになる。")
+
+    c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
     name = c1.selectbox("波形", list(WAVES), key="fs_wave")
-    N = c2.slider("項数 N(部分和 S_N)", 1, NMAX, 5, key="fs_N")
+    Lc = c2.radio("周期 2L", ["2π(L = π)", "2(L = 1)", "4(L = 2)", "10(L = 5)"], key="fs_L")
+    N = c3.slider("項数 N(部分和 S_N)", 1, NMAX, 5, key="fs_N")
     d = 1.0
     if "パルス" in name:
-        d = c3.slider("d", 0.1, 3.0, 1.0, 0.1, key="fs_d")
+        d = c4.slider("d", 0.1, 3.0, 1.0, 0.1, key="fs_d")
+    L = {"2π(L = π)": PI, "2(L = 1)": 1.0, "4(L = 2)": 2.0, "10(L = 5)": 5.0}[Lc]
     W = WAVES[name]
+    st.markdown("**選んだ波形(L = π の形で表示)**")
     st.latex(W["tex"])
     st.latex(W["ser"])
+    if L != PI:
+        st.caption(f"周期 {2 * L:g} の場合は、上の式の x を πx/{L:g} に置きかえたもの。"
+                   "係数 a_n, b_n は L によらず同じ値になる(置換積分 x = Lu/π で確かめよう)。")
 
     a, b, energy = coefficients(name, d)
     fejer = st.checkbox("フェイェール平均(チェザロ平均)σ_N も表示する", key="fs_fej")
 
-    st.markdown("**一般周期 2L に伸縮する**")
-    Lc = st.radio("周期 2L", ["2π(L = π)", "2(L = 1)", "4(L = 2)", "10(L = 5)"], horizontal=True, key="fs_L")
-    L = {"2π(L = π)": PI, "2(L = 1)": 1.0, "4(L = 2)": 2.0, "10(L = 5)": 5.0}[Lc]
-    st.latex(r"f(x)\sim\frac{a_0}{2}+\sum_{n=1}^{\infty}\left(a_n\cos\frac{n\pi x}{L}+b_n\sin\frac{n\pi x}{L}\right),"
-             r"\quad a_n=\frac1L\int_{-L}^{L}f(x)\cos\frac{n\pi x}{L}dx,\quad b_n=\frac1L\int_{-L}^{L}f(x)\sin\frac{n\pi x}{L}dx")
-    st.caption("上の式の波形の x を πx/L に置きかえたもの。係数 a_n, b_n は L によらず同じになる"
-               "(置換積分 x = Lu/π で確かめよう)。")
     xx = np.linspace(-3 * L, 3 * L, 3001)
     x = PI * xx / L
     f = W["f"](x, d)
@@ -108,24 +111,29 @@ def tab_series():
     layout(fig, height=420, xlab="x")
     show(fig)
 
-    m1, m2, m3 = st.columns(3)
-    partial_energy = a[0] ** 2 / 2 + np.sum(a[1:N + 1] ** 2 + b[1:N + 1] ** 2)
-    m1.metric("パーセバル:部分和のエネルギー / 全エネルギー", f"{partial_energy / energy:.4%}")
-    m2.metric("平均二乗誤差 (1/π)∫|f − S_N|²", f"{energy - partial_energy:.5f}")
     if W["jump"]:
         over = S.max() - f.max()
-        m3.metric("最大の行き過ぎ max S_N − max f", f"{over:.4f}")
+        st.metric("最大の行き過ぎ max S_N − max f", f"{over:.4f}")
         st.caption("不連続点の近くでは、N を増やしても行き過ぎ(跳びの約 9%)が消えない:**ギブス現象**。"
-                   "ただし行き過ぎる場所は不連続点に近づき、平均二乗誤差は 0 に向かう。"
-                   "フェイェール平均を使うとギブス現象は起こらない。")
+                   "ただし行き過ぎる場所は不連続点に近づき、平均二乗誤差は 0 に向かう"
+                   "(「3. 収束定理とパーセバルの等式」の節)。フェイェール平均を使うとギブス現象は起こらない。")
 
+    st.subheader("スペクトル")
+    st.markdown(
+        "フーリエ級数は、f を周波数 n の波 $\\cos\\frac{n\\pi x}{L},\\ \\sin\\frac{n\\pi x}{L}$ に分解したもの。"
+        "**各周波数の波がどれだけの大きさで含まれているか**を、n ごとに並べたものを**スペクトル**という。\n"
+        "- 振幅スペクトル:$A_n=\\sqrt{a_n^2+b_n^2}$($a_n\\cos+b_n\\sin=A_n\\cos(\\cdots-\\varphi_n)$ とまとめたときの振幅)\n"
+        "- 棒が高い n ほど、その周波数の成分を多く含む。音なら、どの高さの音がどれだけ混ざっているか(音色)にあたる。\n"
+        "- なめらかな波形ほど、n が大きくなると速く 0 に近づく(三角波は 1/n²、矩形波は 1/n)。"
+    )
     cA, cB = st.columns(2)
     with cA:
         n = np.arange(0, N + 1)
         amp = np.hypot(a[:N + 1], b[:N + 1])
         amp[0] = abs(a[0]) / 2
         fig = go.Figure(go.Bar(x=n, y=amp, marker_color=C1, name="振幅"))
-        layout(fig, title="振幅スペクトル √(a_n² + b_n²)", xlab="n", height=330, legend=False)
+        layout(fig, title="振幅スペクトル A_n = √(a_n² + b_n²)(A_0 = |a_0|/2)", xlab="周波数の番号 n",
+               ylab="振幅", height=330, legend=False)
         show(fig)
     with cB:
         rows = [{"n": k, "a_n": f"{a[k]:.5f}", "b_n": f"{b[k]:.5f}"} for k in range(0, min(N, 12) + 1)]
@@ -159,7 +167,7 @@ def tab_series():
 # ---------- 離散フーリエ変換 ----------
 def tab_dft():
     st.info("計測した信号(サンプル列)を FFT で周波数成分に分け、不要な成分(ノイズ)を取り除く。")
-    st.latex(r"x(t)=A_1\sin 2\pi f_1t+A_2\sin 2\pi f_2t+(\text{ノイズ}),\qquad"
+    st.latex(r"x(t)=A_1\sin 2\pi f_1t+A_2\sin 2\pi f_2t+(\text{ノイズ}),\qquad "
              r"X_k=\sum_{n=0}^{N-1}x_n\,e^{-2\pi i kn/N}")
     c1, c2, c3 = st.columns(3)
     f1 = c1.slider("f₁ [Hz]", 1, 120, 5, key="fd_f1")

@@ -111,6 +111,22 @@ def tab_vector_line():
     st.info("ベクトル場の線積分は、力 F が経路に沿ってする**仕事**。"
             "F が勾配場(保存場)$\\vec F=\\nabla\\varphi$ なら、値は始点と終点だけで決まる。")
     st.latex(r"\int_C\vec F\cdot d\vec r=\int_C P\,dx+Q\,dy=\int_a^b\left(P\,x'(t)+Q\,y'(t)\right)dt")
+    with st.expander("保存場とは", expanded=True):
+        st.markdown(
+            "ベクトル場 $\\vec F$ が、あるスカラー場 $\\varphi$ の勾配として $\\vec F=\\nabla\\varphi$ と書けるとき、"
+            "$\\vec F$ を**保存場**(保存力の場)、$\\varphi$ を**ポテンシャル**という"
+            "(物理では $\\vec F=-\\nabla U$ と書き、$U$ を位置エネルギーとよぶ)。"
+        )
+        st.latex(r"\int_C\nabla\varphi\cdot d\vec r=\int_a^b\frac{d}{dt}\varphi(\vec r(t))\,dt"
+                 r"=\varphi(\mathrm B)-\varphi(\mathrm A)")
+        st.markdown(
+            "なので、保存場では次が成り立つ(単連結な領域では、これらはすべて同値)。\n"
+            "1. 線積分(仕事)は**始点と終点だけで決まり、途中の経路によらない**\n"
+            "2. どんな閉曲線を一周しても $\\oint_C\\vec F\\cdot d\\vec r=0$(一周すると、した仕事が 0 に戻る)\n"
+            "3. $\\mathrm{rot}\\,\\vec F=\\vec 0$(平面なら $\\dfrac{\\partial Q}{\\partial x}=\\dfrac{\\partial P}{\\partial y}$)\n\n"
+            "「保存」の名前は、力学的エネルギー(運動エネルギー + 位置エネルギー)が保存されることから。"
+            "重力や静電気力は保存力、摩擦力は保存力ではない(同じ点に戻っても、経路が長いほど多くの仕事が失われる)。"
+        )
     name = st.selectbox("ベクトル場", list(VF2), key="vl_f")
     F = VF2[name]
     st.latex(F["tex"])
@@ -200,6 +216,17 @@ def tab_surface_integral():
             "ベクトル場は法線方向の成分を積分して**流束**(曲面を通り抜ける量)を求める。")
     st.latex(r"\iint_S f\,dS=\iint_D f(\vec r)\,|\vec r_u\times\vec r_v|\,du\,dv,\qquad "
              r"\iint_S\vec F\cdot\vec n\,dS=\iint_D\vec F(\vec r)\cdot(\vec r_u\times\vec r_v)\,du\,dv")
+    with st.expander("流束とは", expanded=True):
+        st.markdown(
+            "$\\vec F$ を水の流れの速度と考える。曲面 $S$ を網のように置いたとき、"
+            "**単位時間に網を通り抜ける水の量**が流束(フラックス)である。\n"
+            "- 小さな面 $dS$ を通り抜ける量は、流れの**法線方向の成分** $\\vec F\\cdot\\vec n$ と面積の積 "
+            "$\\vec F\\cdot\\vec n\\,dS$(面に沿う成分は網を通り抜けない)\n"
+            "- 流れが面に垂直なら最大、面に平行なら 0、$\\vec n$ と逆向きに通り抜けるなら負\n"
+            "- これを曲面全体で足し合わせたものが流束 $\\displaystyle\\iint_S\\vec F\\cdot\\vec n\\,dS$\n\n"
+            "流束の符号は、どちら側を表とするか(単位法線 $\\vec n$ の向き)で決まる。"
+            "閉曲面では外向きを正にとり、「中から出ていく量」を表す。電場なら電気力線の本数、熱なら熱の流れの量にあたる。"
+        )
     sname = st.selectbox("曲面 S", list(SURF_I), key="si_s")
     S = SURF_I[sname]
     st.latex(S["tex"])
@@ -594,10 +621,12 @@ def tab_gradient_meaning():
 # ============================================================
 # 8. 楕円の内部での光の反射
 # ============================================================
-def reflect_path(a, b, p, d, nref):
-    """楕円 x²/a²+y²/b²=1 の内部で、点 p から方向 d に出た光の反射点の列"""
+def reflect_path(a, b, p, d, nref, foci=None):
+    """楕円 x²/a²+y²/b²=1 の内部で、点 p から方向 d に出た光が壁に当たる点の列(nref 回分)。
+    foci=(F_自分, F_相手) を与えると、焦点を出た光として「反射後は必ずもう一方の焦点へ向かう」性質を使って
+    向きを決める(丸め誤差が積み重なって長軸からずれるのを防ぐ)。"""
     pts, dirs, normals = [np.array(p, float)], [np.array(d, float) / np.linalg.norm(d)], []
-    for _ in range(nref):
+    for k in range(nref):
         p, d = pts[-1], dirs[-1]
         A = d[0] ** 2 / a ** 2 + d[1] ** 2 / b ** 2
         B = 2 * (p[0] * d[0] / a ** 2 + p[1] * d[1] / b ** 2)
@@ -605,11 +634,58 @@ def reflect_path(a, b, p, d, nref):
         t = (-B + np.sqrt(max(B * B - 4 * A * C, 0))) / (2 * A)
         q = p + t * d
         n = np.array([2 * q[0] / a ** 2, 2 * q[1] / b ** 2])
-        d2 = d - 2 * (d @ n) / (n @ n) * n
+        if foci is not None:
+            target = np.array(foci[(k + 1) % 2], float)  # 1回目の反射後は相手の焦点、2回目は元の焦点…
+            d2 = target - q
+        else:
+            d2 = d - 2 * (d @ n) / (n @ n) * n
         pts.append(q)
         dirs.append(d2 / np.linalg.norm(d2))
         normals.append(n / np.linalg.norm(n))
     return np.array(pts), np.array(dirs), np.array(normals)
+
+
+def _light_animation(path, static, a, b, frames=120, title=None, height=480):
+    """折れ線 path に沿って光の点が進むアニメーション(通った跡を残す)"""
+    seg = np.linalg.norm(np.diff(path, axis=0), axis=1)
+    cum = np.r_[0, np.cumsum(seg)]
+    total = cum[-1]
+    ss = np.linspace(0, total, frames)
+
+    def upto(sv):
+        k = int(np.searchsorted(cum, sv, side="right")) - 1
+        k = min(max(k, 0), len(seg) - 1)
+        r = (sv - cum[k]) / seg[k] if seg[k] > 0 else 0
+        head = path[k] + r * (path[k + 1] - path[k])
+        trail = np.vstack([path[:k + 1], head])
+        return trail, head
+
+    def tr(sv):
+        trail, head = upto(sv)
+        return [go.Scatter(x=trail[:, 0], y=trail[:, 1], mode="lines", line=dict(color=C2, width=2.5), name="光の道筋"),
+                go.Scatter(x=[head[0]], y=[head[1]], mode="markers",
+                           marker=dict(color="#ffcc00", size=14, line=dict(color=C2, width=2)), name="光")]
+
+    fig = go.Figure(data=tr(0.0) + list(static),
+                    frames=[go.Frame(data=tr(sv), name=str(i), traces=[0, 1]) for i, sv in enumerate(ss)])
+    fig.update_layout(
+        updatemenus=[dict(type="buttons", showactive=False, x=0, y=-0.1, xanchor="left", yanchor="top",
+                          direction="left",
+                          buttons=[dict(label="▶ 光を放つ", method="animate",
+                                        args=[None, dict(frame=dict(duration=40, redraw=False), fromcurrent=True,
+                                                         transition=dict(duration=0))]),
+                                   dict(label="■ 停止", method="animate",
+                                        args=[[None], dict(mode="immediate", frame=dict(duration=0, redraw=False))])])],
+        sliders=[dict(active=0, x=0.25, y=-0.06, len=0.75, currentvalue=dict(prefix="進んだ距離の割合 "),
+                      steps=[dict(method="animate", label=f"{i / (frames - 1):.0%}" if i % 10 == 0 else "",
+                                  args=[[str(i)], dict(mode="immediate", frame=dict(duration=0, redraw=False),
+                                                       transition=dict(duration=0))])
+                             for i in range(frames)])],
+    )
+    layout(fig, title=title, height=height, equal=True, xlab="x", ylab="y",
+           xrange=(-a * 1.12, a * 1.12), yrange=(-b * 1.15, b * 1.15))
+    fig.update_layout(margin=dict(b=100))
+    return fig
 
 
 PYTH = [(Fr(3, 5), Fr(4, 5)), (Fr(4, 5), Fr(3, 5)), (Fr(5, 13), Fr(12, 13)), (Fr(12, 13), Fr(5, 13)),
@@ -650,33 +726,45 @@ def tab_ellipse():
             st.warning("出発点が楕円の外です。内側に戻してください。")
             return
     d0 = np.array([np.cos(np.radians(th)), np.sin(np.radians(th))])
-    pts, dirs, normals = reflect_path(a, b, p0, d0, nref)
+    d0[np.abs(d0) < 1e-12] = 0.0  # 0°, 90°, 180°, 270° をちょうどの向きにする
+    focus = start.startswith("焦点")
+    F1, F2 = np.array([-cfoc, 0.0]), np.array([cfoc, 0.0])
+    # 最後の反射のあと、次に壁に当たるまでの道筋も描く(焦点を通ることが見えるように)
+    pts, dirs, normals = reflect_path(a, b, p0, d0, nref + 1, foci=(F1, F2) if focus else None)
+    path = pts[:nref + 2]
 
     tt = np.linspace(0, 2 * PI, 400)
-    fig = go.Figure(go.Scatter(x=a * np.cos(tt), y=b * np.sin(tt), mode="lines", line=dict(color=C1, width=3),
-                               name="楕円"))
-    fig.add_trace(go.Scatter(x=pts[:, 0], y=pts[:, 1], mode="lines+markers", line=dict(color=C2, width=2),
-                             marker=dict(size=5), name="光の道筋"))
-    for k, (q, n) in enumerate(zip(pts[1:4], normals[:3])):
-        fig.add_trace(arrow(q[0], q[1], -0.5 * n[0], -0.5 * n[1], color=C3, name="法線 ∇g" if k == 0 else "",
-                            width=2))
-    fig.add_trace(go.Scatter(x=[-cfoc, cfoc], y=[0, 0], mode="markers+text", text=["F₁", "F₂"],
-                             textposition="bottom center", marker=dict(size=10, color="black", symbol="star"),
+    static = [go.Scatter(x=a * np.cos(tt), y=b * np.sin(tt), mode="lines", line=dict(color=C1, width=3), name="楕円"),
+              go.Scatter(x=pts[1:nref + 1, 0], y=pts[1:nref + 1, 1], mode="markers", marker=dict(size=6, color=C2),
+                         name="反射点")]
+    for k, (q, n) in enumerate(zip(pts[1:min(nref, 3) + 1], normals[:3])):
+        static.append(arrow(q[0], q[1], -0.5 * n[0], -0.5 * n[1], color=C3, name="法線 ∇g" if k == 0 else "", width=2))
+    static.append(go.Scatter(x=[-cfoc, cfoc], y=[0, 0], mode="markers+text", text=["F₁", "F₂"],
+                             textposition="bottom center", marker=dict(size=11, color="black", symbol="star"),
                              name="焦点"))
-    layout(fig, height=480, equal=True, xlab="x", ylab="y", xrange=(-a - 0.3, a + 0.3), yrange=(-b - 0.3, b + 0.3))
+    fig = _light_animation(path, static, a, b, title="▶ を押すと光が進む(スライダーで途中の位置も見られる)")
     cA, cB = st.columns([3, 2])
     with cA:
         show(fig)
     with cB:
         rows = [{"回": k, "反射点 x": f"{q[0]:.4f}", "反射点 y": f"{q[1]:.4f}",
-                 "反射後の向き": f"({d[0]:.3f}, {d[1]:.3f})"} for k, (q, d) in enumerate(zip(pts[1:], dirs[1:]), 1)]
+                 "反射後の向き": f"({d[0]:.3f}, {d[1]:.3f})"}
+                for k, (q, d) in enumerate(zip(pts[1:nref + 1], dirs[1:nref + 1]), 1)]
         st.dataframe(rows[:12], hide_index=True, width="stretch")
-        if start.startswith("焦点"):
-            q, d = pts[1], dirs[1]
-            dist = abs((cfoc - q[0]) * d[1] - (0 - q[1]) * d[0])
-            st.success(f"1回目の反射後の光線と F₂ の距離:{dist:.2e}(= 0、F₂ を通る)")
-        st.caption("反射を繰り返すと、焦点から出た光は長軸に近づいていく。焦点以外から出すと、"
+        if focus:
+            q = pts[1]
+            dg = d0 - 2 * (d0 @ normals[0]) * normals[0]  # 鏡映の公式でそのまま計算した向き
+            dist = abs((cfoc - q[0]) * dg[1] - (0 - q[1]) * dg[0])
+            st.success(f"鏡映の公式で計算した1回目の反射光と F₂ の距離:{dist:.1e}(= 0、F₂ を通る)")
+            st.caption("最後の反射のあとも、次に壁に当たるまでの道筋を描いている。"
+                       "反射のたびに、光は F₂ → F₁ → F₂ … と焦点を交互に通る。")
+        st.caption("焦点から出た光は、反射を繰り返すと長軸に近づいていく。焦点以外から出すと、"
                    "道筋は共焦点の楕円や双曲線に接するように並ぶ。")
+    with st.expander("数値計算についての注意(焦点から 180° に放った場合など)"):
+        st.write("鏡映の公式をそのまま何十回も繰り返すと、1回ごとに 10⁻¹⁶ 程度の丸め誤差が入る。"
+                 "長軸に沿った往復の道筋は不安定(わずかなずれが反射のたびに大きくなる)なので、"
+                 "誤差が積み重なって長軸から外れてしまう。焦点から出す場合は、"
+                 "「反射後は必ずもう一方の焦点を通る」という定理を使って向きを決めているので、ずれない。")
 
     st.divider()
     st.subheader("サンプル問題(乱数で数値を変えて出題)")
@@ -711,3 +799,17 @@ def tab_ellipse():
         st.latex(r"3.\ \overrightarrow{QF_2}=" + _vf(QF2) + r",\quad \vec d\,'=" + _f(ratio)
                  + r"\,\overrightarrow{QF_2}\ (\text{平行で同じ向き})")
         st.caption("Q から $\\vec d\\,'$ の向きに進むと F₂ に着く。")
+    st.markdown("**図で確かめる**(▶ で光を放つ)")
+    Qf = np.array([float(Q[0]), float(Q[1])])
+    nQ = np.array([2 * Qf[0] / A_ ** 2, 2 * Qf[1] / B_ ** 2])
+    nQ /= np.linalg.norm(nQ)
+    path = np.array([[-C_, 0.0], Qf, [C_, 0.0]])
+    tt = np.linspace(0, 2 * PI, 400)
+    sc = A_ * 0.25
+    static = [go.Scatter(x=A_ * np.cos(tt), y=B_ * np.sin(tt), mode="lines", line=dict(color=C1, width=3), name="楕円"),
+              arrow(Qf[0], Qf[1], -sc * nQ[0], -sc * nQ[1], color=C3, name="法線 ∇g(Q)", width=2),
+              go.Scatter(x=[-C_, C_, Qf[0]], y=[0, 0, Qf[1]], mode="markers+text", text=["F₁", "F₂", "Q"],
+                         textposition="bottom center", marker=dict(size=11, color="black", symbol="star"),
+                         name="焦点と Q")]
+    show(_light_animation(path, static, A_, B_, frames=80, height=440))
+    st.caption("F₁ を出た光は Q で反射し、もう一方の焦点 F₂ にちょうど届く。")
