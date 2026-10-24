@@ -373,6 +373,7 @@ def g_coplanar(rng):
     Dk = list(D)
     Dtex = "(" + ",\\ ".join("k" if i == j else str(Dk[i]) for i in range(3)) + ")"
     ADk = ["k" + (f"{-A[i]:+d}" if A[i] else "") if i == j else str(D[i] - A[i]) for i in range(3)]
+    AD_tex = r",\ ".join(ADk)
     return Problem(
         "4点が同一平面上にある条件", "標準",
         rf"4点 ${ptex('A', A)},\ {ptex('B', B)},\ {ptex('C', C)},\ \mathrm{{D}}{Dtex}$ が同一平面上にあるような"
@@ -381,7 +382,7 @@ def g_coplanar(rng):
         hints=[r"4点が同一平面上 ⇔ $\overrightarrow{AB},\ \overrightarrow{AC},\ \overrightarrow{AD}$ が作る平行六面体の体積が 0。",
                r"$(\overrightarrow{AB}\times\overrightarrow{AC})\cdot\overrightarrow{AD}=0$ を k の方程式として解く。"],
         solution=[rf"$\overrightarrow{{AB}}={vtex(u)},\ \overrightarrow{{AC}}={vtex(v)},\ "
-                  rf"\overrightarrow{{AD}}=\left({',\\ '.join(ADk)}\right)$",
+                  rf"\overrightarrow{{AD}}=\left({AD_tex}\right)$",
                   rf"$\overrightarrow{{AB}}\times\overrightarrow{{AC}}={vtex(n)}$",
                   rf"$$(\overrightarrow{{AB}}\times\overrightarrow{{AC}})\cdot\overrightarrow{{AD}}"
                   rf"={lin_tex([(n[j], 'k')], rest)}=0$$",
