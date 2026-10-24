@@ -15,8 +15,9 @@ CURRICULUM = {
             ("4. 曲面(曲面積・接平面)", vf.tab_surface),
         ],
         "第2章 スカラー場とベクトル場": [
-            ("1. 勾配", vector.tab_gradient),
-            ("2. 発散と回転", vector.tab_div_rot),
+            ("1. スカラー場とベクトル場", vector.tab_fields),
+            ("2. ナブラと勾配", vector.tab_gradient),
+            ("3. 発散と回転", vector.tab_div_rot),
         ],
         "第3章 線積分・面積分": [
             ("1. スカラー場の線積分", vi.tab_scalar_line),
@@ -47,6 +48,7 @@ CURRICULUM = {
         "第1章 フーリエ級数": [
             ("1. 一般周期のフーリエ級数", fourier.tab_series),
             ("2. 複素フーリエ級数", f2.tab_complex_series),
+            ("3. 収束定理とパーセバルの等式", f2.tab_convergence_parseval),
         ],
         "第2章 フーリエ変換": [
             ("1. フーリエ変換と積分定理", f2.tab_integral_theorem),
@@ -74,7 +76,6 @@ CURRICULUM = {
             ("4. 関数の展開", c2.tab_expansion),
             ("5. 留数と留数定理", cf.tab_residue),
             ("5+. 実積分への応用", cf.tab_real_integral),
-            ("6. 代数学の基本定理", c2.tab_fundamental),
         ],
     },
     "⑤ 偏微分方程式": {
