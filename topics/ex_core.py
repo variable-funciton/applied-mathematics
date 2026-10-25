@@ -35,6 +35,36 @@ class Problem:
     hints: list = field(default_factory=list)
     solution: list = field(default_factory=list)   # 解答の途中式(段落ごと)
     meta: dict = field(default_factory=dict)       # 自動テスト用の元データ
+    # 試験(記述式)で使うとき:問題文・答えを4択用から変えたい場合だけ指定する
+    exam_statement: str = None   # None なら statement をそのまま使う
+    exam_answer: str = None      # None なら正解の選択肢、"" なら「答」の行を出さない(証明問題など)
+    exam_solution: list = None   # None なら solution をそのまま使う
+
+
+@dataclass
+class Part:
+    """試験の小問(誘導問題の (1), (2) など)"""
+    statement: str
+    answer: str                  # LaTeX($ なし)。"" なら「答」の行を出さない
+    solution: list
+    points: int = 5
+
+
+@dataclass
+class ExamItem:
+    """試験の大問1つ(単問なら parts は1つ)"""
+    title: str
+    intro: str                   # 大問の問題文(小問がある場合は共通の設定)
+    parts: list
+    points: int = 10
+    meta: dict = field(default_factory=dict)       # 自動テスト用
+
+
+def exam_item_from_problem(p, points=10):
+    """4択の問題を記述式の単問にする"""
+    ans = p.exam_answer if p.exam_answer is not None else [c.tex for c in p.choices if c.correct][0]
+    return ExamItem(p.title, p.exam_statement or p.statement,
+                    [Part("", ans, p.exam_solution if p.exam_solution is not None else p.solution, points)], points)
 
 
 @dataclass
@@ -43,6 +73,7 @@ class ProblemType:
     name: str
     level: str
     gen: object              # gen(rng) -> Problem
+    guided: object = None    # 試験用の誘導問題(5点×2):guided(rng) -> ExamItem。ない型は None
 
 
 def build(ptype, rng, tries=200):
@@ -228,54 +259,107 @@ def render(chapter, registry, title):
         st.divider()
 
     st.subheader("紙で解く(LaTeX でダウンロード)")
-    st.caption("いま表示している問題(類題に切りかえた問題を含む)を .tex ファイルにする。"
-               "手元の LaTeX 環境でコンパイルして使う。")
-    e1, e2 = st.columns(2)
+    st.caption("いま表示している問題(類題に切りかえた問題を含む)を、数学IB の試験と同じ構成の LaTeX 一式"
+               "(本体2つ + problems.tex + answers.tex)にして zip でダウンロードする。uplatex + dvipdfmx でコンパイルする。")
     plist = [p for *_, p in probs]
-    e1.download_button("問題のみ(.tex)", to_latex(plist, title, seed, False),
-                       file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}.tex", mime="text/x-tex", key=f"{ck}_dl1")
-    e2.download_button("解答つき(.tex)", to_latex(plist, title, seed, True),
-                       file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}_解答.tex", mime="text/x-tex", key=f"{ck}_dl2")
+    st.download_button("LaTeX 一式をダウンロード(.zip)", latex_zip(plist, title, seed),
+                       file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}.zip", mime="application/zip",
+                       key=f"{ck}_dl")
 
 
 # ------------------------------------------------------------
-# LaTeX 出力(仮のテンプレート。体裁は latex_document だけを差し替えればよい)
+# LaTeX 出力(数学IB 前期期末試験と同じ構成:本体 + problems.tex / answers.tex)
 # ------------------------------------------------------------
+NENDO = "令和8年度"
+CLASS_LINE = r"4年M, E, C, T工学科 \hspace{10truemm}番\ 氏名\hspace{50truemm}"
+
+PREAMBLE = r"""\documentclass[a4paper,12pt,dvipdfmx,fleqn,uplatex]{jsarticle}
+\newcommand{\f}[1]{\framebox[1cm]{\textgt{\small #1}}}
+\def\labelenumi{\framebox[0.8cm]{\bf\theenumi}}
+\def\theenumii{\arabic{enumii}}
+\usepackage[margin=0.5cm,dvipdfmx]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{arydshln}
+\usepackage{multicol,enumerate,multienum}
+\usepackage{setspace}
+\usepackage{cancel}
+\usepackage{ascmac}
+\newcommand{\Set}[1]{ \left\{ #1 \right\} }
+\pagestyle{empty}
+"""
+
+
 def md_to_tex(s):
     """問題文・解答の Markdown を LaTeX に(数式はそのまま、$$..$$ は \\[..\\])"""
     s = re.sub(r"\$\$(.+?)\$\$", lambda m: r"\[" + m.group(1) + r"\]", s, flags=re.S)
     s = s.replace("**", "")
-    return s
+    # 句読点を試験問題の書式(「, 」「. 」)にそろえる(数式の外だけ)
+    parts = re.split(r"(\$\$.+?\$\$|\\\[.+?\\\]|\$[^$]+\$)", s, flags=re.S)
+    for k in range(0, len(parts), 2):
+        parts[k] = parts[k].replace("、", ", ").replace("。", ". ")
+    return "".join(parts).rstrip()
 
 
-def latex_document(title, seed, body):
-    return rf"""\documentclass{{jlreq}}
-\usepackage{{amsmath,amssymb}}
-\usepackage[inline]{{enumitem}}
-\usepackage[margin=1.5cm]{{geometry}}
-\pagestyle{{empty}}
-\title{{数学IV　{title}　演習}}
-\date{{セット番号 {seed}}}
-\begin{{document}}
-\maketitle
-{body}
-\end{{document}}
-"""
+def choices_tex(choices):
+    """4択の選択肢。短ければ1行に4つ、長ければ1行に2つ"""
+    cells = [rf"{lab}\ ${c.tex}$" for lab, c in zip(LABELS, choices)]
+    if max(len(c.tex) for c in choices) <= 28:
+        return r"\noindent" + r"\hfill ".join(cells) + r"\hfill\null"
+    rows = []
+    for k in (0, 2):
+        rows.append(r"\noindent\makebox[0.48\linewidth][l]{" + cells[k] + r"}\makebox[0.48\linewidth][l]{"
+                    + cells[k + 1] + "}")
+    return r"\\[2mm]".join(rows)
 
 
-def to_latex(problems, title, seed, with_answers):
-    items = []
-    for p in problems:
-        ch = "\n".join(rf"    \item ${c.tex}$" for c in p.choices)
-        item = (rf"\item {md_to_tex(p.statement)}\\" + "\n"
-                + r"\begin{enumerate*}[label=(\arabic*), itemjoin={\hfill}]" + "\n" + ch + "\n"
-                + r"\end{enumerate*}")
-        if with_answers:
-            k = [c.correct for c in p.choices].index(True)
-            sol = "\n\n".join(md_to_tex(s) for s in p.solution)
-            item += "\n\n" + rf"\noindent 正解:({k + 1})" + "\n\n" + sol
-        else:
-            item += "\n\\vfill"
-        items.append(item)
-    body = r"\begin{enumerate}" + "\n" + "\n\n".join(items) + "\n" + r"\end{enumerate}"
-    return latex_document(title, seed, body)
+def main_tex(title, seed, inner, answer=False):
+    head = rf"{NENDO} 数学IV {title} 演習" + (" 解答" if answer else "")
+    return (PREAMBLE + "\\makeatletter\n"
+            + rf"\title{{{head}}}" + "\n"
+            + rf"\author{{{CLASS_LINE}}}" + "\n"
+            + rf"\date{{セット番号 {seed}}}" + "\n"
+            + "\\begin{document}\n\\maketitle\n\\begin{enumerate}\n"
+            + rf"\input{{{inner}}}" + "\n\\end{enumerate}\n\\end{document}\n")
+
+
+def problems_tex(problems, per_page=4):
+    out = []
+    for k, p in enumerate(problems, 1):
+        out.append(rf"\item {md_to_tex(p.statement)}" + "\n\n" + choices_tex(p.choices) + "\n\\vfill")
+        if k % per_page == 0 and k < len(problems):
+            out.append(r"\clearpage")
+    return "% 問題(本体から \\input する)\n" + "\n\n".join(out) + "\n"
+
+
+def answers_tex(problems, per_page=2):
+    out = []
+    for k, p in enumerate(problems, 1):
+        j = [c.correct for c in p.choices].index(True)
+        sol = "\n\n".join("    " + md_to_tex(s) for s in p.solution)
+        out.append(rf"\item {md_to_tex(p.statement)}" + "\n\n" + choices_tex(p.choices) + "\n\n"
+                   + "  \\begin{itembox}[l]{解答・解説}\n"
+                   + rf"    \textbf{{答：{LABELS[j]}\ ${p.choices[j].tex}$}}\\" + "\n\n"
+                   + sol + "\n  \\end{itembox}\n\\vfill")
+        if k % per_page == 0 and k < len(problems):
+            out.append(r"\clearpage")
+    return "% 解答・解説(本体から \\input する)\n" + "\n\n".join(out) + "\n"
+
+
+def latex_files(problems, title, seed):
+    """{ファイル名: 内容}。本体の2ファイルは problems.tex / answers.tex を \\input する"""
+    return {
+        "数学IV演習.tex": main_tex(title, seed, "problems.tex"),
+        "数学IV演習-Ans.tex": main_tex(title, seed, "answers.tex", answer=True),
+        "problems.tex": problems_tex(problems),
+        "answers.tex": answers_tex(problems),
+    }
+
+
+def latex_zip(problems, title, seed):
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, text in latex_files(problems, title, seed).items():
+            z.writestr(name, text)
+    return buf.getvalue()
