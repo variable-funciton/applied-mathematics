@@ -9,14 +9,16 @@ import zipfile
 
 import streamlit as st
 
-from topics import ex_ch1, ex_ch2
+from topics import ex_ch1, ex_ch2, ex_ch3
 from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, rng_for
 
 # 試験範囲として選べる章(章を増やしたらここに足す)
 CHAPTERS = [
     ("第1章 ベクトル関数", ex_ch1.REGISTRY),
     ("第2章 スカラー場とベクトル場", ex_ch2.REGISTRY),
+    ("第3章 線積分・面積分", ex_ch3.REGISTRY),
 ]
+GUIDED_NAMES = {**getattr(ex_ch1, "GUIDED_NAMES", {}), **ex_ch2.GUIDED_NAMES, **ex_ch3.GUIDED_NAMES}
 
 
 def catalog():
@@ -26,7 +28,7 @@ def catalog():
         for t in reg:
             out.append((f"{ch.split()[0]}|{t.name}", ch, t, False))
             if t.guided is not None:
-                gname = getattr(ex_ch2, "GUIDED_NAMES", {}).get(t.key, t.name)
+                gname = GUIDED_NAMES.get(t.key, t.name)
                 out.append((f"{ch.split()[0]}|【誘導 5点×2】{gname}", ch, t, True))
     return out
 
@@ -72,23 +74,26 @@ def page_sizes(n):
 
 
 def _item_tex(it, answers):
+    from topics.ex_fig import tikz
+    fig = tikz(it.figure)
+    afig = tikz(it.answer_figure) if answers else ""
     head = rf"\item {md_to_tex(it.intro)}"
     if len(it.parts) == 1 and not it.parts[0].statement:
         p = it.parts[0]
-        body = head + rf" \hfill ({it.points}点)" + "\n"
+        body = head + rf" \hfill ({it.points}点)" + "\n" + (fig + "\n" if fig else "")
         if answers:
-            body += _answer_box([("", p)])
+            body += _answer_box([("", p)]) + (afig + "\n" if afig else "")
         else:
             body += "\\vspace{4cm}\\vfill\n"
         return body
-    body = head + rf" \hfill (各{it.parts[0].points}点)" + "\n" + "  \\begin{enumerate}\n"
+    body = head + rf" \hfill (各{it.parts[0].points}点)" + "\n" + (fig + "\n" if fig else "") + "  \\begin{enumerate}\n"
     for p in it.parts:
         body += rf"  \item {md_to_tex(p.statement)}" + "\n"
         if answers:
             body += _answer_box([("", p)], indent="  ")
         else:
             body += "  \\vspace{2.5cm}\\vfill\n"
-    body += "  \\end{enumerate}\n"
+    body += "  \\end{enumerate}\n" + (afig + "\n" if afig else "")
     return body
 
 
@@ -215,6 +220,9 @@ def tab():
     for i, it in enumerate(items, 1):
         with st.container(border=True):
             st.markdown(f"**{i}.** {it.intro}　({it.points}点)")
+            if it.figure is not None:
+                from topics.ex_fig import plotly_fig
+                st.plotly_chart(plotly_fig(it.figure, height=320), width="stretch", key=f"exam_fig_{seed}_{i}")
             if len(it.parts) > 1 or it.parts[0].statement:
                 for j, p in enumerate(it.parts, 1):
                     st.markdown(f"({j}) {p.statement}　({p.points}点)")
@@ -226,6 +234,9 @@ def tab():
                         st.markdown(f"答:${p.answer}$")
                     for s in p.solution:
                         st.markdown(s)
+                if it.answer_figure is not None:
+                    from topics.ex_fig import plotly_fig
+                    st.plotly_chart(plotly_fig(it.answer_figure, height=320), width="stretch", key=f"exam_afig_{seed}_{i}")
     st.download_button("LaTeX 一式をダウンロード(.zip)", exam_zip(items, title, seed),
                        file_name=f"試験問題_{seed}.zip", mime="application/zip", key="exam_dl")
     st.caption("zip の中身:試験問題.tex / 試験問題-Ans.tex(本体)、problems.tex / answers.tex(\\input される問題・解答)。"

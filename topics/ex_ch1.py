@@ -87,17 +87,17 @@ def g_angle(rng):
     choices = [Choice(rf"{ang}^\circ", True, value=ang)]
     sup = 180 - ang
     if sup != ang:
-        choices.append(Choice(rf"{sup}^\circ", why="内積の符号を確かめよう。内積が負なら θ は鈍角(90° より大きい)。"))
+        choices.append(Choice(rf"{sup}^\circ", why="内積の符号を確かめよう。内積が負なら $\\theta$ は鈍角($90^\\circ$ より大きい)。"))
     comp = 90 - ang if ang < 90 else ang - 90
     if comp not in (ang, sup) and comp > 0:
-        choices.append(Choice(rf"{comp}^\circ", why="cos θ の値と sin θ の値を取り違えていないか確かめよう。"))
+        choices.append(Choice(rf"{comp}^\circ", why="$\\cos\\theta$ の値と $\\sin\\theta$ の値を取り違えていないか確かめよう。"))
     pool = [30, 45, 60, 90, 120, 135, 150]
     rng.shuffle(pool)
     for x in pool:
         if len(choices) == 4:
             break
         if all(c.tex != rf"{x}^\circ" for c in choices):
-            choices.append(Choice(rf"{x}^\circ", why="|a|, |b| と内積の計算を確かめよう。"))
+            choices.append(Choice(rf"{x}^\circ", why="$|\\vec a|,\\ |\\vec b|$ と内積の計算を確かめよう。"))
     na, nb = n2(a), n2(b)
     return Problem(
         "2つのベクトルのなす角", "基本",
@@ -123,7 +123,7 @@ def g_cross(rng):
     prod = [a[0] * b[0], a[1] * b[1], a[2] * b[2]]
     choices = [Choice(vtex(c), True, value=c),
                Choice(vtex(cross_bad(a, b)), why="第2成分は $a_3b_1-a_1b_3$。行列式を展開するとき、"
-                                                  "第2成分(j の係数)には − がつくことに注意。"),
+                                                  "第2成分($\\vec j$ の係数)には − がつくことに注意。"),
                Choice(vtex([-x for x in c]), why="$\\vec b\\times\\vec a$ を計算していないか。"
                                                  "順番を入れかえると符号が反対になる($\\vec b\\times\\vec a=-\\vec a\\times\\vec b$)。"),
                Choice(vtex(prod), why="外積は成分どうしのかけ算ではない。行列式の形で計算しよう。")]
@@ -133,7 +133,7 @@ def g_cross(rng):
         choices,
         hints=[r"$\vec a\times\vec b=\begin{vmatrix}\vec i&\vec j&\vec k\\a_1&a_2&a_3\\b_1&b_2&b_3\end{vmatrix}"
                r"=(a_2b_3-a_3b_2,\ a_3b_1-a_1b_3,\ a_1b_2-a_2b_1)$",
-               r"答えが $\vec a$ とも $\vec b$ とも垂直か(内積が 0 か)で検算できる。"],
+               r"答えが $\vec a$ とも $\vec b$ とも垂直か(内積が $0$ か)で検算できる。"],
         solution=[cross_steps(a, b),
                   rf"検算:$(\vec a\times\vec b)\cdot\vec a={dot(c, a)},\ (\vec a\times\vec b)\cdot\vec b={dot(c, b)}$"],
         meta=dict(a=a, b=b))
@@ -165,7 +165,7 @@ def g_area(rng):
                Choice(tex_fr(half * sum(abs(x) for x in c)),
                       why="外積の大きさは $\\sqrt{c_1^2+c_2^2+c_3^2}$。成分の絶対値を足すだけでは大きさにならない。")]
     if tri:
-        st = (rf"3点 ${ptex('A', A)},\ {ptex('B', B)},\ {ptex('C', C)}$ を頂点とする三角形 ABC の面積を求めよ。")
+        st = (rf"3点 ${ptex('A', A)},\ {ptex('B', B)},\ {ptex('C', C)}$ を頂点とする三角形 $\mathrm{{ABC}}$ の面積を求めよ。")
         sol = [rf"$\vec a=\overrightarrow{{AB}}={vtex(a)},\ \vec b=\overrightarrow{{AC}}={vtex(b)}$",
                cross_steps(a, b),
                rf"$$S=\frac12|\vec a\times\vec b|=\frac12\sqrt{{{N}}}={tex_ok}$$"]
@@ -261,7 +261,7 @@ def g_motion(rng):
         choices = [Choice(vtex(v0), True, value=v0),
                    Choice(vtex(r0), why="それは位置 $\\vec r(t_0)$。速度は $\\vec r\\,'(t)$。"),
                    Choice(vtex(a0), why="それは加速度 $\\vec r\\,''(t_0)$。速度は1回微分。"),
-                   Choice(vtex(vb), why="$t^n$ の微分は $nt^{n-1}$。係数 n をかけ忘れていないか。")]
+                   Choice(vtex(vb), why="$t^n$ の微分は $nt^{n-1}$。係数 $n$ をかけ忘れていないか。")]
         sol = sol0 + [rf"$t={t0}$ を代入して $\vec v={vtex(v0)}$"]
     elif kind == "加速度":
         if not any(a0):
@@ -281,7 +281,7 @@ def g_motion(rng):
                    Choice(str(S), why="速さは $|\\vec v|=\\sqrt{v_1^2+v_2^2+v_3^2}$。ルートを忘れていないか。"),
                    Choice(tex_root(n2(a0)) if n2(a0) else "0", why="それは加速度の大きさ。速さは速度ベクトルの大きさ。"),
                    Choice(tex_root(n2(vb)) if n2(vb) else "0",
-                          why="$t^n$ の微分は $nt^{n-1}$。係数 n をかけ忘れていないか。")]
+                          why="$t^n$ の微分は $nt^{n-1}$。係数 $n$ をかけ忘れていないか。")]
         sol = sol0 + [rf"$t={t0}$ で $\vec v={vtex(v0)}$", rf"$$|\vec v|=\sqrt{{{S}}}={tex_root(S)}$$"]
     return Problem(
         f"{kind}の計算", "基本",
@@ -360,7 +360,7 @@ def g_coplanar(rng):
         cands.append(Choice(rf"k={tex_fr(Fraction(-rest_b, nb[j]))}",
                             why="外積の第2成分の符号を確かめよう($a_3b_1-a_1b_3$)。"))
     cands.append(Choice(rf"k={tex_fr(Fraction(rest, n[j]))}" if rest != 0 else rf"k={k_true + 2}",
-                        why="行列式 = 0 の方程式を解くとき、k の係数で割る前の符号を確かめよう。"))
+                        why="行列式 $=0$ の方程式を解くとき、$k$ の係数で割る前の符号を確かめよう。"))
     for d in (1, -1, 2, -2, 3):
         cands.append(Choice(rf"k={k_true + d}", why="行列式の計算を確かめよう。"))
     choices, seen = [], set()
@@ -379,8 +379,8 @@ def g_coplanar(rng):
         rf"4点 ${ptex('A', A)},\ {ptex('B', B)},\ {ptex('C', C)},\ \mathrm{{D}}{Dtex}$ が同一平面上にあるような"
         rf"定数 $k$ の値を求めよ。",
         choices,
-        hints=[r"4点が同一平面上 ⇔ $\overrightarrow{AB},\ \overrightarrow{AC},\ \overrightarrow{AD}$ が作る平行六面体の体積が 0。",
-               r"$(\overrightarrow{AB}\times\overrightarrow{AC})\cdot\overrightarrow{AD}=0$ を k の方程式として解く。"],
+        hints=[r"4点が同一平面上 ⇔ $\overrightarrow{AB},\ \overrightarrow{AC},\ \overrightarrow{AD}$ が作る平行六面体の体積が $0$。",
+               r"$(\overrightarrow{AB}\times\overrightarrow{AC})\cdot\overrightarrow{AD}=0$ を $k$ の方程式として解く。"],
         solution=[rf"$\overrightarrow{{AB}}={vtex(u)},\ \overrightarrow{{AC}}={vtex(v)},\ "
                   rf"\overrightarrow{{AD}}=\left({AD_tex}\right)$",
                   rf"$\overrightarrow{{AB}}\times\overrightarrow{{AC}}={vtex(n)}$",
@@ -406,7 +406,7 @@ def g_arclength(rng):
         L = r * T
         choices = [Choice(rf"{L}\pi", True, value=L * np.pi),
                    Choice(rf"{(p + q) * T}\pi", why="$|\\vec r\\,'|=\\sqrt{x'^2+y'^2+z'^2}$。成分を足すだけでは大きさにならない。"),
-                   Choice(rf"{p * T}\pi", why="z 成分の微分 $z'$ を入れ忘れていないか(それは円周の長さ)。"),
+                   Choice(rf"{p * T}\pi", why="$z$ 成分の微分 $z'$ を入れ忘れていないか(それは円周の長さ)。"),
                    Choice(str(r), why="$|\\vec r\\,'|$ は一定値。それを区間の長さだけ積分する(かける)。")]
         sol = [rf"$\vec r\,'(t)=(-{p}\sin t,\ {p}\cos t,\ {q})$",
                rf"$|\vec r\,'(t)|=\sqrt{{{p * p}\sin^2t+{p * p}\cos^2t+{q * q}}}=\sqrt{{{p * p + q * q}}}={r}$",

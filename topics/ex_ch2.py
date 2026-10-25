@@ -101,7 +101,7 @@ def frac_root(p, N):
 
 
 GRAD_HINTS = [r"$\nabla f=\left(\dfrac{\partial f}{\partial x},\ \dfrac{\partial f}{\partial y},\ \dfrac{\partial f}{\partial z}\right)$。",
-              r"x で偏微分するときは、y, z を定数とみなす(消さずに残す)。"]
+              r"$x$ で偏微分するときは、$y,\ z$ を定数とみなす(消さずに残す)。"]
 
 
 # ============================================================
@@ -117,7 +117,7 @@ def g_grad(rng):
     bad2 = [ev(pd_dropvars(f, i), P) for i in range(3)]
     choices = [Choice(vtex(g), True, value=g),
                Choice(vtex(bad1), why="$x^n$ を偏微分すると $nx^{n-1}$。指数を前に出し忘れていないか。"),
-               Choice(vtex(bad2), why="x で偏微分するとき、y, z は定数として残す。消してしまっていないか。"),
+               Choice(vtex(bad2), why="$x$ で偏微分するとき、$y,\\ z$ は定数として残す。消してしまっていないか。"),
                Choice(vtex([g[1], g[2], g[0]]), why="成分の順番は $(f_x,\\ f_y,\\ f_z)$。")]
     return Problem("勾配", "基本",
                    rf"スカラー場 $f(x,y,z)={ptex(f)}$ の、点 $\mathrm{{P}}{pt(P)}$ における勾配 $\nabla f$ を求めよ。",
@@ -172,8 +172,8 @@ def guided_grad_dir(rng):
     n = round(dot(v, v) ** 0.5)
     D = Fraction(dot(g, v), n)
     return ExamItem("勾配と方向微分係数", rf"スカラー場 $f(x,y,z)={ptex(f)}$ と点 $\mathrm{{P}}{pt(P)}$ について, 次の問いに答えよ.",
-                    [Part(r"点 P における勾配 $\nabla f(\mathrm P)$ を求めよ.", vtex(g), steps),
-                     Part(rf"点 P における $\vec v={vtex(v)}$ 方向の方向微分係数を求めよ.", tex_fr(D),
+                    [Part(r"点 $\mathrm P$ における勾配 $\nabla f(\mathrm P)$ を求めよ.", vtex(g), steps),
+                     Part(rf"点 $\mathrm P$ における $\vec v={vtex(v)}$ 方向の方向微分係数を求めよ.", tex_fr(D),
                           p.solution[2:])], meta=p.meta)
 
 
@@ -228,8 +228,8 @@ def g_div(rng):
     wrongvar = ev(pd(F[0], 1), P) + ev(pd(F[1], 2), P) + ev(pd(F[2], 0), P)
     choices = [Choice(str(d), True, value=d),
                Choice(str(wrongvar), why="発散は $\\frac{\\partial F_1}{\\partial x}+\\frac{\\partial F_2}{\\partial y}"
-                                         "+\\frac{\\partial F_3}{\\partial z}$。第 i 成分は第 i 変数で偏微分する。"),
-               Choice(str(vals[0] + vals[1]), why="z 成分の偏微分 $\\frac{\\partial F_3}{\\partial z}$ を足し忘れていないか。"),
+                                         "+\\frac{\\partial F_3}{\\partial z}$。第 $i$ 成分は第 $i$ 変数で偏微分する。"),
+               Choice(str(vals[0] + vals[1]), why="$z$ 成分の偏微分 $\\frac{\\partial F_3}{\\partial z}$ を足し忘れていないか。"),
                Choice(str(vals[0] - vals[1] + vals[2]), why="発散は3つの偏微分の和(引き算はない)。")]
     for extra in (d + 1, d - 1, -d, d + 2):
         choices.append(Choice(str(extra), why="偏微分の計算を確かめよう。"))
@@ -273,9 +273,9 @@ def g_curl(rng):
         raise Retry
     diag = [ev(pd(F[i], i), P) for i in range(3)]
     choices = [Choice(vtex(r), True, value=r),
-               Choice(vtex([-x for x in r]), why="各成分の引き算の順番が逆。例えば x 成分は "
+               Choice(vtex([-x for x in r]), why="各成分の引き算の順番が逆。例えば $x$ 成分は "
                                                 "$\\frac{\\partial F_3}{\\partial y}-\\frac{\\partial F_2}{\\partial z}$。"),
-               Choice(vtex([r[0], -r[1], r[2]]), why="行列式を展開するとき、j 成分(第2成分)の符号に注意。"
+               Choice(vtex([r[0], -r[1], r[2]]), why="行列式を展開するとき、$\\vec j$ 成分(第2成分)の符号に注意。"
                                                     "$\\frac{\\partial F_1}{\\partial z}-\\frac{\\partial F_3}{\\partial x}$。"),
                Choice(vtex(diag), why="それは $\\left(\\frac{\\partial F_1}{\\partial x},\\ \\frac{\\partial F_2}{\\partial y},\\ "
                                       "\\frac{\\partial F_3}{\\partial z}\\right)$。回転は外積の形で計算する。")]
@@ -291,8 +291,8 @@ def guided_div_curl(rng):
     p = g_curl(rng)
     F, P = p.meta["F"], p.meta["P"]
     return ExamItem("発散と回転", rf"ベクトル場 ${ftex(F)}$ と点 $\mathrm P{pt(P)}$ について, 次の問いに答えよ.",
-                    [Part(r"点 P における発散 $\nabla\cdot\vec F$ を求めよ.", str(div_at(F, P)), div_steps(F, P)),
-                     Part(r"点 P における回転 $\nabla\times\vec F$ を求めよ.", vtex(curl_at(F, P)), curl_steps(F, P))], meta=p.meta)
+                    [Part(r"点 $\mathrm P$ における発散 $\nabla\cdot\vec F$ を求めよ.", str(div_at(F, P)), div_steps(F, P)),
+                     Part(r"点 $\mathrm P$ における回転 $\nabla\times\vec F$ を求めよ.", vtex(curl_at(F, P)), curl_steps(F, P))], meta=p.meta)
 
 
 # ============================================================
@@ -323,13 +323,13 @@ def g_maxdir(rng):
     def ch(d, val):
         return rf"\vec u={d},\ \ \text{{最大値}}\ {val}"
     choices = [Choice(ch(u, tex_root(N)), True, value=N),
-               Choice(ch(um, tex_root(N)), why="$-\\nabla f$ の向きは、f が最も急に減少する向き。"),
+               Choice(ch(um, tex_root(N)), why="$-\\nabla f$ の向きは、$f$ が最も急に減少する向き。"),
                Choice(ch(u, str(N)), why="最大値は $|\\nabla f|=\\sqrt{f_x^2+f_y^2+f_z^2}$。ルートを忘れていないか。"),
                Choice(ch(unit_tex([g[1], g[0], g[2]]) if g[0] != g[1] else unit_tex([g[0], g[2], g[1]]), tex_root(N)),
                       why="勾配の成分の順番 $(f_x,\\ f_y,\\ f_z)$ を確かめよう。")]
     return Problem(
         "最も増加する向きと最大値", "標準",
-        rf"スカラー場 $f(x,y,z)={ptex(f)}$ について、点 $\mathrm P{pt(P)}$ で f が最も急に増加する向きの単位ベクトル "
+        rf"スカラー場 $f(x,y,z)={ptex(f)}$ について、点 $\mathrm P{pt(P)}$ で $f$ が最も急に増加する向きの単位ベクトル "
         r"$\vec u$ と、その向きの方向微分係数(最大値)を求めよ。",
         choices,
         hints=[r"$D_{\vec u}f=\nabla f\cdot\vec u=|\nabla f|\cos\varphi$ は、$\vec u$ が $\nabla f$ と同じ向き($\varphi=0$)のとき最大。",
@@ -346,8 +346,8 @@ def guided_maxdir(rng):
     steps, g = grad_steps(f, P)
     N = dot(g, g)
     return ExamItem("最も増加する向き", rf"スカラー場 $f(x,y,z)={ptex(f)}$ と点 $\mathrm{{P}}{pt(P)}$ について, 次の問いに答えよ.",
-                    [Part(r"点 P における勾配 $\nabla f(\mathrm P)$ を求めよ.", vtex(g), steps),
-                     Part(r"点 P で f が最も急に増加する向きの単位ベクトル $\vec u$ と, その向きの方向微分係数を求めよ.",
+                    [Part(r"点 $\mathrm P$ における勾配 $\nabla f(\mathrm P)$ を求めよ.", vtex(g), steps),
+                     Part(r"点 $\mathrm P$ で $f$ が最も急に増加する向きの単位ベクトル $\vec u$ と, その向きの方向微分係数を求めよ.",
                           rf"\vec u={unit_tex(g)},\ \ {tex_root(N)}", p.solution[2:])], meta=p.meta)
 
 
@@ -381,17 +381,17 @@ def g_level_plane(rng):
     gb = [a * P[0] + lin[0], b * P[1] + lin[1], c * P[2] + lin[2]]   # 2 をかけ忘れ
     choices = [Choice(plane_tex(g, dot(g, P)), True, value=(g, dot(g, P))),
                Choice(plane_tex(g, 0) if dot(g, P) != 0 else plane_tex(g, 1),
-                      why="接平面は点 P を通る:$\\nabla F(\\mathrm P)\\cdot(\\vec x-\\vec p)=0$。定数項を確かめよう。"),
+                      why="接平面は点 $\\mathrm P$ を通る:$\\nabla F(\\mathrm P)\\cdot(\\vec x-\\vec p)=0$。定数項を確かめよう。"),
                Choice(plane_tex(list(P), dot(P, P)), why="法線ベクトルは点の位置ベクトルではなく、$\\nabla F(\\mathrm P)$。"),
                Choice(plane_tex(gb, dot(gb, P)) if any(gb) else plane_tex(g, -dot(g, P)),
-                      why="$x^2$ を偏微分すると $2x$。係数 2 を忘れていないか。")]
+                      why="$x^2$ を偏微分すると $2x$。係数 $2$ を忘れていないか。")]
     Ftex = ptex(Fterms)
     steps, _ = grad_steps(Fterms, P, "F")
     return Problem(
         "等位面の接平面", "標準",
         rf"曲面 ${Ftex}={k}$ 上の点 $\mathrm P{pt(P)}$ における接平面の方程式を求めよ。",
         choices,
-        hints=[r"曲面 $F(x,y,z)=k$ の点 P での法線ベクトルは $\nabla F(\mathrm P)$(勾配は等位面に垂直)。",
+        hints=[r"曲面 $F(x,y,z)=k$ の点 $\mathrm P$ での法線ベクトルは $\nabla F(\mathrm P)$(勾配は等位面に垂直)。",
                r"接平面:$\nabla F(\mathrm P)\cdot(x-x_0,\ y-y_0,\ z-z_0)=0$。"],
         solution=[rf"$F(x,y,z)={Ftex}$ とおく。"] + steps +
                  [rf"$${g[0]}(x{_sh(P[0])})" + "".join(("+" if c > 0 else "-") + str(abs(c)) + f"({v}{_sh(q)})"
@@ -405,9 +405,9 @@ def guided_level_plane(rng):
     F, P = p.meta["F"], p.meta["P"]
     steps, g = grad_steps(F, P, "F")
     return ExamItem("等位面の法線と接平面", p.statement.replace("における接平面の方程式を求めよ。", "について, 次の問いに答えよ."),
-                    [Part(r"$F(x,y,z)$ を左辺の式とするとき, 点 P における法線ベクトル $\nabla F(\mathrm P)$ を求めよ.",
+                    [Part(r"$F(x,y,z)$ を左辺の式とするとき, 点 $\mathrm P$ における法線ベクトル $\nabla F(\mathrm P)$ を求めよ.",
                           vtex(g), steps),
-                     Part(r"点 P における接平面の方程式を求めよ.", plane_tex(g, dot(g, P)), p.solution[-2:])], meta=p.meta)
+                     Part(r"点 $\mathrm P$ における接平面の方程式を求めよ.", plane_tex(g, dot(g, P)), p.solution[-2:])], meta=p.meta)
 
 
 # ============================================================
@@ -415,8 +415,8 @@ def guided_level_plane(rng):
 # ============================================================
 TRUE_ID = [
     (r"\nabla\times(\nabla f)=\vec 0",
-     [r"$\nabla f=(f_x,\ f_y,\ f_z)$ の回転の x 成分は $\dfrac{\partial}{\partial y}f_z-\dfrac{\partial}{\partial z}f_y=f_{zy}-f_{yz}$。",
-      r"f が $C^2$ 級なら偏微分の順序を交換できるので $f_{zy}=f_{yz}$、よって 0。y, z 成分も同様。"]),
+     [r"$\nabla f=(f_x,\ f_y,\ f_z)$ の回転の $x$ 成分は $\dfrac{\partial}{\partial y}f_z-\dfrac{\partial}{\partial z}f_y=f_{zy}-f_{yz}$。",
+      r"$f$ が $C^2$ 級なら偏微分の順序を交換できるので $f_{zy}=f_{yz}$、よって $0$。$y,\ z$ 成分も同様。"]),
     (r"\nabla\cdot(\nabla\times\vec F)=0",
      [r"$\nabla\times\vec F=\left(\partial_yF_3-\partial_zF_2,\ \partial_zF_1-\partial_xF_3,\ \partial_xF_2-\partial_yF_1\right)$。",
       r"発散をとると $\partial_x\partial_yF_3-\partial_x\partial_zF_2+\partial_y\partial_zF_1-\partial_y\partial_xF_3"
@@ -424,14 +424,14 @@ TRUE_ID = [
     (r"\nabla\cdot(\nabla f)=\dfrac{\partial^2f}{\partial x^2}+\dfrac{\partial^2f}{\partial y^2}+\dfrac{\partial^2f}{\partial z^2}",
      [r"$\nabla\cdot(f_x,\ f_y,\ f_z)=\partial_x f_x+\partial_y f_y+\partial_z f_z=f_{xx}+f_{yy}+f_{zz}$(ラプラシアン $\Delta f$)。"]),
     (r"\nabla(fg)=f\,\nabla g+g\,\nabla f",
-     [r"x 成分は積の微分法より $(fg)_x=f_xg+fg_x$。y, z 成分も同様なので $\nabla(fg)=g\nabla f+f\nabla g$。"]),
+     [r"$x$ 成分は積の微分法より $(fg)_x=f_xg+fg_x$。$y,\ z$ 成分も同様なので $\nabla(fg)=g\nabla f+f\nabla g$。"]),
     (r"\nabla\cdot(f\vec F)=f\,\nabla\cdot\vec F+\nabla f\cdot\vec F",
      [r"$\nabla\cdot(f\vec F)=\partial_x(fF_1)+\partial_y(fF_2)+\partial_z(fF_3)$。",
       r"積の微分法で $=f(\partial_xF_1+\partial_yF_2+\partial_zF_3)+(f_xF_1+f_yF_2+f_zF_3)=f\,\nabla\cdot\vec F+\nabla f\cdot\vec F$。"]),
 ]
 FALSE_ID = [
-    (r"\nabla\cdot(\nabla f)=0", "$\\nabla\\cdot(\\nabla f)$ はラプラシアン $\\Delta f$。例えば $f=x^2$ なら 2 で、0 とは限らない。"),
-    (r"\nabla\times(\nabla\times\vec F)=\vec 0", "$\\nabla\\times(\\nabla\\times\\vec F)=\\nabla(\\nabla\\cdot\\vec F)-\\Delta\\vec F$ で、0 とは限らない。"),
+    (r"\nabla\cdot(\nabla f)=0", "$\\nabla\\cdot(\\nabla f)$ はラプラシアン $\\Delta f$。例えば $f=x^2$ なら $2$ で、$0$ とは限らない。"),
+    (r"\nabla\times(\nabla\times\vec F)=\vec 0", "$\\nabla\\times(\\nabla\\times\\vec F)=\\nabla(\\nabla\\cdot\\vec F)-\\Delta\\vec F$ で、$0$ とは限らない。"),
     (r"\nabla(fg)=\nabla f\,\nabla g", "積の微分法:$\\nabla(fg)=f\\nabla g+g\\nabla f$。ベクトルどうしの積にはならない。"),
     (r"\nabla\cdot(f\vec F)=f\,\nabla\cdot\vec F", "積の微分法で $\\nabla f\\cdot\\vec F$ の項も出てくる。"),
     (r"\nabla\times(\nabla f)=\nabla f", "勾配場の回転は常に $\\vec 0$(偏微分の順序交換)。"),
@@ -446,13 +446,13 @@ def g_identity(rng):
     choices = [Choice(t, True)] + [Choice(w, why=why) for w, why in wrong]
     return Problem(
         "ベクトル解析の公式", "標準",
-        r"f, g を滑らかなスカラー場、$\vec F,\ \vec G$ を滑らかなベクトル場とする。次のうち、"
+        r"$f,\ g$ を滑らかなスカラー場、$\vec F,\ \vec G$ を滑らかなベクトル場とする。次のうち、"
         r"常に成り立つ式はどれか。",
         choices,
         hints=[r"成分で書いて確かめる。偏微分の順序は交換できる($f_{xy}=f_{yx}$)。",
                r"積の微分法 $(fg)'=f'g+fg'$ が、成分ごとに使われる。"],
         solution=[rf"正しいのは ${t}$。"] + proof + ["他の式は、成分で計算すると成り立たない例がある。"],
-        exam_statement=rf"f, g を $C^2$ 級のスカラー場, $\vec F$ を $C^2$ 級のベクトル場とする. ${t}$ が成り立つことを示せ.",
+        exam_statement=rf"$f,\ g$ を $C^2$ 級のスカラー場, $\vec F$ を $C^2$ 級のベクトル場とする. ${t}$ が成り立つことを示せ.",
         exam_answer="", exam_solution=proof)
 
 

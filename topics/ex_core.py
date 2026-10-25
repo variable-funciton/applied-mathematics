@@ -39,6 +39,8 @@ class Problem:
     exam_statement: str = None   # None なら statement をそのまま使う
     exam_answer: str = None      # None なら正解の選択肢、"" なら「答」の行を出さない(証明問題など)
     exam_solution: list = None   # None なら solution をそのまま使う
+    figure: dict = None          # 図の仕様(ex_fig.py)。問題文の下と解答に表示する
+    answer_figure: dict = None   # 解答だけに入れる図(None なら解答には figure を使わない)
 
 
 @dataclass
@@ -58,13 +60,16 @@ class ExamItem:
     parts: list
     points: int = 10
     meta: dict = field(default_factory=dict)       # 自動テスト用
+    figure: dict = None
+    answer_figure: dict = None
 
 
 def exam_item_from_problem(p, points=10):
     """4択の問題を記述式の単問にする"""
     ans = p.exam_answer if p.exam_answer is not None else [c.tex for c in p.choices if c.correct][0]
     return ExamItem(p.title, p.exam_statement or p.statement,
-                    [Part("", ans, p.exam_solution if p.exam_solution is not None else p.solution, points)], points)
+                    [Part("", ans, p.exam_solution if p.exam_solution is not None else p.solution, points)], points,
+                    meta=p.meta, figure=p.figure, answer_figure=p.answer_figure)
 
 
 @dataclass
@@ -232,6 +237,9 @@ def render(chapter, registry, title):
         base = f"{ck}_{seed}_{i}_{v}"
         st.markdown(f"#### 問{i + 1}　{p.title}　〔{p.level}〕" + (f"(類題 {v})" if v else ""))
         st.markdown(p.statement)
+        if p.figure is not None:
+            from topics.ex_fig import plotly_fig
+            st.plotly_chart(plotly_fig(p.figure, height=360), width="stretch", key=f"{base}_fig")
         for lab, c in zip(LABELS, p.choices):
             st.markdown(f"{lab}　${c.tex}$")
         ans = st.radio("答え", LABELS, index=None, horizontal=True, key=f"{base}_ans")
@@ -256,15 +264,24 @@ def render(chapter, registry, title):
                 st.markdown(f"正解:{correct}")
                 for s in p.solution:
                     st.markdown(s)
+                if p.answer_figure is not None:
+                    from topics.ex_fig import plotly_fig
+                    st.plotly_chart(plotly_fig(p.answer_figure, height=340), width="stretch", key=f"{base}_afig")
         st.divider()
 
     st.subheader("紙で解く(LaTeX でダウンロード)")
     st.caption("いま表示している問題(類題に切りかえた問題を含む)を、数学IB の試験と同じ構成の LaTeX 一式"
                "(本体2つ + problems.tex + answers.tex)にして zip でダウンロードする。uplatex + dvipdfmx でコンパイルする。")
     plist = [p for *_, p in probs]
-    st.download_button("LaTeX 一式をダウンロード(.zip)", latex_zip(plist, title, seed),
-                       file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}.zip", mime="application/zip",
-                       key=f"{ck}_dl")
+    e1, e2 = st.columns(2)
+    with e1:
+        st.markdown("**LaTeX ファイル**(先生・自分で編集したい人)")
+        st.download_button("LaTeX 一式をダウンロード(.zip)", latex_zip(plist, title, seed),
+                           file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}.zip", mime="application/zip",
+                           key=f"{ck}_dl")
+    with e2:
+        st.markdown("**すぐに取り組みたい学生はこちらでダウンロード**")
+        student_pdf_ui(plist, title, seed, ck)
 
 
 # ------------------------------------------------------------
@@ -284,6 +301,7 @@ PREAMBLE = r"""\documentclass[a4paper,12pt,dvipdfmx,fleqn,uplatex]{jsarticle}
 \usepackage{setspace}
 \usepackage{cancel}
 \usepackage{ascmac}
+\usepackage{tikz}
 \newcommand{\Set}[1]{ \left\{ #1 \right\} }
 \pagestyle{empty}
 """
@@ -322,10 +340,21 @@ def main_tex(title, seed, inner, answer=False):
             + rf"\input{{{inner}}}" + "\n\\end{enumerate}\n\\end{document}\n")
 
 
+def _fig(p):
+    from topics.ex_fig import tikz
+    t = tikz(getattr(p, "figure", None))
+    return t + "\n" if t else ""
+
+
+def _afig(p):
+    from topics.ex_fig import tikz
+    return tikz(getattr(p, "answer_figure", None))
+
+
 def problems_tex(problems, per_page=4):
     out = []
     for k, p in enumerate(problems, 1):
-        out.append(rf"\item {md_to_tex(p.statement)}" + "\n\n" + choices_tex(p.choices) + "\n\\vfill")
+        out.append(rf"\item {md_to_tex(p.statement)}" + "\n\n" + _fig(p) + choices_tex(p.choices) + "\n\\vfill")
         if k % per_page == 0 and k < len(problems):
             out.append(r"\clearpage")
     return "% 問題(本体から \\input する)\n" + "\n\n".join(out) + "\n"
@@ -336,10 +365,11 @@ def answers_tex(problems, per_page=2):
     for k, p in enumerate(problems, 1):
         j = [c.correct for c in p.choices].index(True)
         sol = "\n\n".join("    " + md_to_tex(s) for s in p.solution)
-        out.append(rf"\item {md_to_tex(p.statement)}" + "\n\n" + choices_tex(p.choices) + "\n\n"
+        afig = _afig(p)
+        out.append(rf"\item {md_to_tex(p.statement)}" + "\n\n" + _fig(p) + choices_tex(p.choices) + "\n\n"
                    + "  \\begin{itembox}[l]{解答・解説}\n"
                    + rf"    \textbf{{答：{LABELS[j]}\ ${p.choices[j].tex}$}}\\" + "\n\n"
-                   + sol + "\n  \\end{itembox}\n\\vfill")
+                   + sol + "\n" + (afig + "\n" if afig else "") + "  \\end{itembox}\n\\vfill")
         if k % per_page == 0 and k < len(problems):
             out.append(r"\clearpage")
     return "% 解答・解説(本体から \\input する)\n" + "\n\n".join(out) + "\n"
@@ -363,3 +393,110 @@ def latex_zip(problems, title, seed):
         for name, text in latex_files(problems, title, seed).items():
             z.writestr(name, text)
     return buf.getvalue()
+
+
+# ------------------------------------------------------------
+# 学生用 PDF(問題 → 解答・解説 の順に1つの PDF)
+# サーバーに uplatex と dvipdfmx が必要(Streamlit Community Cloud では packages.txt で入れる)
+# ------------------------------------------------------------
+STUDENT_PREAMBLE = r"""\documentclass[a4paper,11pt,dvipdfmx,fleqn,uplatex]{jsarticle}
+\def\labelenumi{\framebox[0.8cm]{\bf\theenumi}}
+\def\theenumii{\arabic{enumii}}
+\usepackage[margin=1.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{ascmac}
+\usepackage{tikz}
+\pagestyle{empty}
+"""
+
+
+def student_tex(problems, title, seed):
+    return (STUDENT_PREAMBLE
+            + rf"\title{{数学IV　{title}　演習}}" + "\n"
+            + rf"\author{{4年\hspace{{1.5cm}}科\hspace{{1.5cm}}番\ 氏名\hspace{{4cm}}}}" + "\n"
+            + rf"\date{{セット番号 {seed}(同じ番号で Web の演習と同じ問題が出ます)}}" + "\n"
+            + "\\begin{document}\n\\maketitle\n\\begin{enumerate}\n" + problems_tex(problems)
+            + "\\end{enumerate}\n\\clearpage\n\\begin{center}{\\Large 解答・解説}\\end{center}\n"
+            + "\\begin{enumerate}\n" + answers_tex(problems) + "\\end{enumerate}\n\\end{document}\n")
+
+
+def latex_available():
+    import shutil
+    return shutil.which("uplatex") is not None and shutil.which("dvipdfmx") is not None
+
+
+@st.cache_data(show_spinner=False, max_entries=200)
+def compile_pdf(tex):
+    """uplatex → dvipdfmx。(PDF のバイト列, エラーの抜粋) を返す"""
+    import os
+    import subprocess
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        with open(os.path.join(d, "main.tex"), "w", encoding="utf-8") as f:
+            f.write(tex)
+        try:
+            r = subprocess.run(["uplatex", "-interaction=nonstopmode", "-halt-on-error", "-kanji=utf8", "main.tex"],
+                               cwd=d, capture_output=True, text=True, timeout=90)
+            if r.returncode != 0:
+                return None, "\n".join(l for l in r.stdout.splitlines() if l.startswith("!") or "l." in l)[-1500:]
+            r = subprocess.run(["dvipdfmx", "-q", "main.dvi"], cwd=d, capture_output=True, text=True, timeout=90)
+            path = os.path.join(d, "main.pdf")
+            if r.returncode != 0 or not os.path.exists(path):
+                return None, (r.stderr or r.stdout)[-1500:]
+            with open(path, "rb") as f:
+                return f.read(), ""
+        except Exception as e:  # タイムアウトなど
+            return None, str(e)
+
+
+def student_html(problems, title, seed):
+    """LaTeX が使えないとき用:ブラウザで開いて印刷(PDF に保存)できるページ(数式は KaTeX)"""
+    import html as H
+
+    def para(s):
+        return "".join(f"<p>{H.escape(x)}</p>" for x in s.split("\n\n") if x.strip())
+
+    body = []
+    for i, p in enumerate(problems, 1):
+        ch = "".join(f'<span class="ch">{lab} ${H.escape(c.tex)}$</span>' for lab, c in zip(LABELS, p.choices))
+        fig = '<p class="note">(この問題には図があります。Web の演習画面で確認してください)</p>' if p.figure else ""
+        body.append(f'<div class="q"><b class="n">{i}</b>{para(p.statement)}{fig}<div class="chs">{ch}</div>'
+                    f'<div class="space"></div></div>')
+    ans = []
+    for i, p in enumerate(problems, 1):
+        j = [c.correct for c in p.choices].index(True)
+        ans.append(f'<div class="a"><b class="n">{i}</b><p><b>答:{LABELS[j]} ${H.escape(p.choices[j].tex)}$</b></p>'
+                   + "".join(para(s) for s in p.solution) + "</div>")
+    return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>数学IV {H.escape(title)} 演習 {seed}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+ onload="renderMathInElement(document.body,{{delimiters:[{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}]}})"></script>
+<style>body{{font-family:serif;max-width:46em;margin:2em auto;line-height:1.7}} .n{{border:1px solid #000;padding:0 .6em;margin-right:.6em}}
+.chs{{display:flex;flex-wrap:wrap;gap:.5em 2.5em;margin:.6em 0}} .space{{height:9em}} .note{{color:#666;font-size:.9em}}
+.q,.a{{break-inside:avoid;margin-bottom:1.2em}} .answers{{break-before:page}} @media print{{.noprint{{display:none}}}}</style></head><body>
+<p class="noprint">ブラウザの「印刷」から「PDF に保存」を選ぶと PDF になります。</p>
+<h2>数学IV {H.escape(title)} 演習</h2><p>セット番号 {seed}　　4年　　科　　番　氏名</p>
+{''.join(body)}<div class="answers"><h2>解答・解説</h2>{''.join(ans)}</div></body></html>"""
+
+
+def student_pdf_ui(problems, title, seed, ck):
+    if latex_available():
+        key = f"{ck}_pdf_{seed}_" + str(abs(hash(tuple(p.statement for p in problems))) % 10 ** 8)
+        if st.button("PDF を作る(問題 → 解答・解説)", key=f"{key}_make"):
+            with st.spinner("PDF を作成中…"):
+                st.session_state[key] = compile_pdf(student_tex(problems, title, seed))
+        if key in st.session_state:
+            pdf, err = st.session_state[key]
+            if pdf:
+                st.download_button("PDF をダウンロード", pdf, file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}.pdf",
+                                   mime="application/pdf", key=f"{key}_dl")
+            else:
+                st.error("PDF の作成に失敗しました。LaTeX 一式をダウンロードして手元でコンパイルしてください。")
+                st.code(err)
+        st.caption("印刷して解き、最後のページの解答・解説で答え合わせができます。")
+    else:
+        st.download_button("印刷用ページをダウンロード(.html)", student_html(problems, title, seed),
+                           file_name=f"数学IV_{title.replace(' ', '_')}_演習_{seed}.html", mime="text/html", key=f"{ck}_html")
+        st.caption("このサーバーでは PDF を作れないため、印刷用ページを出しています。"
+                   "ブラウザで開いて「印刷」→「PDF に保存」で PDF になります(図は Web 画面で確認)。")
