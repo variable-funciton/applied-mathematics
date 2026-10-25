@@ -39,7 +39,7 @@ Streamlit Community Cloud では、このフォルダを GitHub リポジトリ�
 
 ## 演習(自習用の類題)
 
-- 第1章・第2章の最後に「演習」がある(`ex_ch1.py`, `ex_ch2.py`)。難易度(基本/標準)と問題の型を選び、4択で解く。
+- 第1章〜第3章の最後に「演習」がある(`ex_ch1.py`, `ex_ch2.py`, `ex_ch3.py`)。第3章は線積分・ポテンシャル・グリーンの定理・面積分・ガウス・ストークス・楕円の反射。難易度(基本/標準)と問題の型を選び、4択で解く。
 - 「セット番号」が同じなら同じ問題が出る。「同じ型でもう一問」で数値だけを変えた類題になる。
 - LaTeX 一式(数学IB の試験と同じ構成:本体 `数学IV演習.tex` / `数学IV演習-Ans.tex` と、`\input` される `problems.tex` / `answers.tex`)を zip でダウンロードできる。プリアンブルや年度・クラスの行は `topics/ex_core.py` の `PREAMBLE`・`NENDO`・`CLASS_LINE` で変えられる。
 - 問題を増やすときは、`topics/ex_ch1.py` のように生成関数を書いて `REGISTRY` に登録する。誤答は典型的な間違いから作り、`why` にその誤答を選んだときの指摘を書く。
@@ -52,3 +52,13 @@ Streamlit Community Cloud では、このフォルダを GitHub リポジトリ�
 - 使うには教員用パスワードの設定が必要。Streamlit Community Cloud ではアプリの Settings → Secrets に
   `teacher_password = "(パスワード)"` と書く。手元では `.streamlit/secrets.toml` に同じ1行を書く(GitHub には上げない)。
 - 試験範囲に章を加えるときは、`topics/exam.py` の `CHAPTERS` に1行足す。
+- 図が必要な問題(グリーンの定理の領域など)は、`topics/ex_fig.py` の同じ仕様から、Web では plotly、LaTeX では方眼つきの TikZ を作る。
+
+## 学生用 PDF
+
+- 各章の演習の最後、「LaTeX 一式をダウンロード」の右に「すぐに取り組みたい学生はこちらでダウンロード」がある。
+  「PDF を作る」を押すと、問題 → 解答・解説の順の PDF をサーバーで作る(uplatex + dvipdfmx)。
+- Streamlit Community Cloud では、リポジトリ直下の `packages.txt` に書いた日本語 LaTeX がデプロイ時に入る
+  (初回のデプロイは数分長くかかる)。
+- サーバーに LaTeX がない場合は、代わりに印刷用ページ(.html、数式は KaTeX)を出す。ブラウザの「印刷」→「PDF に保存」で PDF になる。
+- 図は `topics/ex_fig.py` の仕様に `"complex": True` を付けると、LaTeX ではコメントアウトして出力する(必要なら % を外す)。

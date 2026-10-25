@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
-from topics import ex_ch1, ex_ch2, exam, special  # noqa: E402
+from topics import ex_ch1, ex_ch2, ex_ch3, exam, special  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -31,6 +31,7 @@ CURRICULUM = {
             ("6. ストークスの定理", vi.tab_stokes),
             ("7. 勾配の意味", vi.tab_gradient_meaning),
             ("8. 楕円の内部での光の反射", vi.tab_ellipse),
+            ("演習(第3章)", ex_ch3.tab),
         ],
     },
     "② ラプラス変換": {

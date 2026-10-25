@@ -1,0 +1,4 @@
+texlive-lang-japanese
+texlive-latex-recommended
+texlive-pictures
+fonts-ipaexfont
