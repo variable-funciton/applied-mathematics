@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
-from topics import ex_ch1  # noqa: E402
+from topics import ex_ch1, ex_ch2, exam, special  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -20,6 +20,7 @@ CURRICULUM = {
             ("1. スカラー場とベクトル場", vector.tab_fields),
             ("2. ナブラと勾配", vector.tab_gradient),
             ("3. 発散と回転", vector.tab_div_rot),
+            ("演習(第2章)", ex_ch2.tab),
         ],
         "第3章 線積分・面積分": [
             ("1. スカラー場の線積分", vi.tab_scalar_line),
@@ -94,6 +95,18 @@ CURRICULUM = {
             ("デルタ関数のモデル関数", other.tab_delta),
             ("フーリエ変換とフーリエ級数の関係", other.tab_series_vs_transform),
             ("サンプリング定理", other.tab_sampling),
+        ],
+    },
+    "⑦ 特殊関数": {
+        "ガンマ関数・ベータ関数": [
+            ("1. ガンマ関数", special.tab_gamma),
+            ("2. ベータ関数", special.tab_beta),
+            ("3. ガンマ関数とベータ関数の関係", special.tab_relation),
+        ],
+    },
+    "🔒 教員用": {
+        "試験問題の作成": [
+            ("試験問題の作成", exam.tab),
         ],
     },
 }
