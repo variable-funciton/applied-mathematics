@@ -495,6 +495,142 @@ def g_tangent_plane(rng):
                   rf"$$\therefore\ {pl(fx, fy, k)}$$"],
         meta=dict(coef=(a, b, c, d, e, g), x0=x0, y0=y0))
 
+# ============================================================
+# 基本6:曲線を表すベクトル関数(円・線分・直線)
+# ============================================================
+INF = float("inf")
+
+
+def cterm(a, terms):
+    """定数 a を先頭に書いた 1 次式:a + c·v(a = 0 なら c·v だけ)"""
+    body = lin_tex(terms, 0) if any(c for c, _ in terms) else ""
+    if a == 0:
+        return body or "0"
+    if not body:
+        return tex_fr(a)
+    return tex_fr(a) + (body if body.startswith("-") else "+" + body)
+
+
+def rvec(x, y):
+    return rf"\left({x},\ {y}\right)"
+
+
+def sq_tex(var, a):
+    if a == 0:
+        return f"{var}^2"
+    return rf"({var}{'-' if a > 0 else '+'}{abs(a)})^2"
+
+
+RANGE = {"seg": r"\ (0\le t\le 1)", "line": r"\ (-\infty<t<\infty)"}
+
+
+def g_curve_param(rng):
+    from topics.ex_fig import arc_pts, seg_pts
+    kind = rng.choice(["circle", "circle", "segment", "line"])
+    if kind == "circle":
+        a, b = rng.randint(-3, 3), rng.randint(-3, 3)
+        r = rng.choice([2, 3])
+        if (a, b) == (0, 0):
+            raise Retry
+        R = r * r
+        S = (a + r, b)
+
+        def circ(cx, cy, rr, sw=False, cw=False):
+            if sw:
+                return lambda t: (cx + rr * np.sin(t), cy + rr * np.cos(t))
+            return lambda t: (cx + rr * np.cos(t), cy + (-rr if cw else rr) * np.sin(t))
+        C, Sn = r"\cos t", r"\sin t"
+        ok = rvec(cterm(a, [(r, C)]), cterm(b, [(r, Sn)]))
+        cands = [Choice(rvec(cterm(a, [(r, Sn)]), cterm(b, [(r, C)])),
+                        why="$t=0$ を代入すると始点が、$t$ を少し増やすと向きがわかる。$\\cos$ と $\\sin$ を入れかえると始点も向きも変わる。",
+                        value=(circ(a, b, r, sw=True), 0, 2 * np.pi)),
+                 Choice(rvec(cterm(a, [(r, C)]), cterm(b, [(-r, Sn)])),
+                        why="それは時計回り。$t$ が増えると $y$ が減っていないか確かめよう。",
+                        value=(circ(a, b, r, cw=True), 0, 2 * np.pi)),
+                 Choice(rvec(cterm(-a, [(r, C)]), cterm(-b, [(r, Sn)])),
+                        why=f"円 $(x-a)^2+(y-b)^2=r^2$ の中心は $(a,\\ b)$。符号を確かめよう。",
+                        value=(circ(-a, -b, r), 0, 2 * np.pi)),
+                 Choice(rvec(cterm(a, [(R, C)]), cterm(b, [(R, Sn)])),
+                        why=f"右辺の ${R}$ は半径の2乗。半径は $\\sqrt{{{R}}}={r}$。",
+                        value=(circ(a, b, R), 0, 2 * np.pi))]
+        choices = [Choice(ok, True, value=(circ(a, b, r), 0, 2 * np.pi))] + rng.sample(cands, 3)
+        eq = rf"{sq_tex('x', a)}+{sq_tex('y', b)}={R}"
+        stmt = (rf"円 ${eq}$ を, 点 $({S[0]},\ {S[1]})$ を始点として反時計回りに1周する曲線を表すベクトル関数 "
+                r"$\vec r(t)\ (0\le t\le 2\pi)$ として正しいものを選べ。")
+        ex_stmt = (rf"円 ${eq}$ を, 点 $({S[0]},\ {S[1]})$ を始点として反時計回りに1周する曲線を表すベクトル関数 "
+                   r"$\vec r(t)\ (0\le t\le 2\pi)$ を1つ求めよ.")
+        sol = [rf"中心は $({a},\ {b})$, 半径は $\sqrt{{{R}}}={r}$。",
+               r"中心 $(a,b)$, 半径 $r$ の円を反時計回りに回るには $\vec r(t)=(a+r\cos t,\ b+r\sin t)$ とすればよい"
+               r"($t=0$ で点 $(a+r,\ b)$ から出発し, $t$ が増えると反時計回りに進む)。",
+               rf"$$\vec r(t)={ok}\quad(0\le t\le 2\pi)$$",
+               r"(表し方は1通りではない。始点・向き・1周することが合っていればよい。)"]
+        fig = {"kind": "path2d", "pieces": [{"pts": arc_pts(a, b, r, 0, 2 * np.pi), "label": "C"}],
+               "points": [(S[0], S[1], "S")]}
+        hints = [r"中心 $(a,b)$, 半径 $r$ の円は $x=a+r\cos t,\ y=b+r\sin t$ と表せる。",
+                 r"$t=0$ を代入して始点を、$t=\frac{\pi}{2}$ を代入して進む向きを確かめよう。"]
+        meta = dict(kind=kind, center=(a, b), r=r, start=S)
+    else:
+        A = (rng.randint(-3, 3), rng.randint(-3, 3))
+        d = (rng.choice([-3, -2, -1, 1, 2, 3, 4]), rng.choice([-3, -2, -1, 0, 1, 2, 3]))
+        if A == (0, 0):
+            raise Retry
+
+        def lin(P, D):
+            return lambda t: (P[0] + D[0] * t, P[1] + D[1] * t)
+
+        def lt(P, D, rg):
+            return rvec(cterm(P[0], [(D[0], "t")]), cterm(P[1], [(D[1], "t")])) + RANGE[rg]
+        if kind == "segment":
+            B = (A[0] + d[0], A[1] + d[1])
+            ok = lt(A, d, "seg")
+            choices = [Choice(ok, True, value=(lin(A, d), 0, 1)),
+                       Choice(lt(A, B, "seg"), why="$\\vec{\\mathrm{OA}}+t\\,\\vec{\\mathrm{OB}}$ では $t=1$ で点 $\\mathrm B$ に着かない。"
+                              "向きは $\\vec{\\mathrm{AB}}=\\vec{\\mathrm{OB}}-\\vec{\\mathrm{OA}}$。", value=(lin(A, B), 0, 1)),
+                       Choice(lt(B, (-d[0], -d[1]), "seg"), why="それは $\\mathrm B$ から $\\mathrm A$ へ向かう線分(向きが逆)。",
+                              value=(lin(B, (-d[0], -d[1])), 0, 1)),
+                       Choice(lt(A, d, "line"), why="$t$ をすべての実数にすると、線分ではなく直線全体になる。",
+                              value=(lin(A, d), -INF, INF))]
+            Bt = rf"\mathrm{{B}}({B[0]},\ {B[1]})"
+            stmt = (rf"点 $\mathrm{{A}}({A[0]},\ {A[1]})$ から点 ${Bt}$ へ向かう線分を表すベクトル関数 $\vec r(t)$ "
+                    r"として正しいものを選べ。")
+            ex_stmt = (rf"点 $\mathrm{{A}}({A[0]},\ {A[1]})$ から点 ${Bt}$ へ向かう線分を表すベクトル関数 $\vec r(t)$ を, "
+                       r"$t$ の範囲も含めて1つ求めよ.")
+            sol = [r"$\vec r(t)=(1-t)\vec{\mathrm{OA}}+t\,\vec{\mathrm{OB}}=\vec{\mathrm{OA}}+t\,\vec{\mathrm{AB}}\ (0\le t\le 1)$ とすると, "
+                   r"$t=0$ で $\mathrm A$, $t=1$ で $\mathrm B$ になる。",
+                   rf"$\vec{{\mathrm{{AB}}}}=({d[0]},\ {d[1]})$ より", rf"$$\vec r(t)={ok}$$",
+                   r"(表し方は1通りではない。始点・終点・向きが合っていればよい。)"]
+            fig = {"kind": "path2d", "pieces": [{"pts": seg_pts(A, B), "label": "C"}],
+                   "points": [(A[0], A[1], "A"), (B[0], B[1], "B")]}
+            hints = [r"線分 $\mathrm{AB}$ 上の点は $\vec{\mathrm{OA}}+t\,\vec{\mathrm{AB}}$ と表せる。$t$ の範囲は?",
+                     r"$t=0$ と $t=1$ を代入して、始点と終点を確かめよう。"]
+            meta = dict(kind=kind, A=A, B=B)
+        else:
+            nrm = (d[1], -d[0])
+            if d[0] * A[1] - d[1] * A[0] == 0:
+                raise Retry                       # 直線が原点を通ると (d + tA) が同じ直線になる
+            ok = lt(A, d, "line")
+            choices = [Choice(ok, True, value=(lin(A, d), -INF, INF)),
+                       Choice(lt(d, A, "line"), why="通る点と方向ベクトルの役割が入れかわっている。$\\vec r(t)=\\vec{\\mathrm{OA}}+t\\vec d$。",
+                              value=(lin(d, A), -INF, INF)),
+                       Choice(lt(A, nrm, "line"), why=f"$({nrm[0]},\\ {nrm[1]})$ は方向ベクトルに垂直(法線ベクトル)。",
+                              value=(lin(A, nrm), -INF, INF)),
+                       Choice(lt(A, d, "seg"), why="$0\\le t\\le 1$ では線分になる。直線は $t$ をすべての実数にわたらせる。",
+                              value=(lin(A, d), 0, 1))]
+            stmt = (rf"点 $\mathrm{{A}}({A[0]},\ {A[1]})$ を通り, 方向ベクトル $\vec d=({d[0]},\ {d[1]})$ の直線を表すベクトル関数 "
+                    r"$\vec r(t)$ として正しいものを選べ。")
+            ex_stmt = (rf"点 $\mathrm{{A}}({A[0]},\ {A[1]})$ を通り, 方向ベクトル $\vec d=({d[0]},\ {d[1]})$ の直線を表すベクトル関数 "
+                       r"$\vec r(t)$ を, $t$ の範囲も含めて1つ求めよ.")
+            sol = [r"点 $\mathrm A$ を通り方向ベクトル $\vec d$ の直線は $\vec r(t)=\vec{\mathrm{OA}}+t\vec d\ (-\infty<t<\infty)$。",
+                   rf"$$\vec r(t)={ok}$$", r"(表し方は1通りではない。)"]
+            P0, P1 = (A[0] - 1.2 * d[0], A[1] - 1.2 * d[1]), (A[0] + 1.2 * d[0], A[1] + 1.2 * d[1])
+            fig = {"kind": "path2d", "pieces": [{"pts": seg_pts(P0, P1), "label": ""}],
+                   "points": [(A[0], A[1], "A")]}
+            hints = [r"直線上の点 $\mathrm{P}$ は $\vec{\mathrm{OP}}=\vec{\mathrm{OA}}+t\vec d$ と表せる。",
+                     r"直線は両側に限りなくのびるので、$t$ の範囲に注意。"]
+            meta = dict(kind=kind, A=A, d=d)
+    return Problem("曲線を表すベクトル関数", "基本", stmt, choices, hints=hints, solution=sol, meta=meta,
+                   exam_statement=ex_stmt, figure=fig)
+
 
 REGISTRY = [
     ProblemType("angle", "なす角", "基本", g_angle),
@@ -502,6 +638,7 @@ REGISTRY = [
     ProblemType("area", "平行四辺形・三角形の面積", "基本", g_area),
     ProblemType("volume", "スカラー三重積と体積", "基本", g_volume),
     ProblemType("motion", "速度・加速度・速さ", "基本", g_motion),
+    ProblemType("param", "曲線を表すベクトル関数", "基本", g_curve_param),
     ProblemType("unit", "両方に垂直な単位ベクトル", "標準", g_unit_normal),
     ProblemType("coplanar", "4点が同一平面上にある条件", "標準", g_coplanar),
     ProblemType("arclen", "曲線の長さ", "標準", g_arclength),

@@ -9,16 +9,19 @@ import zipfile
 
 import streamlit as st
 
-from topics import ex_ch1, ex_ch2, ex_ch3
-from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, rng_for
+from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace
+from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, punct, rng_for
 
 # 試験範囲として選べる章(章を増やしたらここに足す)
 CHAPTERS = [
-    ("第1章 ベクトル関数", ex_ch1.REGISTRY),
-    ("第2章 スカラー場とベクトル場", ex_ch2.REGISTRY),
-    ("第3章 線積分・面積分", ex_ch3.REGISTRY),
+    ("ベクトル解析 第1章 ベクトル関数", ex_ch1.REGISTRY),
+    ("ベクトル解析 第2章 スカラー場とベクトル場", ex_ch2.REGISTRY),
+    ("ベクトル解析 第3章 線積分・面積分", ex_ch3.REGISTRY),
+    ("ラプラス変換 第1章 定義と性質", ex_laplace.REGISTRY1),
+    ("ラプラス変換 第2章 応用", ex_laplace.REGISTRY2),
 ]
-GUIDED_NAMES = {**getattr(ex_ch1, "GUIDED_NAMES", {}), **ex_ch2.GUIDED_NAMES, **ex_ch3.GUIDED_NAMES}
+GUIDED_NAMES = {**getattr(ex_ch1, "GUIDED_NAMES", {}), **ex_ch2.GUIDED_NAMES, **ex_ch3.GUIDED_NAMES,
+                **ex_laplace.GUIDED_NAMES}
 
 
 def catalog():
@@ -26,10 +29,10 @@ def catalog():
     out = []
     for ch, reg in CHAPTERS:
         for t in reg:
-            out.append((f"{ch.split()[0]}|{t.name}", ch, t, False))
+            out.append((f"{ch}|{t.name}", ch, t, False))
             if t.guided is not None:
                 gname = GUIDED_NAMES.get(t.key, t.name)
-                out.append((f"{ch.split()[0]}|【誘導 5点×2】{gname}", ch, t, True))
+                out.append((f"{ch}|【誘導 5点×2】{gname}", ch, t, True))
     return out
 
 
@@ -191,8 +194,8 @@ def tab():
     st.markdown("**出題する問題の型**(上から選んだ順に並ぶ)")
     chosen = []
     for ch, reg in CHAPTERS:
-        opts = [n for n in names if n.startswith(ch.split()[0] + "|")]
-        with st.expander(ch, expanded=True):
+        opts = [n for n in names if n.startswith(ch + "|")]
+        with st.expander(ch, expanded=ch.startswith("ベクトル解析")):
             sel = st.multiselect("型を選ぶ", opts, format_func=lambda s: s.split("|", 1)[1], key=f"exam_sel_{ch}")
             cols = st.columns(3)
             for i, n in enumerate(sel):
@@ -219,13 +222,13 @@ def tab():
     st.subheader("プレビュー")
     for i, it in enumerate(items, 1):
         with st.container(border=True):
-            st.markdown(f"**{i}.** {it.intro}　({it.points}点)")
+            st.markdown(punct(f"**{i}.** {it.intro}　({it.points}点)"))
             if it.figure is not None:
                 from topics.ex_fig import plotly_fig
                 st.plotly_chart(plotly_fig(it.figure, height=320), width="stretch", key=f"exam_fig_{seed}_{i}")
             if len(it.parts) > 1 or it.parts[0].statement:
                 for j, p in enumerate(it.parts, 1):
-                    st.markdown(f"({j}) {p.statement}　({p.points}点)")
+                    st.markdown(punct(f"({j}) {p.statement}　({p.points}点)"))
             if st.checkbox("解答を表示", key=f"exam_show_{seed}_{i}"):
                 for j, p in enumerate(it.parts, 1):
                     if len(it.parts) > 1:
@@ -233,7 +236,7 @@ def tab():
                     if p.answer:
                         st.markdown(f"答:${p.answer}$")
                     for s in p.solution:
-                        st.markdown(s)
+                        st.markdown(punct(s))
                 if it.answer_figure is not None:
                     from topics.ex_fig import plotly_fig
                     st.plotly_chart(plotly_fig(it.answer_figure, height=320), width="stretch", key=f"exam_afig_{seed}_{i}")

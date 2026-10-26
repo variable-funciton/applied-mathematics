@@ -236,7 +236,7 @@ def render(chapter, registry, title):
     for i, t, v, vkey, p in probs:
         base = f"{ck}_{seed}_{i}_{v}"
         st.markdown(f"#### 問{i + 1}　{p.title}　〔{p.level}〕" + (f"(類題 {v})" if v else ""))
-        st.markdown(p.statement)
+        st.markdown(punct(p.statement))
         if p.figure is not None:
             from topics.ex_fig import plotly_fig
             st.plotly_chart(plotly_fig(p.figure, height=360), width="stretch", key=f"{base}_fig")
@@ -246,13 +246,13 @@ def render(chapter, registry, title):
         if ans is not None:
             c = p.choices[LABELS.index(ans)]
             if c.correct:
-                st.success("正解!")
+                st.success("正解! ")
             else:
-                st.error("不正解。" + (c.why or "もう一度計算を確かめよう。"))
+                st.error(punct("不正解. " + (c.why or "もう一度計算を確かめよう。")))
         hkey = f"{base}_h"
         k = st.session_state.get(hkey, 0)
         for j, h in enumerate(p.hints[:k], 1):
-            st.markdown(f"ヒント{j}:{h}")
+            st.markdown(punct(f"ヒント{j}:{h}"))
         b1, b2, b3 = st.columns(3)
         if k < len(p.hints):
             b1.button(f"ヒントを見る({k + 1}/{len(p.hints)})", on_click=_inc, args=(hkey,), key=f"{base}_hb")
@@ -263,7 +263,7 @@ def render(chapter, registry, title):
             with st.container(border=True):
                 st.markdown(f"正解:{correct}")
                 for s in p.solution:
-                    st.markdown(s)
+                    st.markdown(punct(s))
                 if p.answer_figure is not None:
                     from topics.ex_fig import plotly_fig
                     st.plotly_chart(plotly_fig(p.answer_figure, height=340), width="stretch", key=f"{base}_afig")
@@ -307,6 +307,16 @@ PREAMBLE = r"""\documentclass[a4paper,12pt,dvipdfmx,fleqn,uplatex]{jsarticle}
 """
 
 
+def punct(s):
+    """句読点を「, 」「. 」(小文字のコンマ・ピリオドと半角スペース)にそろえる(数式の外だけ)"""
+    if not s:
+        return s
+    parts = re.split(r"(\$\$.+?\$\$|\\\[.+?\\\]|\$[^$]+\$)", s, flags=re.S)
+    for k in range(0, len(parts), 2):
+        parts[k] = parts[k].replace("、", ", ").replace("。", ". ").replace("，", ", ").replace("．", ". ")
+    return "".join(parts).rstrip()
+
+
 def md_to_tex(s):
     """問題文・解答の Markdown を LaTeX に(数式はそのまま、$$..$$ は \\[..\\])"""
     s = re.sub(r"\$\$(.+?)\$\$", lambda m: r"\[" + m.group(1) + r"\]", s, flags=re.S)
@@ -314,7 +324,7 @@ def md_to_tex(s):
     # 句読点を試験問題の書式(「, 」「. 」)にそろえる(数式の外だけ)
     parts = re.split(r"(\$\$.+?\$\$|\\\[.+?\\\]|\$[^$]+\$)", s, flags=re.S)
     for k in range(0, len(parts), 2):
-        parts[k] = parts[k].replace("、", ", ").replace("。", ". ")
+        parts[k] = parts[k].replace("、", ", ").replace("。", ". ").replace("，", ", ").replace("．", ". ")
     return "".join(parts).rstrip()
 
 

@@ -902,11 +902,308 @@ def guided_ellipse(rng):
                      Part(r"点 $\mathrm Q$ で反射した光が, もう一方の焦点 $\mathrm F_2$ を通ることを示せ.", "", sol[1:])],
                     meta=dict(A=A_, B=B_, Q=Q), figure=fig, answer_figure=afig)
 
+# ============================================================
+# 標準:曲線をつないだ C1 + C2 に沿う線積分(半円 + 直径 / 線分 + 四分円)
+# ============================================================
+def wallis(m, n):
+    """∫_0^{π/2} cos^m t sin^n t dt を (有理数, π の係数) で"""
+    if m >= 2:
+        a, b = wallis(m - 2, n)
+        k = F(m - 1, m + n)
+        return (k * a, k * b)
+    if n >= 2:
+        a, b = wallis(m, n - 2)
+        k = F(n - 1, m + n)
+        return (k * a, k * b)
+    return {(0, 0): (F(0), F(1, 2)), (1, 0): (F(1), F(0)), (0, 1): (F(1), F(0)), (1, 1): (F(1, 2), F(0))}[(m, n)]
+
+
+def trig_int(m, n, upper):
+    """∫_0^upper cos^m sin^n(upper は "half" = π/2 か "pi" = π)"""
+    a, b = wallis(m, n)
+    if upper == "half":
+        return (a, b)
+    k = 1 + (-1) ** m
+    return (k * a, k * b)
+
+
+def arc_integral(P, Q, R, upper):
+    """x = R cos t, y = R sin t (0 ≤ t ≤ upper) に沿う ∫ P dx + Q dy を (定数, π, 0) で"""
+    c, p = F(0), F(0)
+    for co, (i, j, _) in P:          # P dx = P · (−R sin t) dt
+        a, b = trig_int(i, j + 1, upper)
+        k = -co * R ** (i + j + 1)
+        c, p = c + k * a, p + k * b
+    for co, (i, j, _) in Q:          # Q dy = Q · (R cos t) dt
+        a, b = trig_int(i + 1, j, upper)
+        k = co * R ** (i + j + 1)
+        c, p = c + k * a, p + k * b
+    return (c, p, F(0))
+
+
+def arc_integral_bad(P, Q, R, upper):
+    """よくある間違い:dx = R sin t dt としてしまう"""
+    c, p, _ = arc_integral([(-co, e) for co, e in P], Q, R, upper)
+    return (c, p, F(0))
+
+
+def xaxis_integral(P, a, b):
+    """y = 0 の線分 (t, 0)(a ≤ t ≤ b)に沿う ∫ P dx(dy = 0)"""
+    tot = F(0)
+    for co, (i, j, _) in P:
+        if j == 0:
+            tot += F(co) * (F(b) ** (i + 1) - F(a) ** (i + 1)) / (i + 1)
+    return (tot, F(0), F(0))
+
+
+def cadd(*vs):
+    return tuple(sum(v[k] for v in vs) for k in range(3))
+
+
+def cneg(v):
+    return tuple(-x for x in v)
+
+
+def p_on_axis(P):
+    """P(t, 0)"""
+    return ptex([(c, (i, 0, 0)) for c, (i, j, _) in P if j == 0]).replace("x", "t") if any(j == 0 for _, (i, j, _) in P) else "0"
+
+
+def p_on_arc(T, R, which):
+    """曲線上の P, Q を t で表した文字列(x = R cos t, y = R sin t)"""
+    parts = []
+    for co, (i, j, _) in T:
+        k = co * R ** (i + j)
+        body = (r"\cos" + (f"^{i}" if i > 1 else "") + " t" if i else "") + (r"\sin" + (f"^{j}" if j > 1 else "") + " t" if j else "")
+        parts.append((k, body))
+    return lin_tex([(k, b) for k, b in parts if b], sum(k for k, b in parts if not b))
+
+
+def piece_parts(rng):
+    mons = [(1, 0, 0), (0, 1, 0), (2, 0, 0), (1, 1, 0), (0, 2, 0)]
+    cf = [-3, -2, -1, 1, 2, 3]
+    P = [(rng.choice(cf), e) for e in rng.sample(mons, 2)]
+    Q = [(rng.choice(cf), e) for e in rng.sample(mons, 2)]
+    R = rng.choice([1, 2, 3])
+    fam = rng.choice(["half", "half", "quarter"])
+    if fam == "half":
+        I1 = arc_integral(P, Q, R, "pi")                 # C1:上半円 A(R,0) → B(-R,0)
+        I2 = xaxis_integral(P, -R, R)                    # C2:線分 B → A
+        bad1 = cadd(arc_integral_bad(P, Q, R, "pi"), I2)
+        I2rev = cneg(I2)
+    else:
+        I1 = xaxis_integral(P, 0, R)                     # C1:線分 O → A(R,0)
+        I2 = arc_integral(P, Q, R, "half")               # C2:四分円 A → B(0,R)
+        bad1 = cadd(I1, arc_integral_bad(P, Q, R, "half"))
+        I2rev = cneg(I2)
+    I = cadd(I1, I2)
+    if combo_float(I) == 0 or combo_float(I1) == 0 or combo_float(I2) == 0:
+        raise Retry
+    return fam, P, Q, R, I1, I2, I, bad1, I2rev
+
+
+def piece_text(fam, P, Q, R):
+    from topics.ex_fig import arc_pts, seg_pts
+    PQ = rf"\int_C\left({ptex(P)}\right)dx+\left({ptex(Q)}\right)dy"
+    if fam == "half":
+        st = (rf"原点を中心とする半径 ${R}$ の上半円 $C_1$ を $\mathrm{{A}}({R},0)$ から $\mathrm{{B}}({-R},0)$ まで反時計回りに進み, "
+              rf"続けて線分 $C_2$ を $\mathrm{{B}}$ から $\mathrm{{A}}$ まで進む曲線を $C=C_1+C_2$ とする. ")
+        fig = {"kind": "path2d", "fill": True,
+               "pieces": [{"pts": arc_pts(0, 0, R, 0, math.pi), "label": "C_1"}, {"pts": seg_pts((-R, 0), (R, 0)), "label": "C_2"}],
+               "points": [(R, 0, "A"), (-R, 0, "B")]}
+    else:
+        st = (rf"原点 $\mathrm{{O}}$ から $\mathrm{{A}}({R},0)$ までの線分を $C_1$, 原点を中心とする半径 ${R}$ の円周上を "
+              rf"$\mathrm{{A}}$ から $\mathrm{{B}}(0,{R})$ まで反時計回りに進む四分円を $C_2$ とし, $C=C_1+C_2$ とする. ")
+        fig = {"kind": "path2d",
+               "pieces": [{"pts": seg_pts((0, 0), (R, 0)), "label": "C_1"}, {"pts": arc_pts(0, 0, R, 0, math.pi / 2), "label": "C_2"}],
+               "points": [(0, 0, "O"), (R, 0, "A"), (0, R, "B")]}
+    return st, PQ, fig
+
+
+def piece_solution(fam, P, Q, R, I1, I2, I):
+    arc = (rf"$x={coef_tex(R, COS_T)},\ y={coef_tex(R, SIN_T)}$ より "
+           rf"$dx={coef_tex(-R, SIN_T)}\,dt,\ dy={coef_tex(R, COS_T)}\,dt$")
+    PQt = rf"曲線上で $P={p_on_arc(P, R, 'P')},\ Q={p_on_arc(Q, R, 'Q')}$"
+    if fam == "half":
+        s1 = [rf"$C_1:\ \vec r(t)=({coef_tex(R, COS_T)},\ {coef_tex(R, SIN_T)})\ (0\le t\le\pi)$. " + arc,
+              PQt, rf"$$\int_{{C_1}}P\,dx+Q\,dy={combo_tex(I1)}$$"]
+        s2 = [rf"$C_2:\ \vec r(t)=(t,\ 0)\ ({-R}\le t\le {R})$ では $y=0,\ dx=dt,\ dy=0$ なので",
+              rf"$$\int_{{C_2}}P\,dx+Q\,dy=\int_{{{-R}}}^{{{R}}}\left({p_on_axis(P)}\right)dt={combo_tex(I2)}$$"]
+    else:
+        s1 = [rf"$C_1:\ \vec r(t)=(t,\ 0)\ (0\le t\le {R})$ では $y=0,\ dx=dt,\ dy=0$ なので",
+              rf"$$\int_{{C_1}}P\,dx+Q\,dy=\int_0^{{{R}}}\left({p_on_axis(P)}\right)dt={combo_tex(I1)}$$"]
+        s2 = [rf"$C_2:\ \vec r(t)=({coef_tex(R, COS_T)},\ {coef_tex(R, SIN_T)})\ \left(0\le t\le\frac{{\pi}}{{2}}\right)$. " + arc,
+              PQt, rf"$$\int_{{C_2}}P\,dx+Q\,dy={combo_tex(I2)}$$"]
+    tot = [rf"$$\int_C=\int_{{C_1}}+\int_{{C_2}}={combo_tex(I)}$$"]
+    if fam == "half":
+        qx = [(c * e[0], (e[0] - 1, e[1], 0)) for c, e in Q if e[0]]
+        py = [(c * e[1], (e[0], e[1] - 1, 0)) for c, e in P if e[1]]
+        g = {}
+        for c, e in qx:
+            g[e] = g.get(e, 0) + c
+        for c, e in py:
+            g[e] = g.get(e, 0) - c
+        c0, c1, c2 = g.get((0, 0, 0), 0), g.get((1, 0, 0), 0), g.get((0, 1, 0), 0)
+        G = (F(0) + F(2 * c2 * R ** 3, 3), F(c0 * R * R, 2), F(0))
+        tot.append(rf"(検算)$C$ は半円板 $D$ の周を反時計回りに一周するので, グリーンの定理より "
+                   rf"$\displaystyle\iint_D\left(\frac{{\partial Q}}{{\partial x}}-\frac{{\partial P}}{{\partial y}}\right)dxdy"
+                   rf"=\iint_D\left({lin_tex([(c1, 'x'), (c2, 'y')], c0)}\right)dxdy={combo_tex(G)}$ と一致する。")
+    return s1, s2, tot
+
+
+def g_piece_line(rng):
+    fam, P, Q, R, I1, I2, I, bad1, I2rev = piece_parts(rng)
+    st, PQ, fig = piece_text(fam, P, Q, R)
+    s1, s2, tot = piece_solution(fam, P, Q, R, I1, I2, I)
+    cand = [(cadd(I1, I2rev), "$C_2$ の向きを確かめよう。逆向きに積分すると符号が変わる。"),
+            (I1, "$C_1$ と $C_2$ の両方の線積分を足す($\\int_C=\\int_{C_1}+\\int_{C_2}$)。"),
+            (I2, "$C_1$ と $C_2$ の両方の線積分を足す($\\int_C=\\int_{C_1}+\\int_{C_2}$)。"),
+            (bad1, "円周上では $x=R\\cos t$ なので $dx=-R\\sin t\\,dt$。符号を確かめよう。"),
+            (cneg(I), "向き(始点から終点へ)を確かめよう。")]
+    choices = [Choice(combo_tex(I), True, value=combo_float(I))]
+    seen = {round(combo_float(I), 9)}
+    for v, why in cand:
+        fv = round(combo_float(v), 9)
+        if fv not in seen and len(choices) < 4:
+            choices.append(Choice(combo_tex(v), why=why, value=combo_float(v)))
+            seen.add(fv)
+    return Problem(
+        "曲線をつないだ線積分", "標準",
+        st + rf"線積分 $\displaystyle {PQ}$ を求めよ。",
+        choices,
+        hints=[r"$\displaystyle\int_{C_1+C_2}=\int_{C_1}+\int_{C_2}$。曲線ごとにベクトル関数で表して計算し、足す。",
+               r"円周 $x=R\cos t,\ y=R\sin t$ では $dx=-R\sin t\,dt,\ dy=R\cos t\,dt$。$x$ 軸上の線分では $y=0,\ dy=0$。"],
+        solution=s1 + s2 + tot, meta=dict(fam=fam, P=P, Q=Q, R=R, I1=I1, I2=I2, I=I), figure=fig)
+
+
+def guided_piece_line(rng):
+    fam, P, Q, R, I1, I2, I, bad1, I2rev = piece_parts(rng)
+    st, PQ, fig = piece_text(fam, P, Q, R)
+    s1, s2, tot = piece_solution(fam, P, Q, R, I1, I2, I)
+    pq = rf"\left({ptex(P)}\right)dx+\left({ptex(Q)}\right)dy"
+    return ExamItem("曲線をつないだ線積分", st + r"次の問いに答えよ.",
+                    [Part(rf"$\displaystyle\int_{{C_1}}{pq}$ を求めよ.", combo_tex(I1), s1),
+                     Part(rf"$\displaystyle\int_{{C_2}}{pq}$ と $\displaystyle\int_C{pq}$ を求めよ.",
+                          rf"\int_{{C_2}}={combo_tex(I2)},\quad \int_C={combo_tex(I)}", s2 + tot)],
+                    meta=dict(fam=fam, P=P, Q=Q, R=R, I1=I1, I2=I2, I=I), figure=fig)
+
+
+# ============================================================
+# 基本:逆向きの曲線 −C に沿う線積分
+# ============================================================
+def reverse_parts(rng, fam):
+    A = [rng.randint(-2, 2) for _ in range(3)]
+    if fam == "vector":
+        d = [rng.choice([-2, -1, 1, 2, 3]) for _ in range(3)]
+    else:
+        d = list(rng.choice(NICE))
+        rng.shuffle(d)
+        d = [x * rng.choice([1, -1]) for x in d]
+    B = [A[i] + d[i] for i in range(3)]
+    curve = r"\vec r(t)=\left(" + r",\ ".join(lin_tex([(d[i], "t")], A[i]) for i in range(3)) + r"\right)\ (0\le t\le 1)"
+    def back(b, k):            # b − k t(係数が負なら定数を先に書く:1 − t)
+        if k > 0 and b != 0:
+            return tex_fr(b) + lin_tex([(-k, "t")], 0)
+        return lin_tex([(-k, "t")], b)
+    rcurve = r"\left(" + r",\ ".join(back(B[i], d[i]) for i in range(3)) + r"\right)\ (0\le t\le 1)"
+    return A, d, B, curve, rcurve
+
+
+def vector_reverse(rng):
+    A, d, B, curve, rcurve = reverse_parts(rng, "vector")
+    Fl = [rand_terms(rng, n=2, maxdeg=2, mixed=False) for _ in range(3)]
+    g = [F(0)]
+    for i in range(3):
+        g = padd(g, [x * d[i] for x in subst(Fl[i], A, d)])
+    I = pint01(g)
+    nd = [-x for x in d]
+    gr = [F(0)]                                  # −C に沿って直接計算
+    for i in range(3):
+        gr = padd(gr, [x * nd[i] for x in subst(Fl[i], B, nd)])
+    Ir = pint01(gr)
+    if I == 0 or Ir != -I:
+        raise Retry
+    while len(gr) > 1 and gr[-1] == 0:
+        gr = gr[:-1]
+    Ftex = r"\left(" + r",\ ".join(ptex(c) for c in Fl) + r"\right)"
+    sol = [rf"$-C$ は $\mathrm{{B}}$ から $\mathrm{{A}}$ へ向かうので $\vec r(t)={rcurve}$ と表せる"
+           r"($\vec r(1-t)$ としてもよい)。",
+           rf"$\dfrac{{d\vec r}}{{dt}}={vtex(nd)}$ より $\vec F\cdot\dfrac{{d\vec r}}{{dt}}={tpoly_tex(gr)}$",
+           rf"$$\int_{{-C}}\vec F\cdot d\vec r=\int_0^1\left({tpoly_tex(gr)}\right)dt={tex_fr(Ir)}$$",
+           rf"($C$ に沿って計算すると ${tex_fr(I)}$ で, $\int_{{-C}}\vec F\cdot d\vec r=-\int_C\vec F\cdot d\vec r$ が成り立っている。)"]
+    return A, d, B, curve, rcurve, Fl, Ftex, I, Ir, sol
+
+
+def g_reverse_line(rng):
+    fam = rng.choice(["vector", "scalar"])
+    if fam == "vector":
+        A, d, B, curve, rcurve, Fl, Ftex, I, Ir, sol = vector_reverse(rng)
+        gw = [F(0)]
+        for i in range(3):
+            gw = padd(gw, pmul(subst(Fl[i], A, d), [F(A[i]), F(d[i])]))
+        endv = sum(ev(Fl[i], A) * d[i] for i in range(3))
+        cand = [(I, "向きを逆にすると $d\\vec r$ の向きが逆になり、ベクトル場の線積分は符号が変わる。"),
+                (-pint01(gw), "内積の相手は $\\vec r(t)$ ではなく $\\dfrac{d\\vec r}{dt}$。"),
+                (F(-endv), "1点での値だけでは線積分にならない。$t$ の式にしてから積分する。"),
+                (2 * Ir, "$\\int_0^1 t^n\\,dt=\\frac{1}{n+1}$。積分の計算を確かめよう。")]
+        stmt = (rf"曲線 $C:\ {curve}$ と逆向きの曲線を $-C$ とする. "
+                rf"線積分 $\displaystyle\int_{{-C}}{Ftex}\cdot d\vec r$ を求めよ。")
+        hints = [r"$-C$ は終点から始点へ向かう曲線。$\vec r(1-t)\ (0\le t\le1)$ で表せる。",
+                 r"ベクトル場の線積分は向きで符号が変わる:$\displaystyle\int_{-C}\vec F\cdot d\vec r=-\int_C\vec F\cdot d\vec r$。"]
+        meta = dict(fam=fam, A=A, d=d, F=Fl, I=I)
+        ans = Ir
+    else:
+        A, d, B, curve, rcurve = reverse_parts(rng, "scalar")
+        n = round(math.sqrt(sum(x * x for x in d)))
+        co = [rng.choice([-2, -1, 1, 2, 3]) for _ in range(3)]
+        k0 = rng.randint(-3, 3)
+        M = [F(A[i]) + F(d[i], 2) for i in range(3)]
+        fM = sum(co[i] * M[i] for i in range(3)) + k0
+        if fM == 0:
+            raise Retry
+        J = n * fM
+        fs = lin_tex([(co[i], V[i]) for i in range(3)], k0)
+        ft = [F(sum(co[i] * B[i] for i in range(3)) + k0), F(-sum(co[i] * d[i] for i in range(3)))]
+        cand = [(-J, "$ds=|\\vec r\\,'(t)|\\,dt$ はいつも正。スカラー場の線積分は向きを変えても値は変わらない。"),
+                (fM, f"$ds=|\\vec r\\,'(t)|\\,dt$。$|\\vec r\\,'|={n}$ をかけ忘れていないか。"),
+                (-fM, f"$|\\vec r\\,'|={n}$ をかけ忘れ、さらに符号を変えていないか。スカラー場の線積分は向きによらない。"),
+                (n * n * fM, "$|\\vec r\\,'|=\\sqrt{x'^2+y'^2+z'^2}$。ルートを忘れていないか。")]
+        stmt = (rf"曲線 $C:\ {curve}$ と逆向きの曲線を $-C$ とする. "
+                rf"線積分 $\displaystyle\int_{{-C}}\left({fs}\right)ds$ を求めよ。")
+        hints = [r"$-C$ は $\vec r(1-t)\ (0\le t\le1)$ で表せる。$ds=\left|\dfrac{d\vec r}{dt}\right|dt$。",
+                 r"スカラー場の線積分 $\int f\,ds$ は、向きを変えても値が変わらない($ds>0$)。"]
+        sol = [rf"$-C:\ \vec r(t)={rcurve}$ とすると $\dfrac{{d\vec r}}{{dt}}={vtex([-x for x in d])}$, "
+               rf"$\left|\dfrac{{d\vec r}}{{dt}}\right|=\sqrt{{{n * n}}}={n}$",
+               rf"曲線上では $f={tpoly_tex(ft)}$",
+               rf"$$\int_{{-C}}f\,ds=\int_0^1\left({tpoly_tex(ft)}\right)\cdot{n}\,dt={tex_fr(J)}$$",
+               r"($ds$ は向きによらず正なので, $\int_{-C}f\,ds=\int_C f\,ds$。ベクトル場の線積分のように符号は変わらない。)"]
+        meta = dict(fam=fam, A=A, d=d, co=co, k0=k0)
+        ans = J
+    choices = [Choice(tex_fr(ans), True, value=float(ans))]
+    seen = {ans}
+    for v, why in cand:
+        if v not in seen and len(choices) < 4:
+            choices.append(Choice(tex_fr(v), why=why, value=float(v)))
+            seen.add(v)
+    return Problem("逆向きの曲線に沿う線積分", "基本", stmt, choices, hints=hints, solution=sol, meta=meta,
+                   figure={"kind": "curve3d", "pts": curve_pts(lambda t: tuple(B[i] - d[i] * t for i in range(3)), 0, 1)})
+
+
+def guided_reverse_line(rng):
+    A, d, B, curve, rcurve, Fl, Ftex, I, Ir, sol = vector_reverse(rng)
+    return ExamItem("逆向きの曲線に沿う線積分",
+                    rf"曲線 $C:\ {curve}$ と逆向きの曲線を $-C$ とする. 次の問いに答えよ.",
+                    [Part(r"$-C$ を表すベクトル関数を, $t$ の範囲も含めて1つ求めよ.", rf"\vec r(t)={rcurve}", sol[:1]),
+                     Part(rf"線積分 $\displaystyle\int_{{-C}}{Ftex}\cdot d\vec r$ を求めよ.", tex_fr(Ir), sol[1:])],
+                    meta=dict(fam="vector", A=A, d=d, F=Fl, I=I))
+
 
 REGISTRY = [
     ProblemType("sline", "スカラー場の線積分", "基本", g_scalar_line),
     ProblemType("vline", "ベクトル場の線積分", "基本", g_vector_line),
     ProblemType("gline", "勾配場の線積分", "基本", g_grad_line, guided=guided_grad_line),
+    ProblemType("reverse", "逆向きの曲線に沿う線積分", "基本", g_reverse_line, guided=guided_reverse_line),
+    ProblemType("piece", "曲線をつないだ線積分", "標準", g_piece_line, guided=guided_piece_line),
     ProblemType("potential", "保存場のポテンシャル", "標準", g_potential),
     ProblemType("green", "グリーンの定理", "標準", g_green, guided=guided_green),
     ProblemType("garea", "グリーンの定理と面積", "標準", g_area_green),
@@ -918,7 +1215,8 @@ REGISTRY = [
 ]
 GUIDED_NAMES = {"gline": "勾配と勾配場の線積分", "green": "グリーンの定理(被積分関数 → 線積分)",
                 "gauss": "発散 → ガウスの発散定理", "stokes": "回転 → ストークスの定理",
-                "ellipse": "法線ベクトル → 反射光が焦点を通ること"}
+                "ellipse": "法線ベクトル → 反射光が焦点を通ること",
+                "reverse": "−C のベクトル関数 → −C に沿う線積分", "piece": "C₁, C₂ ごとの線積分 → C₁+C₂ に沿う線積分"}
 
 
 def tab():
