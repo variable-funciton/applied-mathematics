@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
-from topics import ex_ch1, ex_ch2, ex_ch3, exam, special  # noqa: E402
+from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, exam, lap_sim, pde_sim, special, wind  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -18,6 +18,7 @@ CURRICULUM = {
         ],
         "第2章 スカラー場とベクトル場": [
             ("1. スカラー場とベクトル場", vector.tab_fields),
+            ("1+. 例:天気予報の風", wind.tab_wind),
             ("2. ナブラと勾配", vector.tab_gradient),
             ("3. 発散と回転", vector.tab_div_rot),
             ("演習(第2章)", ex_ch2.tab),
@@ -40,12 +41,15 @@ CURRICULUM = {
             ("2. 相似性と移動法則", l2.tab_shift),
             ("3. 微分法則と積分法則", l2.tab_diff_int),
             ("4. 逆ラプラス変換", laplace.tab_inverse),
+            ("演習(第1章)", ex_laplace.tab1),
         ],
         "第2章 ラプラス変換の応用": [
             ("1. 微分方程式への応用", laplace.tab_ode),
+            ("1+. ばね・ダンパーの振動(アニメーション)", lap_sim.tab_spring),
             ("2. 合成積", l2.tab_convolution),
             ("3. 線形システムの伝達関数とデルタ関数", l2.tab_transfer),
             ("4. ラプラス変換と演算子法", l2.tab_operator),
+            ("演習(第2章)", ex_laplace.tab2),
         ],
     },
     "③ フーリエ解析": {
@@ -87,6 +91,7 @@ CURRICULUM = {
             ("1. フーリエ級数と熱伝導方程式", pde.tab_heat),
             ("1. フーリエ級数と波動方程式", pde.tab_wave),
             ("1+. 差分法と安定性", pde.tab_ftcs),
+            ("1+. 時間発展シミュレーション(熱・波動)", pde_sim.tab_sim),
             ("2. フーリエ変換と偏微分方程式", p2.tab_fourier_pde),
             ("発展. ラプラス方程式", pde.tab_laplace),
         ],
