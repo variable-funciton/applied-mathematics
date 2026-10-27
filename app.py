@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
-from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, admin, lap_sim, pde_sim, special, wind  # noqa: E402
+from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -108,6 +108,7 @@ CURRICULUM = {
             ("1. ガンマ関数", special.tab_gamma),
             ("2. ベータ関数", special.tab_beta),
             ("3. ガンマ関数とベータ関数の関係", special.tab_relation),
+            ("演習", ex_special.tab),
         ],
     },
     "🔒 管理人用": {
@@ -116,6 +117,44 @@ CURRICULUM = {
         ],
     },
 }
+
+def survey():
+    """アンケートの URL(Streamlit の Secrets に survey_url を書いたときだけ表示する)"""
+    try:
+        url = str(st.secrets.get("survey_url", "")).strip()
+        title = str(st.secrets.get("survey_title", "") or "アプリについてのアンケート")
+    except Exception:
+        return None, None
+    return (url, title) if url.startswith("https://") else (None, None)
+
+
+@st.cache_data(show_spinner=False)
+def survey_qr(url):
+    from qr import qr_png
+    return qr_png(url, scale=8, border=3)
+
+
+def survey_box(url, title):
+    with st.container(border=True):
+        c1, c2 = st.columns([2.2, 1])
+        with c1:
+            st.subheader(f"📝 {title}")
+            st.markdown("アプリをよりよくするためのアンケートです。回答は任意・匿名で、成績には関係しません。"
+                        "所要時間は 5〜8 分ほどです。")
+            st.link_button("アンケートに回答する(Microsoft Forms)", url, type="primary")
+            st.caption("学校の Microsoft アカウントでサインインして回答します。")
+        with c2:
+            try:
+                png = survey_qr(url)
+            except ValueError:
+                st.caption("URL が長すぎて QR コードにできません。")
+            else:
+                st.image(png, width=170, caption="スマートフォンで読み取る")
+                st.download_button("QR コードを保存", png, file_name="survey_qr.png", mime="image/png",
+                                   key="survey_qr_dl")
+
+
+SURVEY_URL, SURVEY_TITLE = survey()
 
 with st.sidebar:
     st.title("応用数学ラボ")
@@ -126,12 +165,16 @@ with st.sidebar:
     st.divider()
     st.caption("スライダーを動かして、式とグラフの変化を観察しよう。各節の最後に練習問題があります。"
                "「+」のついた節は教科書の節を補う発展的な内容です。")
+    if SURVEY_URL:
+        st.link_button("📝 アンケートに回答する", SURVEY_URL)
 
 if field == "ホーム":
     st.title("応用数学ラボ")
     st.caption("ベクトル解析・ラプラス変換・フーリエ解析・複素関数・偏微分方程式を、動かして学ぶ")
     st.info("左のメニューで分野と章を選び、上に並ぶ節を選んでください。"
             "スマートフォンでは左上の「>」でメニューが開きます。")
+    if SURVEY_URL:
+        survey_box(SURVEY_URL, SURVEY_TITLE)
     cols = st.columns(3)
     for i, (fname, chs) in enumerate(CURRICULUM.items()):
         with cols[i % 3]:
