@@ -9,19 +9,14 @@ import zipfile
 
 import streamlit as st
 
-from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace
-from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, punct, rng_for
+from topics import ex_ch1, ex_ch2
+from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, rng_for
 
 # 試験範囲として選べる章(章を増やしたらここに足す)
 CHAPTERS = [
-    ("ベクトル解析 第1章 ベクトル関数", ex_ch1.REGISTRY),
-    ("ベクトル解析 第2章 スカラー場とベクトル場", ex_ch2.REGISTRY),
-    ("ベクトル解析 第3章 線積分・面積分", ex_ch3.REGISTRY),
-    ("ラプラス変換 第1章 定義と性質", ex_laplace.REGISTRY1),
-    ("ラプラス変換 第2章 応用", ex_laplace.REGISTRY2),
+    ("第1章 ベクトル関数", ex_ch1.REGISTRY),
+    ("第2章 スカラー場とベクトル場", ex_ch2.REGISTRY),
 ]
-GUIDED_NAMES = {**getattr(ex_ch1, "GUIDED_NAMES", {}), **ex_ch2.GUIDED_NAMES, **ex_ch3.GUIDED_NAMES,
-                **ex_laplace.GUIDED_NAMES}
 
 
 def catalog():
@@ -29,10 +24,10 @@ def catalog():
     out = []
     for ch, reg in CHAPTERS:
         for t in reg:
-            out.append((f"{ch}|{t.name}", ch, t, False))
+            out.append((f"{ch.split()[0]}|{t.name}", ch, t, False))
             if t.guided is not None:
-                gname = GUIDED_NAMES.get(t.key, t.name)
-                out.append((f"{ch}|【誘導 5点×2】{gname}", ch, t, True))
+                gname = getattr(ex_ch2, "GUIDED_NAMES", {}).get(t.key, t.name)
+                out.append((f"{ch.split()[0]}|【誘導 5点×2】{gname}", ch, t, True))
     return out
 
 
@@ -77,26 +72,23 @@ def page_sizes(n):
 
 
 def _item_tex(it, answers):
-    from topics.ex_fig import tikz
-    fig = tikz(it.figure)
-    afig = tikz(it.answer_figure) if answers else ""
     head = rf"\item {md_to_tex(it.intro)}"
     if len(it.parts) == 1 and not it.parts[0].statement:
         p = it.parts[0]
-        body = head + rf" \hfill ({it.points}点)" + "\n" + (fig + "\n" if fig else "")
+        body = head + rf" \hfill ({it.points}点)" + "\n"
         if answers:
-            body += _answer_box([("", p)]) + (afig + "\n" if afig else "")
+            body += _answer_box([("", p)])
         else:
             body += "\\vspace{4cm}\\vfill\n"
         return body
-    body = head + rf" \hfill (各{it.parts[0].points}点)" + "\n" + (fig + "\n" if fig else "") + "  \\begin{enumerate}\n"
+    body = head + rf" \hfill (各{it.parts[0].points}点)" + "\n" + "  \\begin{enumerate}\n"
     for p in it.parts:
         body += rf"  \item {md_to_tex(p.statement)}" + "\n"
         if answers:
             body += _answer_box([("", p)], indent="  ")
         else:
             body += "  \\vspace{2.5cm}\\vfill\n"
-    body += "  \\end{enumerate}\n" + (afig + "\n" if afig else "")
+    body += "  \\end{enumerate}\n"
     return body
 
 
@@ -194,8 +186,8 @@ def tab():
     st.markdown("**出題する問題の型**(上から選んだ順に並ぶ)")
     chosen = []
     for ch, reg in CHAPTERS:
-        opts = [n for n in names if n.startswith(ch + "|")]
-        with st.expander(ch, expanded=ch.startswith("ベクトル解析")):
+        opts = [n for n in names if n.startswith(ch.split()[0] + "|")]
+        with st.expander(ch, expanded=True):
             sel = st.multiselect("型を選ぶ", opts, format_func=lambda s: s.split("|", 1)[1], key=f"exam_sel_{ch}")
             cols = st.columns(3)
             for i, n in enumerate(sel):
@@ -222,13 +214,10 @@ def tab():
     st.subheader("プレビュー")
     for i, it in enumerate(items, 1):
         with st.container(border=True):
-            st.markdown(punct(f"**{i}.** {it.intro}　({it.points}点)"))
-            if it.figure is not None:
-                from topics.ex_fig import plotly_fig
-                st.plotly_chart(plotly_fig(it.figure, height=320), width="stretch", key=f"exam_fig_{seed}_{i}")
+            st.markdown(f"**{i}.** {it.intro}　({it.points}点)")
             if len(it.parts) > 1 or it.parts[0].statement:
                 for j, p in enumerate(it.parts, 1):
-                    st.markdown(punct(f"({j}) {p.statement}　({p.points}点)"))
+                    st.markdown(f"({j}) {p.statement}　({p.points}点)")
             if st.checkbox("解答を表示", key=f"exam_show_{seed}_{i}"):
                 for j, p in enumerate(it.parts, 1):
                     if len(it.parts) > 1:
@@ -236,10 +225,7 @@ def tab():
                     if p.answer:
                         st.markdown(f"答:${p.answer}$")
                     for s in p.solution:
-                        st.markdown(punct(s))
-                if it.answer_figure is not None:
-                    from topics.ex_fig import plotly_fig
-                    st.plotly_chart(plotly_fig(it.answer_figure, height=320), width="stretch", key=f"exam_afig_{seed}_{i}")
+                        st.markdown(s)
     st.download_button("LaTeX 一式をダウンロード(.zip)", exam_zip(items, title, seed),
                        file_name=f"試験問題_{seed}.zip", mime="application/zip", key="exam_dl")
     st.caption("zip の中身:試験問題.tex / 試験問題-Ans.tex(本体)、problems.tex / answers.tex(\\input される問題・解答)。"
