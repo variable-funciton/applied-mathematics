@@ -157,11 +157,15 @@ def tab_series():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $f(x)=x\\ (-\\pi<x<\\pi)$ のフーリエ係数を求めよ。")
-        st.latex(r"a_n=0\ (\text{奇関数}),\qquad b_n=\frac1\pi\int_{-\pi}^{\pi}x\sin nx\,dx=\frac{2(-1)^{n+1}}{n}")
         st.markdown("**問2** 矩形波の級数で $x=\\frac\\pi2$ とおいて、$1-\\frac13+\\frac15-\\cdots$ の値を求めよ。")
-        st.latex(r"1=\frac4\pi\left(1-\frac13+\frac15-\cdots\right)\ \Longrightarrow\ 1-\frac13+\frac15-\cdots=\frac\pi4")
         st.markdown("**問3** 不連続点 $x=0$ で、矩形波のフーリエ級数はどんな値に収束するか。")
-        st.write("すべての項 $\\sin nx$ が 0 なので **0**。左右の極限の平均 $\\frac{(-1)+1}{2}=0$ に一致する。")
+        if st.toggle("解答・解説を表示", key="pr_fourier_158"):
+            st.markdown("**答1**")
+            st.latex(r"a_n=0\ (\text{奇関数}),\qquad b_n=\frac1\pi\int_{-\pi}^{\pi}x\sin nx\,dx=\frac{2(-1)^{n+1}}{n}")
+            st.markdown("**答2**")
+            st.latex(r"1=\frac4\pi\left(1-\frac13+\frac15-\cdots\right)\ \Longrightarrow\ 1-\frac13+\frac15-\cdots=\frac\pi4")
+            st.markdown("**答3**")
+            st.write("すべての項 $\\sin nx$ が 0 なので **0**。左右の極限の平均 $\\frac{(-1)+1}{2}=0$ に一致する。")
 
 
 # ---------- 離散フーリエ変換 ----------
@@ -220,9 +224,12 @@ def tab_dft():
 
     with st.expander("練習問題"):
         st.markdown("**問4** fs = 100 Hz で 70 Hz の正弦波をサンプリングすると、何 Hz に見えるか。")
-        st.write("ナイキスト周波数は 50 Hz。|70 − 100| = **30 Hz** に見える(上のスライダーで確かめよう)。")
         st.markdown("**問5** 1 秒間のデータを FFT したとき、周波数の刻み(分解能)は何 Hz か。")
-        st.write("**1 Hz**(= 1 / 観測時間)。2 秒間なら 0.5 Hz。")
+        if st.toggle("解答・解説を表示", key="pr_fourier_221"):
+            st.markdown("**答4**")
+            st.write("ナイキスト周波数は 50 Hz。|70 − 100| = **30 Hz** に見える(上のスライダーで確かめよう)。")
+            st.markdown("**答5**")
+            st.write("**1 Hz**(= 1 / 観測時間)。2 秒間なら 0.5 Hz。")
 
 
 # ---------- フーリエ変換 ----------
@@ -282,8 +289,11 @@ def tab_transform():
 
     with st.expander("練習問題"):
         st.markdown("**問6** 矩形パルス(幅 w)のフーリエ変換を求めよ。")
-        st.latex(r"F(\omega)=\int_{-w/2}^{w/2}e^{-i\omega t}dt=\left[\frac{e^{-i\omega t}}{-i\omega}\right]_{-w/2}^{w/2}"
-                 r"=\frac{2\sin(\omega w/2)}{\omega}")
         st.markdown("**問7** $f(t)$ のフーリエ変換を $F(\\omega)$ とするとき、$f(at)\\ (a>0)$ のフーリエ変換を求めよ。")
-        st.latex(r"\int f(at)e^{-i\omega t}dt=\frac1a F\!\left(\frac{\omega}{a}\right)")
-        st.write("時間で $1/a$ 倍に縮めると、周波数では $a$ 倍に広がる。")
+        if st.toggle("解答・解説を表示", key="pr_fourier_283"):
+            st.markdown("**答6**")
+            st.latex(r"F(\omega)=\int_{-w/2}^{w/2}e^{-i\omega t}dt=\left[\frac{e^{-i\omega t}}{-i\omega}\right]_{-w/2}^{w/2}"
+                     r"=\frac{2\sin(\omega w/2)}{\omega}")
+            st.markdown("**答7**")
+            st.latex(r"\int f(at)e^{-i\omega t}dt=\frac1a F\!\left(\frac{\omega}{a}\right)")
+            st.write("時間で $1/a$ 倍に縮めると、周波数では $a$ 倍に広がる。")

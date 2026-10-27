@@ -75,9 +75,12 @@ def tab_polar():
     show(fig)
     with st.expander("練習問題"):
         st.markdown("**問1** $(1+i)^{10}$ を求めよ。")
-        st.latex(r"1+i=\sqrt2e^{i\pi/4}\ \Rightarrow\ (1+i)^{10}=32e^{i5\pi/2}=32i")
         st.markdown("**問2** $z=1+\\sqrt3 i$ をかけると、平面上の点はどう動くか。")
-        st.write("$z=2e^{i\\pi/3}$ なので、**2倍に拡大して 60° 回転**。")
+        if st.toggle("解答・解説を表示", key="pr_complex2_76"):
+            st.markdown("**答1**")
+            st.latex(r"1+i=\sqrt2e^{i\pi/4}\ \Rightarrow\ (1+i)^{10}=32e^{i5\pi/2}=32i")
+            st.markdown("**答2**")
+            st.write("$z=2e^{i\\pi/3}$ なので、**2倍に拡大して 60° 回転**。")
 
 
 # ============================================================
@@ -128,7 +131,9 @@ def tab_abs_arg():
              "(等号は z₁, z₂ が同じ向きのとき)。")
     with st.expander("練習問題"):
         st.markdown("**問3** $z^3=8i$ を解け。")
-        st.latex(r"8i=8e^{i\pi/2}\ \Rightarrow\ z=2e^{i(\pi/6+2k\pi/3)}=\sqrt3+i,\ -\sqrt3+i,\ -2i")
+        if st.toggle("解答・解説を表示", key="pr_complex2_129"):
+            st.markdown("**答3**")
+            st.latex(r"8i=8e^{i\pi/2}\ \Rightarrow\ z=2e^{i(\pi/6+2k\pi/3)}=\sqrt3+i,\ -\sqrt3+i,\ -2i")
 
 
 # ============================================================
@@ -181,7 +186,9 @@ def tab_holomorphic():
         st.caption("例:f = z̄ では (z̄₀ + h̄ − z̄₀)/h = h̄/h = e^{−2iφ} で、方向 φ により単位円を一周する。")
     with st.expander("練習問題"):
         st.markdown("**問4** $f(z)=\\bar z$ が、どの点でも微分可能でないことを示せ。")
-        st.latex(r"\frac{\bar h}{h}=\begin{cases}1&(h\ \text{実数})\\-1&(h\ \text{純虚数})\end{cases}\ \Rightarrow\ \text{極限なし}")
+        if st.toggle("解答・解説を表示", key="pr_complex2_182"):
+            st.markdown("**答4**")
+            st.latex(r"\frac{\bar h}{h}=\begin{cases}1&(h\ \text{実数})\\-1&(h\ \text{純虚数})\end{cases}\ \Rightarrow\ \text{極限なし}")
 
 
 # ============================================================
@@ -234,8 +241,10 @@ def tab_cauchy_riemann():
     st.caption("正則なら、青(u の等高線)と赤(v の等高線)は直角に交わる(f′ ≠ 0 の点で)。")
     with st.expander("練習問題"):
         st.markdown("**問5** $u=x^2-y^2+2x$ を実部とする正則関数を求めよ。")
-        st.latex(r"v_y=u_x=2x+2\Rightarrow v=2xy+2y+\varphi(x),\ v_x=-u_y=2y\Rightarrow\varphi'=0")
-        st.latex(r"f=(x^2-y^2+2x)+i(2xy+2y)+iC=z^2+2z+iC")
+        if st.toggle("解答・解説を表示", key="pr_complex2_235"):
+            st.markdown("**答5**")
+            st.latex(r"v_y=u_x=2x+2\Rightarrow v=2xy+2y+\varphi(x),\ v_x=-u_y=2y\Rightarrow\varphi'=0")
+            st.latex(r"f=(x^2-y^2+2x)+i(2xy+2y)+iC=z^2+2z+iC")
 
 
 # ============================================================
@@ -292,7 +301,9 @@ def tab_inverse_fn():
         st.write(f"z が1周するごとに、log z の虚部は 2π ずつ増える(いま {np.radians(th) / (2 * PI):.2f} 周)。")
     with st.expander("練習問題"):
         st.markdown("**問6** $\\log(-1)$、$\\mathrm{Log}\\,i$、$i^i$ の主値を求めよ。")
-        st.latex(r"\log(-1)=(2n+1)\pi i,\quad \mathrm{Log}\,i=\frac\pi2i,\quad i^i=e^{i\,\mathrm{Log}\,i}=e^{-\pi/2}\approx0.2079")
+        if st.toggle("解答・解説を表示", key="pr_complex2_293"):
+            st.markdown("**答6**")
+            st.latex(r"\log(-1)=(2n+1)\pi i,\quad \mathrm{Log}\,i=\frac\pi2i,\quad i^i=e^{i\,\mathrm{Log}\,i}=e^{-\pi/2}\approx0.2079")
 
 
 # ============================================================
@@ -359,7 +370,9 @@ def tab_complex_integral():
             st.error("z̄ は正則でないので、道によって値が変わる。")
     with st.expander("練習問題"):
         st.markdown("**問7** C:$z=t+it^2\\ (0\\le t\\le1)$ のとき $\\int_C z\\,dz$ と $\\int_C\\bar z\\,dz$ を求めよ。")
-        st.latex(r"\int_C z\,dz=\frac{(1+i)^2}{2}=i,\qquad \int_C\bar z\,dz=\int_0^1(t-it^2)(1+2it)\,dt=1+\frac{i}{3}")
+        if st.toggle("解答・解説を表示", key="pr_complex2_360"):
+            st.markdown("**答7**")
+            st.latex(r"\int_C z\,dz=\frac{(1+i)^2}{2}=i,\qquad \int_C\bar z\,dz=\int_0^1(t-it^2)(1+2it)\,dt=1+\frac{i}{3}")
 
 
 # ============================================================
@@ -487,7 +500,9 @@ def tab_cauchy_formula():
             st.success("一致。")
     with st.expander("練習問題"):
         st.markdown("**問8** $\\displaystyle\\oint_{|z|=2}\\frac{e^z}{(z-1)^3}dz$ を求めよ。")
-        st.latex(r"\frac{2\pi i}{2!}f''(1)=\pi i\,e")
+        if st.toggle("解答・解説を表示", key="pr_complex2_488"):
+            st.markdown("**答8**")
+            st.latex(r"\frac{2\pi i}{2!}f''(1)=\pi i\,e")
 
 
 # ============================================================
@@ -569,4 +584,6 @@ def tab_expansion():
         st.caption("$\\frac1z$ の係数が留数(0 < |z| < 1 の展開で 1)。")
     with st.expander("練習問題"):
         st.markdown("**問9** $\\dfrac{1}{1+z^2}$ を $z=0$ のまわりで展開し、収束半径を求めよ。")
-        st.latex(r"1-z^2+z^4-\cdots,\quad R=1\ (\text{特異点}\ \pm i\ \text{までの距離})")
+        if st.toggle("解答・解説を表示", key="pr_complex2_570"):
+            st.markdown("**答9**")
+            st.latex(r"1-z^2+z^4-\cdots,\quad R=1\ (\text{特異点}\ \pm i\ \text{までの距離})")

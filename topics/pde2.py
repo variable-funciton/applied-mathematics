@@ -70,5 +70,7 @@ def tab_fourier_pde():
         st.caption("すべての周波数で振幅 |f̂| が保たれる:波は形を変えずに伝わる。")
     with st.expander("練習問題"):
         st.markdown("**問1** 熱方程式 $u_t=\\kappa u_{xx}$ を x についてフーリエ変換すると、$\\hat u$ の満たす方程式は?")
-        st.latex(r"\frac{\partial\hat u}{\partial t}=\kappa(i\omega)^2\hat u=-\kappa\omega^2\hat u\ "
-                 r"\Rightarrow\ \hat u=\hat f(\omega)e^{-\kappa\omega^2t}")
+        if st.toggle("解答・解説を表示", key="pr_pde2_71"):
+            st.markdown("**答1**")
+            st.latex(r"\frac{\partial\hat u}{\partial t}=\kappa(i\omega)^2\hat u=-\kappa\omega^2\hat u\ "
+                     r"\Rightarrow\ \hat u=\hat f(\omega)e^{-\kappa\omega^2t}")

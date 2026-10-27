@@ -106,11 +106,15 @@ def tab_gamma():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $\\Gamma(5)$, $\\Gamma\\left(\\frac72\\right)$ を求めよ。")
-        st.latex(r"\Gamma(5)=4!=24,\qquad \Gamma\!\left(\tfrac72\right)=\tfrac52\cdot\tfrac32\cdot\tfrac12\sqrt\pi=\tfrac{15}{8}\sqrt\pi")
         st.markdown("**問2** $\\displaystyle\\int_0^\\infty x^3e^{-2x}dx$ を、ガンマ関数を使って求めよ。")
-        st.latex(r"2x=t\ \text{とおくと}\ \int_0^\infty\left(\frac t2\right)^3e^{-t}\frac{dt}{2}=\frac{\Gamma(4)}{2^4}=\frac{6}{16}=\frac38")
         st.markdown("**問3** $a>0$ のとき $\\displaystyle\\int_0^\\infty x^{n}e^{-ax}dx$ を求めよ。")
-        st.latex(r"\frac{\Gamma(n+1)}{a^{n+1}}=\frac{n!}{a^{n+1}}")
+        if st.toggle("解答・解説を表示", key="pr_special_107"):
+            st.markdown("**答1**")
+            st.latex(r"\Gamma(5)=4!=24,\qquad \Gamma\!\left(\tfrac72\right)=\tfrac52\cdot\tfrac32\cdot\tfrac12\sqrt\pi=\tfrac{15}{8}\sqrt\pi")
+            st.markdown("**答2**")
+            st.latex(r"2x=t\ \text{とおくと}\ \int_0^\infty\left(\frac t2\right)^3e^{-t}\frac{dt}{2}=\frac{\Gamma(4)}{2^4}=\frac{6}{16}=\frac38")
+            st.markdown("**答3**")
+            st.latex(r"\frac{\Gamma(n+1)}{a^{n+1}}=\frac{n!}{a^{n+1}}")
 
 
 # ============================================================
@@ -158,13 +162,17 @@ def tab_beta():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $\\displaystyle\\int_0^1x^2(1-x)^3dx$ をベータ関数を使って求めよ。")
-        st.latex(r"B(3,4)=\frac{2!\,3!}{6!}=\frac{12}{720}=\frac{1}{60}")
         st.markdown("**問2** $\\displaystyle\\int_0^1\\sqrt{x(1-x)}\\,dx$ を求めよ。")
-        st.latex(r"B\!\left(\tfrac32,\tfrac32\right)=\frac{\Gamma(\frac32)^2}{\Gamma(3)}=\frac{(\frac12\sqrt\pi)^2}{2}=\frac\pi8")
-        st.caption("(半径 1/2 の半円の面積と同じ。$y=\\sqrt{x(1-x)}$ は中心 (1/2, 0)、半径 1/2 の上半円)")
         st.markdown("**問3** $\\displaystyle\\int_0^{\\pi/2}\\sin^3\\theta\\cos^2\\theta\\,d\\theta$ を求めよ。")
-        st.latex(r"2p-1=3,\ 2q-1=2\ \Rightarrow\ \frac12B\!\left(2,\tfrac32\right)=\frac12\cdot\frac{\Gamma(2)\Gamma(\frac32)}{\Gamma(\frac72)}"
-                 r"=\frac12\cdot\frac{\frac12\sqrt\pi}{\frac{15}{8}\sqrt\pi}=\frac{2}{15}")
+        if st.toggle("解答・解説を表示", key="pr_special_159"):
+            st.markdown("**答1**")
+            st.latex(r"B(3,4)=\frac{2!\,3!}{6!}=\frac{12}{720}=\frac{1}{60}")
+            st.markdown("**答2**")
+            st.latex(r"B\!\left(\tfrac32,\tfrac32\right)=\frac{\Gamma(\frac32)^2}{\Gamma(3)}=\frac{(\frac12\sqrt\pi)^2}{2}=\frac\pi8")
+            st.caption("(半径 1/2 の半円の面積と同じ。$y=\\sqrt{x(1-x)}$ は中心 (1/2, 0)、半径 1/2 の上半円)")
+            st.markdown("**答3**")
+            st.latex(r"2p-1=3,\ 2q-1=2\ \Rightarrow\ \frac12B\!\left(2,\tfrac32\right)=\frac12\cdot\frac{\Gamma(2)\Gamma(\frac32)}{\Gamma(\frac72)}"
+                     r"=\frac12\cdot\frac{\frac12\sqrt\pi}{\frac{15}{8}\sqrt\pi}=\frac{2}{15}")
 
 
 # ============================================================

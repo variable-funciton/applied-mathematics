@@ -80,10 +80,13 @@ def tab_delta():
     with st.expander("練習問題"):
         st.markdown("**問1** $\\displaystyle\\int_{-\\infty}^{\\infty}\\delta(t-2)(t^2+1)\\,dt$、"
                     "$\\mathcal L[\\delta(t-3)]$ を求めよ。")
-        st.latex(r"2^2+1=5,\qquad e^{-3s}")
         st.markdown("**問2** 単位ステップ関数 U(t) の導関数が δ(t) と考えられる理由を、モデル関数で説明せよ。")
-        st.write("矩形モデル δ_ε の積分 $\\int_{-\\infty}^t\\delta_\\varepsilon$ は、幅 ε で 0 から 1 へ直線的に上がる関数。"
-                 "ε → 0 で U(t) になる。")
+        if st.toggle("解答・解説を表示", key="pr_other_80"):
+            st.markdown("**答1**")
+            st.latex(r"2^2+1=5,\qquad e^{-3s}")
+            st.markdown("**答2**")
+            st.write("矩形モデル δ_ε の積分 $\\int_{-\\infty}^t\\delta_\\varepsilon$ は、幅 ε で 0 から 1 へ直線的に上がる関数。"
+                     "ε → 0 で U(t) になる。")
 
 
 # ============================================================
@@ -168,4 +171,6 @@ def tab_sampling():
                "低域フィルタ(sinc 補間)で元に戻せる。")
     with st.expander("練習問題"):
         st.markdown("**問3** 音楽 CD のサンプリング周波数は 44.1 kHz。記録できる最大の周波数は?")
-        st.write("ナイキスト周波数 22.05 kHz(人の可聴域 約 20 kHz をカバーする)。")
+        if st.toggle("解答・解説を表示", key="pr_other_169"):
+            st.markdown("**答3**")
+            st.write("ナイキスト周波数 22.05 kHz(人の可聴域 約 20 kHz をカバーする)。")

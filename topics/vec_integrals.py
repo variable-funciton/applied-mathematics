@@ -74,9 +74,12 @@ def tab_scalar_line():
 
     with st.expander("練習問題"):
         st.markdown("**問1** C:線分 $(0,0)\\to(1,1)$ のとき $\\int_C (x+y)\\,ds$ を求めよ。")
-        st.latex(r"\int_0^1 2t\cdot\sqrt2\,dt=\sqrt2\approx1.414214")
         st.markdown("**問2** C:単位円のとき $\\int_C (x^2+y^2)\\,ds$ を求めよ。")
-        st.latex(r"\int_0^{2\pi}1\cdot1\,dt=2\pi")
+        if st.toggle("解答・解説を表示", key="pr_vec_integrals_75"):
+            st.markdown("**答1**")
+            st.latex(r"\int_0^1 2t\cdot\sqrt2\,dt=\sqrt2\approx1.414214")
+            st.markdown("**答2**")
+            st.latex(r"\int_0^{2\pi}1\cdot1\,dt=2\pi")
 
 
 # ============================================================
@@ -161,9 +164,12 @@ def tab_vector_line():
 
     with st.expander("練習問題"):
         st.markdown("**問3** $\\vec F=(-y,\\ x)$ を、O から B(1,1) まで直線と折れ線(O→(1,0)→B)で積分せよ。")
-        st.latex(r"\text{直線:}\int_0^1(-t+t)\,dt=0,\qquad \text{折れ線:}\ 0+\int_0^1 1\,dy=1")
         st.markdown("**問4** $\\vec F=(2xy,\\ x^2)$ の線積分を O から $(2,3)$ まで求めよ。")
-        st.latex(r"\varphi=x^2y\ \Rightarrow\ \varphi(2,3)-\varphi(0,0)=12")
+        if st.toggle("解答・解説を表示", key="pr_vec_integrals_162"):
+            st.markdown("**答3**")
+            st.latex(r"\text{直線:}\int_0^1(-t+t)\,dt=0,\qquad \text{折れ線:}\ 0+\int_0^1 1\,dy=1")
+            st.markdown("**答4**")
+            st.latex(r"\varphi=x^2y\ \Rightarrow\ \varphi(2,3)-\varphi(0,0)=12")
 
 
 # ============================================================
@@ -265,9 +271,12 @@ def tab_surface_integral():
 
     with st.expander("練習問題"):
         st.markdown("**問5** 平面 $x+y+z=1$ の第1象限の部分 S について、$\\iint_S dS$ を求めよ。")
-        st.write("1辺 $\\sqrt2$ の正三角形なので $\\frac{\\sqrt3}{4}\\cdot2=\\frac{\\sqrt3}{2}\\approx0.866025$。")
         st.markdown("**問6** 上半球面 S(外向き)で $\\vec F=(x,y,z)$ の流束を求めよ。")
-        st.write("S 上で $\\vec F\\cdot\\vec n=|\\vec r|=1$ なので、流束 = 面積 = $2\\pi$。")
+        if st.toggle("解答・解説を表示", key="pr_vec_integrals_266"):
+            st.markdown("**答5**")
+            st.write("1辺 $\\sqrt2$ の正三角形なので $\\frac{\\sqrt3}{4}\\cdot2=\\frac{\\sqrt3}{2}\\approx0.866025$。")
+            st.markdown("**答6**")
+            st.write("S 上で $\\vec F\\cdot\\vec n=|\\vec r|=1$ なので、流束 = 面積 = $2\\pi$。")
 
 
 # ============================================================
@@ -399,9 +408,12 @@ def tab_gauss():
 
     with st.expander("練習問題"):
         st.markdown("**問7** 半径 a の球面 S(外向き)で $\\vec F=(x,y,z)$ の流束を求めよ。")
-        st.latex(r"\iiint_V 3\,dV=3\cdot\frac43\pi a^3=4\pi a^3")
         st.markdown("**問8** 立方体 $0\\le x,y,z\\le1$ の表面での $\\vec F=(x^2,y^2,z^2)$ の流束を求めよ。")
-        st.latex(r"\iiint_V 2(x+y+z)\,dV=2\cdot3\cdot\frac12=3")
+        if st.toggle("解答・解説を表示", key="pr_vec_integrals_400"):
+            st.markdown("**答7**")
+            st.latex(r"\iiint_V 3\,dV=3\cdot\frac43\pi a^3=4\pi a^3")
+            st.markdown("**答8**")
+            st.latex(r"\iiint_V 2(x+y+z)\,dV=2\cdot3\cdot\frac12=3")
 
 
 # ============================================================
@@ -514,11 +526,14 @@ def tab_stokes():
 
     with st.expander("練習問題"):
         st.markdown("**問9** $\\vec F=(-y,\\ x,\\ 0)$、C:$x^2+y^2=a^2,\\ z=0$(反時計回り)のとき、両辺を計算せよ。")
-        st.latex(r"\oint_C\vec F\cdot d\vec r=\int_0^{2\pi}a^2\,dt=2\pi a^2,\qquad "
-                 r"\iint_S(0,0,2)\cdot\vec n\,dS=2\cdot\pi a^2")
         st.markdown("**問10** $\\vec F=\\nabla\\varphi$ のとき、任意の閉曲線で循環が 0 になることを、"
                     "ストークスの定理から説明せよ。")
-        st.write("$\\nabla\\times\\nabla\\varphi=\\vec0$ なので右辺が 0。")
+        if st.toggle("解答・解説を表示", key="pr_vec_integrals_515"):
+            st.markdown("**答9**")
+            st.latex(r"\oint_C\vec F\cdot d\vec r=\int_0^{2\pi}a^2\,dt=2\pi a^2,\qquad "
+                     r"\iint_S(0,0,2)\cdot\vec n\,dS=2\cdot\pi a^2")
+            st.markdown("**答10**")
+            st.write("$\\nabla\\times\\nabla\\varphi=\\vec0$ なので右辺が 0。")
 
 
 # ============================================================
@@ -615,7 +630,9 @@ def tab_gradient_meaning():
 
     with st.expander("練習問題"):
         st.markdown("**問11** 曲面 $x^2+2y^2+3z^2=6$ の点 $(1,1,1)$ における法線ベクトルと接平面を求めよ。")
-        st.latex(r"\nabla F=(2x,\ 4y,\ 6z)=(2,\ 4,\ 6),\qquad 2(x-1)+4(y-1)+6(z-1)=0\ \Leftrightarrow\ x+2y+3z=6")
+        if st.toggle("解答・解説を表示", key="pr_vec_integrals_616"):
+            st.markdown("**答11**")
+            st.latex(r"\nabla F=(2x,\ 4y,\ 6z)=(2,\ 4,\ 6),\qquad 2(x-1)+4(y-1)+6(z-1)=0\ \Leftrightarrow\ x+2y+3z=6")
 
 
 # ============================================================

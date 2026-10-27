@@ -94,11 +94,15 @@ def tab_shift():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $\\mathcal L[e^{-2t}\\cos 3t]$ を求めよ。")
-        st.latex(r"\mathcal L[\cos3t]=\frac{s}{s^2+9}\ \Rightarrow\ \frac{s+2}{(s+2)^2+9}")
         st.markdown("**問2** $\\mathcal L^{-1}\\left[\\dfrac{e^{-2s}}{s^2}\\right]$ を求めよ。")
-        st.latex(r"(t-2)\,U(t-2)")
         st.markdown("**問3** $\\mathcal L[\\sin\\omega t]$ を相似法則で求めよ。")
-        st.latex(r"\frac1\omega\cdot\frac{1}{(s/\omega)^2+1}=\frac{\omega}{s^2+\omega^2}")
+        if st.toggle("解答・解説を表示", key="pr_laplace2_95"):
+            st.markdown("**答1**")
+            st.latex(r"\mathcal L[\cos3t]=\frac{s}{s^2+9}\ \Rightarrow\ \frac{s+2}{(s+2)^2+9}")
+            st.markdown("**答2**")
+            st.latex(r"(t-2)\,U(t-2)")
+            st.markdown("**答3**")
+            st.latex(r"\frac1\omega\cdot\frac{1}{(s/\omega)^2+1}=\frac{\omega}{s^2+\omega^2}")
 
 
 # ============================================================
@@ -165,9 +169,12 @@ def tab_diff_int():
         st.latex(r"\int_0^\infty f'(t)e^{-st}dt=\Big[f(t)e^{-st}\Big]_0^\infty+s\int_0^\infty f(t)e^{-st}dt=-f(0)+sF(s)")
     with st.expander("練習問題"):
         st.markdown("**問4** $\\mathcal L[t\\sin t]$ を求めよ。")
-        st.latex(r"-\frac{d}{ds}\frac{1}{s^2+1}=\frac{2s}{(s^2+1)^2}")
         st.markdown("**問5** $\\mathcal L^{-1}\\left[\\dfrac{1}{s(s^2+1)}\\right]$ を積分法則で求めよ。")
-        st.latex(r"\int_0^t\sin u\,du=1-\cos t")
+        if st.toggle("解答・解説を表示", key="pr_laplace2_166"):
+            st.markdown("**答4**")
+            st.latex(r"-\frac{d}{ds}\frac{1}{s^2+1}=\frac{2s}{(s^2+1)^2}")
+            st.markdown("**答5**")
+            st.latex(r"\int_0^t\sin u\,du=1-\cos t")
 
 
 # ============================================================
@@ -229,9 +236,12 @@ def tab_convolution():
 
     with st.expander("練習問題"):
         st.markdown("**問6** $1*e^{-t}$ を定義から計算し、$\\mathcal L$ の積の形とも比べよ。")
-        st.latex(r"\int_0^t e^{-(t-\tau)}d\tau=1-e^{-t},\qquad \frac1s\cdot\frac{1}{s+1}=\frac1s-\frac{1}{s+1}")
         st.markdown("**問7** $\\mathcal L^{-1}\\left[\\dfrac{1}{(s^2+1)^2}\\right]$ を合成積で表せ。")
-        st.latex(r"\sin t*\sin t=\int_0^t\sin\tau\sin(t-\tau)\,d\tau=\frac12(\sin t-t\cos t)")
+        if st.toggle("解答・解説を表示", key="pr_laplace2_230"):
+            st.markdown("**答6**")
+            st.latex(r"\int_0^t e^{-(t-\tau)}d\tau=1-e^{-t},\qquad \frac1s\cdot\frac{1}{s+1}=\frac1s-\frac{1}{s+1}")
+            st.markdown("**答7**")
+            st.latex(r"\sin t*\sin t=\int_0^t\sin\tau\sin(t-\tau)\,d\tau=\frac12(\sin t-t\cos t)")
 
 
 # ============================================================
@@ -307,9 +317,12 @@ def tab_transfer():
         st.caption("いろいろな近似(モデル関数)は「⑥ その他」で比べられる。")
     with st.expander("練習問題"):
         st.markdown("**問8** $y'+2y=r(t),\\ y(0)=0$ の伝達関数とインパルス応答を求めよ。")
-        st.latex(r"(s+2)Y=R\ \Rightarrow\ G(s)=\frac{1}{s+2},\quad g(t)=e^{-2t}")
         st.markdown("**問9** 問8で $r(t)=U(t)$ のときの出力を合成積で求めよ。")
-        st.latex(r"y=\int_0^te^{-2\tau}d\tau=\frac12(1-e^{-2t})")
+        if st.toggle("解答・解説を表示", key="pr_laplace2_308"):
+            st.markdown("**答8**")
+            st.latex(r"(s+2)Y=R\ \Rightarrow\ G(s)=\frac{1}{s+2},\quad g(t)=e^{-2t}")
+            st.markdown("**答9**")
+            st.latex(r"y=\int_0^te^{-2\tau}d\tau=\frac12(1-e^{-2t})")
 
 
 # ============================================================
@@ -387,6 +400,8 @@ def tab_operator():
 
     with st.expander("練習問題"):
         st.markdown("**問10** $(D^2+3D+2)y=1,\\ y(0)=y'(0)=0$ を演算子法で解け。")
-        st.latex(r"\frac{1}{(D+1)(D+2)}1=\left(\frac{1}{D+1}-\frac{1}{D+2}\right)1=(1-e^{-t})-\frac12(1-e^{-2t})")
-        st.latex(r"y=\frac12-e^{-t}+\frac12e^{-2t}")
-        st.write("(上で α = −1、β = −2、r = 1 にして確かめよう)")
+        if st.toggle("解答・解説を表示", key="pr_laplace2_388"):
+            st.markdown("**答10**")
+            st.latex(r"\frac{1}{(D+1)(D+2)}1=\left(\frac{1}{D+1}-\frac{1}{D+2}\right)1=(1-e^{-t})-\frac12(1-e^{-2t})")
+            st.latex(r"y=\frac12-e^{-t}+\frac12e^{-2t}")
+            st.write("(上で α = −1、β = −2、r = 1 にして確かめよう)")

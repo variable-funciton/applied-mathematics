@@ -82,10 +82,13 @@ def tab_complex_series():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $f(x)=x\\ (-\\pi<x<\\pi)$ の複素フーリエ係数を求めよ。")
-        st.latex(r"c_n=\frac{1}{2\pi}\int_{-\pi}^{\pi}xe^{-inx}dx=\frac{(-1)^n i}{n}\ (n\ne0),\quad c_0=0")
-        st.write("確認:$b_n=2(-1)^{n+1}/n$ より $c_n=-ib_n/2=(-1)^n i/n$。")
         st.markdown("**問2** 周期 2($L=1$)、$f(x)=x\\ (-1<x<1)$ の通常のフーリエ係数を求めよ。")
-        st.latex(r"b_n=\int_{-1}^{1}x\sin n\pi x\,dx=\frac{2(-1)^{n+1}}{n\pi}")
+        if st.toggle("解答・解説を表示", key="pr_fourier2_83"):
+            st.markdown("**答1**")
+            st.latex(r"c_n=\frac{1}{2\pi}\int_{-\pi}^{\pi}xe^{-inx}dx=\frac{(-1)^n i}{n}\ (n\ne0),\quad c_0=0")
+            st.write("確認:$b_n=2(-1)^{n+1}/n$ より $c_n=-ib_n/2=(-1)^n i/n$。")
+            st.markdown("**答2**")
+            st.latex(r"b_n=\int_{-1}^{1}x\sin n\pi x\,dx=\frac{2(-1)^{n+1}}{n\pi}")
 
 
 # ============================================================
@@ -148,8 +151,10 @@ def tab_integral_theorem():
 """)
     with st.expander("練習問題"):
         st.markdown("**問3** フーリエ積分定理を使って、$\\displaystyle\\int_0^\\infty\\frac{\\sin\\omega}{\\omega}d\\omega$ を求めよ。")
-        st.latex(r"f(0)=1=\frac{1}{2\pi}\int_{-\infty}^{\infty}\frac{2\sin\omega}{\omega}d\omega"
-                 r"\ \Rightarrow\ \int_0^\infty\frac{\sin\omega}{\omega}d\omega=\frac\pi2")
+        if st.toggle("解答・解説を表示", key="pr_fourier2_149"):
+            st.markdown("**答3**")
+            st.latex(r"f(0)=1=\frac{1}{2\pi}\int_{-\infty}^{\infty}\frac{2\sin\omega}{\omega}d\omega"
+                     r"\ \Rightarrow\ \int_0^\infty\frac{\sin\omega}{\omega}d\omega=\frac\pi2")
 
 
 # ============================================================
@@ -227,8 +232,10 @@ def tab_properties():
 
     with st.expander("練習問題"):
         st.markdown("**問4** $f(t)=e^{-|t|}$ のとき、$e^{-|t-2|}$ と $e^{-|t|}\\cos 3t$ のフーリエ変換を求めよ。")
-        st.latex(r"F=\frac{2}{1+\omega^2},\quad e^{-2i\omega}\frac{2}{1+\omega^2},\quad "
-                 r"\frac{1}{1+(\omega-3)^2}+\frac{1}{1+(\omega+3)^2}")
+        if st.toggle("解答・解説を表示", key="pr_fourier2_228"):
+            st.markdown("**答4**")
+            st.latex(r"F=\frac{2}{1+\omega^2},\quad e^{-2i\omega}\frac{2}{1+\omega^2},\quad "
+                     r"\frac{1}{1+(\omega-3)^2}+\frac{1}{1+(\omega+3)^2}")
 
 
 # ============================================================
@@ -434,7 +441,10 @@ def tab_convergence_parseval():
     with st.expander("練習問題"):
         st.markdown("**問1** 矩形波($-1\\ (-\\pi<x<0),\\ 1\\ (0<x<\\pi)$)にパーセバルの等式を使い、"
                     "$\\displaystyle\\sum_{k=1}^{\\infty}\\frac{1}{(2k-1)^2}$ を求めよ。")
-        st.latex(r"b_{2k-1}=\frac{4}{(2k-1)\pi},\quad \frac1\pi\int_{-\pi}^{\pi}1\,dx=2=\sum_k\frac{16}{(2k-1)^2\pi^2}"
-                 r"\ \Rightarrow\ \sum_{k=1}^{\infty}\frac{1}{(2k-1)^2}=\frac{\pi^2}{8}")
         st.markdown("**問2** 矩形波のフーリエ級数は $x=0$ でどんな値に収束するか。収束定理から答えよ。")
-        st.write("左右の極限 −1 と 1 の平均で **0**。")
+        if st.toggle("解答・解説を表示", key="pr_fourier2_434"):
+            st.markdown("**答1**")
+            st.latex(r"b_{2k-1}=\frac{4}{(2k-1)\pi},\quad \frac1\pi\int_{-\pi}^{\pi}1\,dx=2=\sum_k\frac{16}{(2k-1)^2\pi^2}"
+                     r"\ \Rightarrow\ \sum_{k=1}^{\infty}\frac{1}{(2k-1)^2}=\frac{\pi^2}{8}")
+            st.markdown("**答2**")
+            st.write("左右の極限 −1 と 1 の平均で **0**。")

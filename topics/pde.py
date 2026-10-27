@@ -81,10 +81,13 @@ def tab_heat():
         st.write("これらを重ね合わせ、$t=0$ で $f(x)$ になるように係数を決める(③フーリエ級数)。")
     with st.expander("練習問題"):
         st.markdown("**問1** $f(x)=\\sin\\pi x+0.5\\sin 5\\pi x$ のときの解を書け。")
-        st.latex(r"u=e^{-\kappa\pi^2t}\sin\pi x+0.5\,e^{-25\kappa\pi^2t}\sin 5\pi x")
-        st.write("第2項は第1項の 25 倍の速さで減衰する。")
         st.markdown("**問2** f(x) = 1(一様)のとき $b_n$ を求めよ。")
-        st.latex(r"b_n=2\int_0^1\sin n\pi x\,dx=\frac{2(1-(-1)^n)}{n\pi}=\begin{cases}\frac{4}{n\pi}&(n\ \text{奇数})\\0&(n\ \text{偶数})\end{cases}")
+        if st.toggle("解答・解説を表示", key="pr_pde_82"):
+            st.markdown("**答1**")
+            st.latex(r"u=e^{-\kappa\pi^2t}\sin\pi x+0.5\,e^{-25\kappa\pi^2t}\sin 5\pi x")
+            st.write("第2項は第1項の 25 倍の速さで減衰する。")
+            st.markdown("**答2**")
+            st.latex(r"b_n=2\int_0^1\sin n\pi x\,dx=\frac{2(1-(-1)^n)}{n\pi}=\begin{cases}\frac{4}{n\pi}&(n\ \text{奇数})\\0&(n\ \text{偶数})\end{cases}")
 
 
 # ---------- 差分法 ----------
@@ -145,9 +148,12 @@ def tab_ftcs():
 
     with st.expander("練習問題"):
         st.markdown("**問3** κ = 1、Δx = 0.05 のとき、陽解法が安定になる Δt の最大値は?")
-        st.latex(r"\Delta t\le\frac{\Delta x^2}{2\kappa}=\frac{0.0025}{2}=0.00125")
         st.markdown("**問4** Δx を半分にすると、同じ時刻まで計算するのに必要なステップ数は何倍になるか。")
-        st.write("Δt ∝ Δx² なので Δt は 1/4、ステップ数は **4 倍**(格子点も 2 倍なので計算量は 8 倍)。")
+        if st.toggle("解答・解説を表示", key="pr_pde_146"):
+            st.markdown("**答3**")
+            st.latex(r"\Delta t\le\frac{\Delta x^2}{2\kappa}=\frac{0.0025}{2}=0.00125")
+            st.markdown("**答4**")
+            st.write("Δt ∝ Δx² なので Δt は 1/4、ステップ数は **4 倍**(格子点も 2 倍なので計算量は 8 倍)。")
 
 
 # ---------- 波動方程式 ----------
@@ -203,9 +209,12 @@ def tab_wave():
 
     with st.expander("練習問題"):
         st.markdown("**問5** 長さ 1、波の速さ 1 の弦の、第 n 固有振動の周期を求めよ。")
-        st.write("$\\cos n\\pi t$ の周期なので $\\dfrac{2}{n}$。基本振動(n = 1)の周期は 2。")
         st.markdown("**問6** $u=\\frac12\\{F(x-t)+F(x+t)\\}$ が波動方程式を満たすことを確かめよ。")
-        st.latex(r"u_{tt}=\frac12\{F''(x-t)+F''(x+t)\}=u_{xx}")
+        if st.toggle("解答・解説を表示", key="pr_pde_204"):
+            st.markdown("**答5**")
+            st.write("$\\cos n\\pi t$ の周期なので $\\dfrac{2}{n}$。基本振動(n = 1)の周期は 2。")
+            st.markdown("**答6**")
+            st.latex(r"u_{tt}=\frac12\{F''(x-t)+F''(x+t)\}=u_{xx}")
 
 
 # ---------- ラプラス方程式 ----------
@@ -274,7 +283,10 @@ def tab_laplace():
 
     with st.expander("練習問題"):
         st.markdown("**問7** g(x) = sin πx、b = 1 のときの解を書け。")
-        st.latex(r"u(x,y)=\frac{\sinh\pi y}{\sinh\pi}\sin\pi x")
         st.markdown("**問8** $u=x^2-y^2$ がラプラス方程式を満たすことを確かめ、"
                     "原点中心・半径 r の円周上での平均を求めよ。")
-        st.latex(r"u_{xx}+u_{yy}=2-2=0,\qquad \frac{1}{2\pi}\int_0^{2\pi}r^2\cos 2\theta\,d\theta=0=u(0,0)")
+        if st.toggle("解答・解説を表示", key="pr_pde_275"):
+            st.markdown("**答7**")
+            st.latex(r"u(x,y)=\frac{\sinh\pi y}{\sinh\pi}\sin\pi x")
+            st.markdown("**答8**")
+            st.latex(r"u_{xx}+u_{yy}=2-2=0,\qquad \frac{1}{2\pi}\int_0^{2\pi}r^2\cos 2\theta\,d\theta=0=u(0,0)")

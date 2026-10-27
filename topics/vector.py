@@ -217,11 +217,14 @@ def tab_gradient():
     with st.expander("練習問題"):
         st.markdown("**問1** $f(x,y)=x^2y+y^3$ の点 $(1,1)$ における勾配と、"
                     "$\\boldsymbol u=\\frac{1}{\\sqrt2}(1,1)$ 方向の方向微分係数を求めよ。")
-        st.latex(r"\nabla f=(2xy,\ x^2+3y^2)=(2,\ 4),\qquad D_{\boldsymbol u}f=\frac{2+4}{\sqrt2}=3\sqrt2")
         st.markdown("**問2** 方向微分係数が 0 になる向きは、等高線とどんな関係にあるか。")
-        st.write("$\\nabla f\\cdot\\boldsymbol u=0$ より $\\boldsymbol u\\perp\\nabla f$。"
-                 "その向きに進んでも $f$ は変わらないので、**等高線の接線方向**。"
-                 "よって $\\nabla f$ は等高線に直交する。")
+        if st.toggle("解答・解説を表示", key="pr_vector_217"):
+            st.markdown("**答1**")
+            st.latex(r"\nabla f=(2xy,\ x^2+3y^2)=(2,\ 4),\qquad D_{\boldsymbol u}f=\frac{2+4}{\sqrt2}=3\sqrt2")
+            st.markdown("**答2**")
+            st.write("$\\nabla f\\cdot\\boldsymbol u=0$ より $\\boldsymbol u\\perp\\nabla f$。"
+                     "その向きに進んでも $f$ は変わらないので、**等高線の接線方向**。"
+                     "よって $\\nabla f$ は等高線に直交する。")
 
 
 # ---------- 発散・回転 ----------
@@ -320,12 +323,15 @@ def tab_div_rot():
         )
     with st.expander("練習問題"):
         st.markdown("**問3** $\\boldsymbol F=(x^2y,\\ xy^2)$ の div と rot を求めよ。")
-        st.latex(r"\mathrm{div}\,\boldsymbol F=2xy+2xy=4xy,\qquad"
-                 r"\mathrm{rot}\,\boldsymbol F=y^2-x^2")
         st.markdown("**問4** $\\boldsymbol F=\\nabla f$(勾配場)ならば rot F = 0 となることを示せ。")
-        st.latex(r"\mathrm{rot}\,\nabla f=\frac{\partial}{\partial x}\frac{\partial f}{\partial y}"
-                 r"-\frac{\partial}{\partial y}\frac{\partial f}{\partial x}=0\quad"
-                 r"(\text{偏微分の順序交換})")
+        if st.toggle("解答・解説を表示", key="pr_vector_321"):
+            st.markdown("**答3**")
+            st.latex(r"\mathrm{div}\,\boldsymbol F=2xy+2xy=4xy,\qquad"
+                     r"\mathrm{rot}\,\boldsymbol F=y^2-x^2")
+            st.markdown("**答4**")
+            st.latex(r"\mathrm{rot}\,\nabla f=\frac{\partial}{\partial x}\frac{\partial f}{\partial y}"
+                     r"-\frac{\partial}{\partial y}\frac{\partial f}{\partial x}=0\quad"
+                     r"(\text{偏微分の順序交換})")
 
 
 # ---------- グリーンの定理 ----------
@@ -427,13 +433,16 @@ def tab_green():
     with st.expander("練習問題"):
         st.markdown("**問5** $C$:単位円(反時計回り)のとき、$\\displaystyle\\oint_C -y\\,dx+x\\,dy$ を"
                     "グリーンの定理で求めよ。")
-        st.latex(r"\iint_D (1-(-1))\,dxdy=2\times(\text{円の面積})=2\pi")
-        st.write("一般に $\\frac12\\oint_C -y\\,dx+x\\,dy$ は D の面積になる(面積公式)。")
         st.markdown("**問6** 点渦 $\\boldsymbol F=\\frac{(-y,x)}{x^2+y^2}$ について、"
                     "原点を囲む任意の単純閉曲線での循環が $2\\pi$ になる理由を説明せよ。")
-        st.write("原点を囲む小さな円 $C_\\varepsilon$ をとり、$C$ と $C_\\varepsilon$ で挟まれた領域に"
-                 "グリーンの定理を使うと rot F = 0 より $\\oint_C=\\oint_{C_\\varepsilon}$。"
-                 "円周上では $\\boldsymbol F\\cdot d\\boldsymbol r=d\\theta$ なので $2\\pi$。")
+        if st.toggle("解答・解説を表示", key="pr_vector_427"):
+            st.markdown("**答5**")
+            st.latex(r"\iint_D (1-(-1))\,dxdy=2\times(\text{円の面積})=2\pi")
+            st.write("一般に $\\frac12\\oint_C -y\\,dx+x\\,dy$ は D の面積になる(面積公式)。")
+            st.markdown("**答6**")
+            st.write("原点を囲む小さな円 $C_\\varepsilon$ をとり、$C$ と $C_\\varepsilon$ で挟まれた領域に"
+                     "グリーンの定理を使うと rot F = 0 より $\\oint_C=\\oint_{C_\\varepsilon}$。"
+                     "円周上では $\\boldsymbol F\\cdot d\\boldsymbol r=d\\theta$ なので $2\\pi$。")
 
 
 # ---------- スカラー場とベクトル場 ----------
@@ -538,7 +547,10 @@ def tab_fields():
     with st.expander("練習問題"):
         st.markdown("**問1** $\\vec F=(-y,\\ x)$ の点 $(1,0),\\ (0,1),\\ (-1,0),\\ (0,-1)$ でのベクトルを求め、"
                     "流線がどんな形になるか答えよ。")
-        st.write("順に $(0,1),\\ (-1,0),\\ (0,-1),\\ (1,0)$。どの点でも位置ベクトル $(x,y)$ と直交するので、"
-                 "流線は**原点中心の円**(反時計回り)。")
         st.markdown("**問2** スカラー場 $f=x^2+y^2$ の等高線はどんな図形か。")
-        st.write("$x^2+y^2=c$ なので、原点中心の同心円。")
+        if st.toggle("解答・解説を表示", key="pr_vector_538"):
+            st.markdown("**答1**")
+            st.write("順に $(0,1),\\ (-1,0),\\ (0,-1),\\ (1,0)$。どの点でも位置ベクトル $(x,y)$ と直交するので、"
+                     "流線は**原点中心の円**(反時計回り)。")
+            st.markdown("**答2**")
+            st.write("$x^2+y^2=c$ なので、原点中心の同心円。")

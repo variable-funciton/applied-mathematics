@@ -125,11 +125,14 @@ def tab_products():
     with st.expander("練習問題"):
         st.markdown("**問1** $\\vec a=(1,2,2),\\ \\vec b=(2,-1,2)$ のなす角と、"
                     "$\\vec a,\\vec b$ の両方に垂直な単位ベクトルを求めよ。")
-        st.latex(r"\vec a\cdot\vec b=2-2+4=4,\ |\vec a|=|\vec b|=3,\ \cos\theta=\frac49")
-        st.latex(r"\vec a\times\vec b=(4+2,\ 4-2,\ -1-4)=(6,\ 2,\ -5),\quad \pm\frac{1}{\sqrt{65}}(6,\ 2,\ -5)")
         st.markdown("**問2** 3点 $A(1,0,0),\\ B(0,2,0),\\ C(0,0,3)$ を頂点とする三角形の面積を求めよ。")
-        st.latex(r"\overrightarrow{AB}\times\overrightarrow{AC}=(-1,2,0)\times(-1,0,3)=(6,\ 3,\ 2),\quad "
-                 r"S=\frac12\sqrt{36+9+4}=\frac72")
+        if st.toggle("解答・解説を表示", key="pr_vec_functions_125"):
+            st.markdown("**答1**")
+            st.latex(r"\vec a\cdot\vec b=2-2+4=4,\ |\vec a|=|\vec b|=3,\ \cos\theta=\frac49")
+            st.latex(r"\vec a\times\vec b=(4+2,\ 4-2,\ -1-4)=(6,\ 2,\ -5),\quad \pm\frac{1}{\sqrt{65}}(6,\ 2,\ -5)")
+            st.markdown("**答2**")
+            st.latex(r"\overrightarrow{AB}\times\overrightarrow{AC}=(-1,2,0)\times(-1,0,3)=(6,\ 3,\ 2),\quad "
+                     r"S=\frac12\sqrt{36+9+4}=\frac72")
 
 
 # ============================================================
@@ -235,7 +238,9 @@ def tab_vector_function():
         st.caption("円運動では |r| が一定なので、位置と速度は直交する(円タブで確かめよう)。")
     with st.expander("練習問題"):
         st.markdown("**問3** $\\vec r(t)=(\\cos t,\\ \\sin t,\\ t)$ の速度・加速度・速さを求めよ。")
-        st.latex(r"\vec r'=(-\sin t,\ \cos t,\ 1),\quad \vec r''=(-\cos t,\ -\sin t,\ 0),\quad |\vec r'|=\sqrt2")
+        if st.toggle("解答・解説を表示", key="pr_vec_functions_236"):
+            st.markdown("**答3**")
+            st.latex(r"\vec r'=(-\sin t,\ \cos t,\ 1),\quad \vec r''=(-\cos t,\ -\sin t,\ 0),\quad |\vec r'|=\sqrt2")
 
 
 # ============================================================
@@ -305,9 +310,12 @@ def tab_curve():
 
     with st.expander("練習問題"):
         st.markdown("**問4** らせん $\\vec r(t)=(a\\cos t,\\ a\\sin t,\\ bt)\\ (0\\le t\\le 2\\pi)$ の長さと曲率を求めよ。")
-        st.latex(r"|\vec r'|=\sqrt{a^2+b^2},\quad s=2\pi\sqrt{a^2+b^2},\quad \kappa=\frac{a}{a^2+b^2}")
         st.markdown("**問5** サイクロイド1アーチ $(0\\le t\\le 2\\pi)$ の長さを求めよ。")
-        st.latex(r"|\vec r'|=\sqrt{2-2\cos t}=2\sin\frac t2,\quad s=\int_0^{2\pi}2\sin\frac t2\,dt=8")
+        if st.toggle("解答・解説を表示", key="pr_vec_functions_306"):
+            st.markdown("**答4**")
+            st.latex(r"|\vec r'|=\sqrt{a^2+b^2},\quad s=2\pi\sqrt{a^2+b^2},\quad \kappa=\frac{a}{a^2+b^2}")
+            st.markdown("**答5**")
+            st.latex(r"|\vec r'|=\sqrt{2-2\cos t}=2\sin\frac t2,\quad s=\int_0^{2\pi}2\sin\frac t2\,dt=8")
 
 
 def _num(v, d=3):
@@ -453,6 +461,9 @@ def tab_surface():
         st.latex(r"\text{曲面積:}\ S=\iint_D\sqrt{1+f_x^2+f_y^2}\,dxdy")
     with st.expander("練習問題"):
         st.markdown("**問6** 曲面 $z=x^2+y^2$ の点 $(1,1,2)$ における接平面の方程式を求めよ。")
-        st.latex(r"f_x=2,\ f_y=2\ \Rightarrow\ z-2=2(x-1)+2(y-1),\ \ z=2x+2y-2")
         st.markdown("**問7** 半径 $a$ の球面の面積が $4\\pi a^2$ であることを示せ。")
-        st.latex(r"|\vec r_u\times\vec r_v|=a^2\sin u,\quad S=\int_0^{2\pi}\!\!\int_0^\pi a^2\sin u\,du\,dv=4\pi a^2")
+        if st.toggle("解答・解説を表示", key="pr_vec_functions_454"):
+            st.markdown("**答6**")
+            st.latex(r"f_x=2,\ f_y=2\ \Rightarrow\ z-2=2(x-1)+2(y-1),\ \ z=2x+2y-2")
+            st.markdown("**答7**")
+            st.latex(r"|\vec r_u\times\vec r_v|=a^2\sin u,\quad S=\int_0^{2\pi}\!\!\int_0^\pi a^2\sin u\,du\,dv=4\pi a^2")

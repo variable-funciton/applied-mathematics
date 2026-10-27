@@ -138,10 +138,13 @@ def tab_mapping():
 
     with st.expander("練習問題"):
         st.markdown("**問1** $w=z^2$ で、直線 $x=1$ はどんな曲線に写るか。")
-        st.latex(r"z=1+iy\ \Rightarrow\ w=(1-y^2)+2iy,\quad u=1-\frac{v^2}{4}\ (\text{左に開いた放物線})")
         st.markdown("**問2** $w=\\frac1z$ で、円 $|z-1|=1$(原点を通る)はどんな図形に写るか。")
-        st.write("原点を通る円は直線に写る。$z=2$ → $w=\\frac12$、$z=1\\pm i$ → $w=\\frac{1\\mp i}{2}$ より、"
-                 "**直線 $u=\\frac12$**。(極座標格子で試してみよう)")
+        if st.toggle("解答・解説を表示", key="pr_complex_fn_139"):
+            st.markdown("**答1**")
+            st.latex(r"z=1+iy\ \Rightarrow\ w=(1-y^2)+2iy,\quad u=1-\frac{v^2}{4}\ (\text{左に開いた放物線})")
+            st.markdown("**答2**")
+            st.write("原点を通る円は直線に写る。$z=2$ → $w=\\frac12$、$z=1\\pm i$ → $w=\\frac{1\\mp i}{2}$ より、"
+                     "**直線 $u=\\frac12$**。(極座標格子で試してみよう)")
 
 
 # ---------- 定義域の色付け ----------
@@ -226,10 +229,13 @@ def tab_domain_coloring():
 
     with st.expander("練習問題"):
         st.markdown("**問3** $f(z)=\\dfrac{(z-1)^2}{z+1}$ で、$|z|=2$ を一周すると色は何回回るか。")
-        st.write("内側に 2 位の零点 $z=1$ と 1 位の極 $z=-1$ があるので、$Z-P=2-1=$ **1 回**。")
         st.markdown("**問4** $e^z$ の画像に、色が一周する点がないのはなぜか。")
-        st.write("$e^z\\ne 0$ で極もないので、どんな閉曲線でも $Z-P=0$。"
-                 "色(偏角 = Im z)は虚軸方向に周期 $2\\pi$ で縞になる。")
+        if st.toggle("解答・解説を表示", key="pr_complex_fn_227"):
+            st.markdown("**答3**")
+            st.write("内側に 2 位の零点 $z=1$ と 1 位の極 $z=-1$ があるので、$Z-P=2-1=$ **1 回**。")
+            st.markdown("**答4**")
+            st.write("$e^z\\ne 0$ で極もないので、どんな閉曲線でも $Z-P=0$。"
+                     "色(偏角 = Im z)は虚軸方向に周期 $2\\pi$ で縞になる。")
 
 
 # ---------- 留数定理 ----------
@@ -320,11 +326,14 @@ def tab_residue():
                  "$e^{1/z}$ は $\\frac1z$ の係数 1。")
     with st.expander("練習問題"):
         st.markdown("**問5** $\\displaystyle\\oint_{|z|=2}\\frac{z}{z^2-1}dz$ を求めよ。")
-        st.latex(r"\mathrm{Res}(1)=\frac{1}{2},\ \mathrm{Res}(-1)=\frac{-1}{-2}=\frac12\ \Rightarrow\ "
-                 r"2\pi i\left(\frac12+\frac12\right)=2\pi i")
         st.markdown("**問6** $\\displaystyle\\oint_{|z|=1}\\frac{e^z}{z^2}dz$ を求めよ。")
-        st.latex(r"\frac{e^z}{z^2}=\frac{1}{z^2}+\frac1z+\frac12+\cdots\ \Rightarrow\ \mathrm{Res}=1,"
-                 r"\ \ \oint=2\pi i")
+        if st.toggle("解答・解説を表示", key="pr_complex_fn_321"):
+            st.markdown("**答5**")
+            st.latex(r"\mathrm{Res}(1)=\frac{1}{2},\ \mathrm{Res}(-1)=\frac{-1}{-2}=\frac12\ \Rightarrow\ "
+                     r"2\pi i\left(\frac12+\frac12\right)=2\pi i")
+            st.markdown("**答6**")
+            st.latex(r"\frac{e^z}{z^2}=\frac{1}{z^2}+\frac1z+\frac12+\cdots\ \Rightarrow\ \mathrm{Res}=1,"
+                     r"\ \ \oint=2\pi i")
 
 
 # ---------- 実積分 ----------
@@ -398,5 +407,7 @@ def tab_real_integral():
 
     with st.expander("練習問題"):
         st.markdown("**問7** $\\displaystyle\\int_{-\\infty}^{\\infty}\\frac{dx}{x^2+1}=\\pi$ を留数定理で示せ。")
-        st.latex(r"\mathrm{Res}\left(\frac{1}{z^2+1},\,i\right)=\frac{1}{2i},\quad 2\pi i\cdot\frac{1}{2i}=\pi")
-        st.write("半円上では $\\left|\\int_{C_R}\\right|\\le \\pi R\\cdot\\frac{1}{R^2-1}\\to 0$。")
+        if st.toggle("解答・解説を表示", key="pr_complex_fn_399"):
+            st.markdown("**答7**")
+            st.latex(r"\mathrm{Res}\left(\frac{1}{z^2+1},\,i\right)=\frac{1}{2i},\quad 2\pi i\cdot\frac{1}{2i}=\pi")
+            st.write("半円上では $\\left|\\int_{C_R}\\right|\\le \\pi R\\cdot\\frac{1}{R^2-1}\\to 0$。")

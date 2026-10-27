@@ -99,11 +99,14 @@ def tab_definition():
 
     with st.expander("練習問題"):
         st.markdown("**問1** 定義にしたがって $\\mathcal L[e^{at}]$ を求めよ。")
-        st.latex(r"\int_0^T e^{-(s-a)t}dt=\frac{1-e^{-(s-a)T}}{s-a}\xrightarrow{T\to\infty}"
-                 r"\frac{1}{s-a}\quad(s>a)")
         st.markdown("**問2** $s\\le a$ で収束しないのはなぜか。")
-        st.write("$s=a$ なら被積分関数は 1 で $\\int_0^T 1\\,dt=T\\to\\infty$。"
-                 "$s<a$ なら $e^{(a-s)T}\\to\\infty$。")
+        if st.toggle("解答・解説を表示", key="pr_laplace_100"):
+            st.markdown("**答1**")
+            st.latex(r"\int_0^T e^{-(s-a)t}dt=\frac{1-e^{-(s-a)T}}{s-a}\xrightarrow{T\to\infty}"
+                     r"\frac{1}{s-a}\quad(s>a)")
+            st.markdown("**答2**")
+            st.write("$s=a$ なら被積分関数は 1 で $\\int_0^T 1\\,dt=T\\to\\infty$。"
+                     "$s<a$ なら $e^{(a-s)T}\\to\\infty$。")
 
 
 # ---------- 逆変換 ----------
@@ -267,10 +270,13 @@ def tab_inverse():
 
     with st.expander("練習問題"):
         st.markdown("**問3** $\\mathcal L^{-1}\\left[\\dfrac{s+3}{s^2+3s+2}\\right]$ を求めよ。")
-        st.latex(r"\frac{s+3}{(s+1)(s+2)}=\frac{2}{s+1}-\frac{1}{s+2}\ \Longrightarrow\ "
-                 r"f(t)=2e^{-t}-e^{-2t}")
         st.markdown("**問4** $\\mathcal L^{-1}\\left[\\dfrac{s+1}{s^2+2s+5}\\right]$ を求めよ。")
-        st.latex(r"\frac{s+1}{(s+1)^2+2^2}\ \Longrightarrow\ f(t)=e^{-t}\cos 2t\quad(\text{第1移動定理})")
+        if st.toggle("解答・解説を表示", key="pr_laplace_268"):
+            st.markdown("**答3**")
+            st.latex(r"\frac{s+3}{(s+1)(s+2)}=\frac{2}{s+1}-\frac{1}{s+2}\ \Longrightarrow\ "
+                     r"f(t)=2e^{-t}-e^{-2t}")
+            st.markdown("**答4**")
+            st.latex(r"\frac{s+1}{(s+1)^2+2^2}\ \Longrightarrow\ f(t)=e^{-t}\cos 2t\quad(\text{第1移動定理})")
 
 
 # ---------- 微分方程式 ----------
@@ -387,11 +393,14 @@ def tab_ode():
 
     with st.expander("練習問題"):
         st.markdown("**問5** $y''+3y'+2y=0,\\ y(0)=1,\\ y'(0)=0$ をラプラス変換で解け。")
-        st.latex(r"(s^2+3s+2)Y=s+3\ \Rightarrow\ Y=\frac{s+3}{(s+1)(s+2)}=\frac{2}{s+1}-\frac{1}{s+2}")
-        st.latex(r"y(t)=2e^{-t}-e^{-2t}")
-        st.write("(ω₀ = √2 ≈ 1.4、ζ = 3/(2√2) ≈ 1.06 なので、上のスライダーを ω₀ = 1.4、ζ = 1.05、"
-                 "y₀ = 1、v₀ = 0 にすると、ほぼ同じ形の過減衰のグラフになる)")
         st.markdown("**問6** $y''+4y=\\sin 2t,\\ y(0)=y'(0)=0$ の解に $t\\cos 2t$ が現れる理由を、"
                     "Y(s) の形から説明せよ。")
-        st.latex(r"Y(s)=\frac{2}{(s^2+4)^2}\quad(\pm 2i\ \text{が2位の極})")
-        st.write("2位の極からは $t e^{\\pm 2it}$ の項が出てくるため。")
+        if st.toggle("解答・解説を表示", key="pr_laplace_388"):
+            st.markdown("**答5**")
+            st.latex(r"(s^2+3s+2)Y=s+3\ \Rightarrow\ Y=\frac{s+3}{(s+1)(s+2)}=\frac{2}{s+1}-\frac{1}{s+2}")
+            st.latex(r"y(t)=2e^{-t}-e^{-2t}")
+            st.write("(ω₀ = √2 ≈ 1.4、ζ = 3/(2√2) ≈ 1.06 なので、上のスライダーを ω₀ = 1.4、ζ = 1.05、"
+                     "y₀ = 1、v₀ = 0 にすると、ほぼ同じ形の過減衰のグラフになる)")
+            st.markdown("**答6**")
+            st.latex(r"Y(s)=\frac{2}{(s^2+4)^2}\quad(\pm 2i\ \text{が2位の極})")
+            st.write("2位の極からは $t e^{\\pm 2it}$ の項が出てくるため。")
