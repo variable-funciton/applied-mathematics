@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
-from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, exam, lap_sim, pde_sim, special, wind  # noqa: E402
+from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, admin, lap_sim, pde_sim, special, wind  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -110,9 +110,9 @@ CURRICULUM = {
             ("3. ガンマ関数とベータ関数の関係", special.tab_relation),
         ],
     },
-    "🔒 教員用": {
-        "試験問題の作成": [
-            ("試験問題の作成", exam.tab),
+    "🔒 管理人用": {
+        "問題セットの作成": [
+            ("記述式の問題セット", admin.tab),
         ],
     },
 }
