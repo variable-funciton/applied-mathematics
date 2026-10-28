@@ -822,18 +822,10 @@ def prim(v):
 
 
 def ellipse_parts(rng):
-    from topics.vec_integrals import ELL, PYTH
-    A_, B_ = ELL[rng.randrange(len(ELL))]
-    C_ = int(round(math.sqrt(A_ * A_ - B_ * B_)))
-    px, py = PYTH[rng.randrange(len(PYTH))]
-    sx, sy = rng.choice([1, -1]), rng.choice([1, -1])
-    Q = (sx * A_ * px, sy * B_ * py)
-    n = (F(2) * Q[0] / A_ ** 2, F(2) * Q[1] / B_ ** 2)
-    d = (Q[0] + C_, Q[1])
-    k = (d[0] * n[0] + d[1] * n[1]) / (n[0] ** 2 + n[1] ** 2)
-    d2 = (d[0] - 2 * k * n[0], d[1] - 2 * k * n[1])
-    QF2 = (C_ - Q[0], -Q[1])
-    return A_, B_, C_, Q, n, d, k, d2, QF2
+    from topics.vec_integrals import ELL_CASES, ellipse_case
+    pick = rng.randrange(len(ELL_CASES))
+    sy = rng.choice([1, -1])
+    return ellipse_case(pick, 1, sy)   # Q は右半分(左半分だと分数が出る)
 
 
 def _ftex(x):
@@ -844,17 +836,21 @@ def _v2(v):
     return r"\left(" + r",\ ".join(_ftex(x) for x in v) + r"\right)"
 
 
-def ellipse_figs(A_, B_, C_, Q):
+def _gtex(P_, Qd):
+    return rf"\dfrac{{x^2}}{{{P_}}}+\dfrac{{y^2}}{{{Qd}}}"
+
+
+def ellipse_figs(P_, Qd, C_, Q):
     Qf = (float(Q[0]), float(Q[1]))
-    base = {"kind": "ellipse", "ab": (A_, B_), "Q": Qf}
+    base = {"kind": "ellipse", "ab": (math.sqrt(P_), math.sqrt(Qd)), "Q": Qf}
     return (dict(base, rays=[((-C_, 0), Qf)]),
             dict(base, rays=[((-C_, 0), Qf), (Qf, (C_, 0))], normal=True))
 
 
-def ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2):
+def ellipse_solution(P_, Qd, C_, Q, grad, n, d, k, d2, QF2):
     ratio = d2[0] / QF2[0] if QF2[0] != 0 else d2[1] / QF2[1]
-    return [rf"$g(x,y)=\dfrac{{x^2}}{{{A_}^2}}+\dfrac{{y^2}}{{{B_}^2}}$ とおくと, 法線ベクトルは "
-            rf"$\vec n=\nabla g(\mathrm Q)=\left(\dfrac{{2x}}{{{A_ * A_}}},\ \dfrac{{2y}}{{{B_ * B_}}}\right)={_v2(n)}$",
+    return [rf"$g(x,y)={_gtex(P_, Qd)}$ とおくと, $\nabla g(\mathrm Q)=\left(\dfrac{{2x}}{{{P_}}},\ \dfrac{{2y}}{{{Qd}}}\right)={_v2(grad)}$. "
+            rf"反射の公式は $\vec n$ を定数倍しても変わらないので, 同じ向きの $\vec n={_v2(n)}$ を使う",
             rf"入射ベクトル $\vec d=\overrightarrow{{\mathrm{{F_1Q}}}}={_v2(d)}$, "
             rf"$\dfrac{{\vec d\cdot\vec n}}{{\vec n\cdot\vec n}}={_ftex(k)}$",
             rf"$$\vec d\,'=\vec d-2\frac{{\vec d\cdot\vec n}}{{\vec n\cdot\vec n}}\vec n={_v2(d2)}$$",
@@ -862,45 +858,47 @@ def ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2):
             r"(同じ向き)なので, 反射した光は $\mathrm F_2$ を通る."]
 
 
-def ellipse_statement(A_, B_, C_, Q):
-    return (rf"楕円 $\dfrac{{x^2}}{{{A_}^2}}+\dfrac{{y^2}}{{{B_}^2}}=1$ の焦点 $\mathrm F_1({-C_},\ 0)$ から, 楕円上の点 "
+def ellipse_statement(P_, Qd, C_, Q):
+    return (rf"楕円 ${_gtex(P_, Qd)}=1$ の焦点 $\mathrm F_1({-C_},\ 0)$ から, 楕円上の点 "
             rf"$\mathrm Q{_v2(Q)}$ に向けて光を放つ. ")
 
 
 MIRROR = (r"ただし, 法線ベクトル $\vec n$ をもつ壁で反射すると, 向き $\vec d$ は "
-          r"$\vec d\,'=\vec d-2\dfrac{\vec d\cdot\vec n}{\vec n\cdot\vec n}\vec n$ に変わる.")
+          r"$\vec d\,'=\vec d-2\dfrac{\vec d\cdot\vec n}{\vec n\cdot\vec n}\vec n$ に変わる"
+          r"(この式は $\vec n$ を定数倍しても変わらない).")
 
 
 def g_ellipse(rng):
-    A_, B_, C_, Q, n, d, k, d2, QF2 = ellipse_parts(rng)
-    fig, afig = ellipse_figs(A_, B_, C_, Q)
+    P_, Qd, C_, Q, grad, n, d, k, d2, QF2 = parts = ellipse_parts(rng)
+    fig, afig = ellipse_figs(P_, Qd, C_, Q)
     choices = [Choice(vtex(prim(d2)), True, value=tuple(prim(d2))),
                Choice(vtex(prim(d)), why="それは反射する前の向き $\\overrightarrow{\\mathrm{F_1Q}}$。"),
                Choice(vtex(prim(n)), why="それは法線ベクトルの向き。反射の公式で $\\vec d\\,'$ を計算しよう。"),
                Choice(vtex(prim([-x for x in d2])), why="向きが逆。$\\vec d\\,'$ は楕円の内側に向かう。")]
     return Problem(
         "楕円の焦点と光の反射", "標準",
-        ellipse_statement(A_, B_, C_, Q) + "点 $\\mathrm Q$ で反射した光の進む向きを表すベクトルを選べ"
+        ellipse_statement(P_, Qd, C_, Q) + "点 $\\mathrm Q$ で反射した光の進む向きを表すベクトルを選べ"
         "(向きが同じなら長さは問わない)。" + MIRROR,
         choices,
-        hints=[r"楕円 $g(x,y)=\dfrac{x^2}{a^2}+\dfrac{y^2}{b^2}=1$ の点 $\mathrm Q$ での法線ベクトルは $\nabla g(\mathrm Q)$。",
+        hints=[r"楕円 $g(x,y)=1$ の点 $\mathrm Q$ での法線ベクトルは $\nabla g(\mathrm Q)$。"
+               r"向きだけ使うので, 定数倍して整数ベクトルにしてよい。",
                r"入射ベクトル $\vec d=\overrightarrow{\mathrm{F_1Q}}$ を反射の公式に代入する。結果はもう一方の焦点 $\mathrm F_2$ を向く。"],
-        solution=ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2),
-        meta=dict(A=A_, B=B_, Q=Q), figure=fig, answer_figure=afig,
-        exam_statement=ellipse_statement(A_, B_, C_, Q) + "点 $\\mathrm Q$ で反射した光が, もう一方の焦点 $\\mathrm F_2$ を"
+        solution=ellipse_solution(*parts),
+        meta=dict(P=P_, Q=Qd, point=Q), figure=fig, answer_figure=afig,
+        exam_statement=ellipse_statement(P_, Qd, C_, Q) + "点 $\\mathrm Q$ で反射した光が, もう一方の焦点 $\\mathrm F_2$ を"
         "通ることを示せ. " + MIRROR,
         exam_answer="")
 
 
 def guided_ellipse(rng):
-    A_, B_, C_, Q, n, d, k, d2, QF2 = ellipse_parts(rng)
-    fig, afig = ellipse_figs(A_, B_, C_, Q)
-    sol = ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2)
-    return ExamItem("楕円の焦点と光の反射", ellipse_statement(A_, B_, C_, Q) + MIRROR + " 次の問いに答えよ.",
-                    [Part(rf"$g(x,y)=\dfrac{{x^2}}{{{A_}^2}}+\dfrac{{y^2}}{{{B_}^2}}$ とおくとき, 点 $\mathrm Q$ における法線ベクトル "
-                          r"$\nabla g(\mathrm Q)$ を求めよ.", _v2(n), [sol[0]]),
+    P_, Qd, C_, Q, grad, n, d, k, d2, QF2 = parts = ellipse_parts(rng)
+    fig, afig = ellipse_figs(P_, Qd, C_, Q)
+    sol = ellipse_solution(*parts)
+    return ExamItem("楕円の焦点と光の反射", ellipse_statement(P_, Qd, C_, Q) + MIRROR + " 次の問いに答えよ.",
+                    [Part(rf"$g(x,y)={_gtex(P_, Qd)}$ とおくとき, 点 $\mathrm Q$ における法線ベクトル "
+                          r"$\nabla g(\mathrm Q)$ を求めよ.", _v2(grad), [sol[0]]),
                      Part(r"点 $\mathrm Q$ で反射した光が, もう一方の焦点 $\mathrm F_2$ を通ることを示せ.", "", sol[1:])],
-                    meta=dict(A=A_, B=B_, Q=Q), figure=fig, answer_figure=afig)
+                    meta=dict(P=P_, Q=Qd, point=Q), figure=fig, answer_figure=afig)
 
 # ============================================================
 # 標準:曲線をつないだ C1 + C2 に沿う線積分(半円 + 直径 / 線分 + 四分円)

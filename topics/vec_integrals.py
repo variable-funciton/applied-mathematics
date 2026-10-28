@@ -1,4 +1,5 @@
 """① ベクトル解析 第3章 線積分・面積分(グリーンの定理は vector.py)"""
+import math
 from fractions import Fraction as Fr
 
 import numpy as np
@@ -705,9 +706,39 @@ def _light_animation(path, static, a, b, frames=120, title=None, height=480):
     return fig
 
 
-PYTH = [(Fr(3, 5), Fr(4, 5)), (Fr(4, 5), Fr(3, 5)), (Fr(5, 13), Fr(12, 13)), (Fr(12, 13), Fr(5, 13)),
-        (Fr(8, 17), Fr(15, 17)), (Fr(15, 17), Fr(8, 17))]
-ELL = [(5, 4), (5, 3), (10, 8), (10, 6), (13, 12), (13, 5), (17, 15), (17, 8), (25, 24), (25, 7)]
+# 楕円 x^2/p + y^2/q = 1 (p - q = c^2) と, その上の格子点 Q(x0, y0) (第1象限).
+# 法線を整数ベクトルにすると, 反射の計算に出てくる数はすべて 30 以下の整数になる組だけを選んである.
+# Q を左半分 (x < 0) に移すと d・n / n・n が 6/5 などになるので, 出題は右半分 (符号は y のみ) に限る.
+ELL_CASES = [(45, 36, 3, (5, 4)), (40, 24, 4, (5, 3)), (40, 15, 5, (4, 3)), (16, 12, 2, (2, 3)),
+             (18, 2, 4, (3, 1)), (45, 20, 5, (3, 4)), (18, 9, 3, (4, 1)), (45, 9, 6, (5, 2)), (72, 36, 6, (8, 2))]
+
+
+def prim_int(v):
+    """有理数のベクトルを, 同じ向きの原始的な整数ベクトルに"""
+    v = [Fr(x) for x in v]
+    L = 1
+    for x in v:
+        L = L * x.denominator // math.gcd(L, x.denominator)
+    w = [int(x * L) for x in v]
+    g = math.gcd(*[abs(x) for x in w])
+    return [x // g for x in w]
+
+
+def ellipse_case(pick, sx, sy):
+    """ELL_CASES[pick] の Q を符号 (sx, sy) で他の象限へ. 反射の計算一式を返す."""
+    P_, Qd, C_, (x0, y0) = ELL_CASES[pick]
+    Q = (sx * x0, sy * y0)
+    grad = (Fr(2 * Q[0], P_), Fr(2 * Q[1], Qd))
+    n = tuple(prim_int(grad))
+    d = (Q[0] + C_, Q[1])
+    k = Fr(d[0] * n[0] + d[1] * n[1], n[0] ** 2 + n[1] ** 2)
+    d2 = (d[0] - 2 * k * n[0], d[1] - 2 * k * n[1])
+    QF2 = (C_ - Q[0], -Q[1])
+    return P_, Qd, C_, Q, grad, n, d, k, d2, QF2
+
+
+def ellipse_tex(P_, Qd):
+    return rf"\dfrac{{x^2}}{{{P_}}}+\dfrac{{y^2}}{{{Qd}}}=1"
 
 
 def _f(x):
@@ -790,27 +821,22 @@ def tab_ellipse():
     if st.button("新しい問題をつくる", key="el_new"):
         st.session_state["el_seed"] += 1
     rng = np.random.default_rng(st.session_state["el_seed"])
-    A_, B_ = ELL[rng.integers(len(ELL))]
-    C_ = int(round(np.sqrt(A_ * A_ - B_ * B_)))
-    px, py = PYTH[rng.integers(len(PYTH))]
-    sx, sy = int(rng.choice([1, -1])), int(rng.choice([1, -1]))
-    A_, B_ = int(A_), int(B_)
-    Q = (sx * A_ * px, sy * B_ * py)
-    st.markdown(f"楕円 $\\dfrac{{x^2}}{{{A_}^2}}+\\dfrac{{y^2}}{{{B_}^2}}=1$ の焦点 $F_1({-C_},\\ 0)$ から、"
+    pick = int(rng.integers(len(ELL_CASES)))
+    sx, sy = 1, int(rng.choice([1, -1]))
+    P_, Qd, C_, Q, grad, n, d, k, d2, QF2 = ellipse_case(pick, sx, sy)
+    A_, B_ = math.sqrt(P_), math.sqrt(Qd)
+    st.markdown(f"楕円 ${ellipse_tex(P_, Qd)}$ の焦点 $F_1({-C_},\\ 0)$ から、"
                 f"楕円上の点 $Q{_vf(Q)}$ に向けて光を放つ。")
-    st.markdown("1. $g(x,y)=\\dfrac{x^2}{a^2}+\\dfrac{y^2}{b^2}$ とおき、Q における法線ベクトル $\\nabla g$ を求めよ。\n"
+    st.markdown(f"1. $g(x,y)=\\dfrac{{x^2}}{{{P_}}}+\\dfrac{{y^2}}{{{Qd}}}$ とおき、Q における法線ベクトル $\\nabla g$ を求めよ。\n"
                 "2. 入射ベクトル $\\vec d=\\overrightarrow{F_1Q}$ と、反射後の方向ベクトル $\\vec d\\,'$ を求めよ。\n"
                 "3. 反射した光がもう一方の焦点 $F_2$ を通ることを示せ。")
     st.caption("ヒント(鏡映):法線ベクトル $\\vec n$ の直線で反射すると "
-               "$\\vec d\\,'=\\vec d-2\\dfrac{\\vec d\\cdot\\vec n}{\\vec n\\cdot\\vec n}\\vec n$ となる。")
+               "$\\vec d\\,'=\\vec d-2\\dfrac{\\vec d\\cdot\\vec n}{\\vec n\\cdot\\vec n}\\vec n$ となる。"
+               "この式は $\\vec n$ を定数倍しても変わらないので、$\\vec n$ は向きが同じなら簡単なものに取りかえてよい。")
     with st.expander("解答"):
-        n = (Fr(2) * Q[0] / A_ ** 2, Fr(2) * Q[1] / B_ ** 2)
-        d = (Q[0] + C_, Q[1])
-        k = (d[0] * n[0] + d[1] * n[1]) / (n[0] ** 2 + n[1] ** 2)
-        d2 = (d[0] - 2 * k * n[0], d[1] - 2 * k * n[1])
-        QF2 = (C_ - Q[0], -Q[1])
         ratio = d2[0] / QF2[0] if QF2[0] != 0 else d2[1] / QF2[1]
-        st.latex(r"1.\ \nabla g(Q)=\left(\frac{2x}{a^2},\ \frac{2y}{b^2}\right)=" + _vf(n))
+        st.latex(rf"1.\ \nabla g(Q)=\left(\frac{{2x}}{{{P_}}},\ \frac{{2y}}{{{Qd}}}\right)=" + _vf(grad)
+                 + r"\quad\Longrightarrow\quad \vec n=" + _vf(n) + r"\ (\text{同じ向きの整数ベクトル})")
         st.latex(r"2.\ \vec d=\overrightarrow{F_1Q}=" + _vf(d) + r",\quad \frac{\vec d\cdot\vec n}{\vec n\cdot\vec n}="
                  + _f(k) + r",\quad \vec d\,'=" + _vf(d2))
         st.latex(r"3.\ \overrightarrow{QF_2}=" + _vf(QF2) + r",\quad \vec d\,'=" + _f(ratio)
@@ -818,7 +844,7 @@ def tab_ellipse():
         st.caption("Q から $\\vec d\\,'$ の向きに進むと F₂ に着く。")
     st.markdown("**図で確かめる**(▶ で光を放つ)")
     Qf = np.array([float(Q[0]), float(Q[1])])
-    nQ = np.array([2 * Qf[0] / A_ ** 2, 2 * Qf[1] / B_ ** 2])
+    nQ = np.array([float(n[0]), float(n[1])])
     nQ /= np.linalg.norm(nQ)
     path = np.array([[-C_, 0.0], Qf, [C_, 0.0]])
     tt = np.linspace(0, 2 * PI, 400)
