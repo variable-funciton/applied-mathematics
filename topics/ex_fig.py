@@ -275,7 +275,7 @@ def tikz_ellipse(spec):
     out = [rf"\begin{{tikzpicture}}[scale={sc:.3g}]",
            rf"  \draw[->, thick] ({-a * 1.2:.2f},0) -- ({a * 1.25:.2f},0) node[right] {{$x$}};",
            rf"  \draw[->, thick] (0,{-b * 1.25:.2f}) -- (0,{b * 1.3:.2f}) node[above] {{$y$}};",
-           rf"  \draw[very thick] (0,0) ellipse ({a} and {b});",
+           rf"  \draw[very thick] (0,0) ellipse ({a:.4g} and {b:.4g});",
            rf"  \fill ({-c:g},0) circle ({2 / sc:.2f}pt) node[below] {{$\mathrm{{F}}_1$}};",
            rf"  \fill ({c:g},0) circle ({2 / sc:.2f}pt) node[below] {{$\mathrm{{F}}_2$}};"]
     for p, q in spec.get("rays", []):
