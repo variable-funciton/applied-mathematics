@@ -821,10 +821,25 @@ def prim(v):
     return [x // g for x in w]
 
 
-def ellipse_parts(rng, kind):
-    from topics.vec_integrals import ellipse_case, ellipse_count
-    pick = rng.randrange(ellipse_count(kind))
-    return ellipse_case(kind, pick, rng.choice([1, -1]))   # x 軸型の Q は右半分のみ(左半分だと分数が出る)
+def ellipse_parts(rng, vertical=None):
+    """楕円 x²/A² + y²/B² = 1。A > B なら焦点は x 軸上、A < B なら y 軸上(vertical=True)"""
+    from topics.vec_integrals import ELL, PYTH
+    A_, B_ = ELL[rng.randrange(len(ELL))]
+    C_ = int(round(math.sqrt(A_ * A_ - B_ * B_)))
+    if vertical is None:
+        vertical = rng.random() < 0.5
+    if vertical:
+        A_, B_ = B_, A_
+    F1, F2 = ((0, -C_), (0, C_)) if vertical else ((-C_, 0), (C_, 0))
+    px, py = PYTH[rng.randrange(len(PYTH))]
+    sx, sy = rng.choice([1, -1]), rng.choice([1, -1])
+    Q = (sx * A_ * px, sy * B_ * py)
+    n = (F(2) * Q[0] / A_ ** 2, F(2) * Q[1] / B_ ** 2)
+    d = (Q[0] - F1[0], Q[1] - F1[1])
+    k = (d[0] * n[0] + d[1] * n[1]) / (n[0] ** 2 + n[1] ** 2)
+    d2 = (d[0] - 2 * k * n[0], d[1] - 2 * k * n[1])
+    QF2 = (F2[0] - Q[0], F2[1] - Q[1])
+    return A_, B_, C_, Q, n, d, k, d2, QF2, F1, F2
 
 
 def _ftex(x):
@@ -835,87 +850,63 @@ def _v2(v):
     return r"\left(" + r",\ ".join(_ftex(x) for x in v) + r"\right)"
 
 
-def _pt(P):
-    return r"\left(" + r",\ ".join(str(x) for x in P) + r"\right)"
+def ellipse_figs(A_, B_, C_, Q, F1, F2):
+    Qf = (float(Q[0]), float(Q[1]))
+    base = {"kind": "ellipse", "ab": (A_, B_), "Q": Qf, "foci": (F1, F2)}
+    return (dict(base, rays=[(F1, Qf)]),
+            dict(base, rays=[(F1, Qf), (Qf, F2)], normal=True))
 
 
-def ellipse_figs(e):
-    Qf = (float(e.Q[0]), float(e.Q[1]))
-    base = {"kind": "ellipse", "ab": (e.a, e.b), "theta": e.theta, "foci": (e.F1, e.F2), "Q": Qf,
-            "nvec": (float(e.n[0]), float(e.n[1]))}
-    return (dict(base, rays=[(e.F1, Qf)]),
-            dict(base, rays=[(e.F1, Qf), (Qf, e.F2)], normal=True))
-
-
-def ellipse_solution(e):
-    ratio = e.d2[0] / e.QF2[0] if e.QF2[0] != 0 else e.d2[1] / e.QF2[1]
-    return [rf"$g(x,y)={e.eq}$ とおくと, $\nabla g(\mathrm Q)=\left({e.gform[0]},\ {e.gform[1]}\right)={_v2(e.grad)}$. "
-            rf"反射の公式は $\vec n$ を定数倍しても変わらないので, 同じ向きの $\vec n={_v2(e.n)}$ を使う",
-            rf"入射ベクトル $\vec d=\overrightarrow{{\mathrm{{F_1Q}}}}={_v2(e.d)}$, "
-            rf"$\dfrac{{\vec d\cdot\vec n}}{{\vec n\cdot\vec n}}={_ftex(e.k)}$",
-            rf"$$\vec d\,'=\vec d-2\frac{{\vec d\cdot\vec n}}{{\vec n\cdot\vec n}}\vec n={_v2(e.d2)}$$",
-            rf"$\overrightarrow{{\mathrm{{QF_2}}}}={_v2(e.QF2)}$ で $\vec d\,'={_ftex(ratio)}\,\overrightarrow{{\mathrm{{QF_2}}}}$"
+def ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2):
+    ratio = d2[0] / QF2[0] if QF2[0] != 0 else d2[1] / QF2[1]
+    return [rf"$g(x,y)=\dfrac{{x^2}}{{{A_}^2}}+\dfrac{{y^2}}{{{B_}^2}}$ とおくと, 法線ベクトルは "
+            rf"$\vec n=\nabla g(\mathrm Q)=\left(\dfrac{{2x}}{{{A_ * A_}}},\ \dfrac{{2y}}{{{B_ * B_}}}\right)={_v2(n)}$",
+            rf"入射ベクトル $\vec d=\overrightarrow{{\mathrm{{F_1Q}}}}={_v2(d)}$, "
+            rf"$\dfrac{{\vec d\cdot\vec n}}{{\vec n\cdot\vec n}}={_ftex(k)}$",
+            rf"$$\vec d\,'=\vec d-2\frac{{\vec d\cdot\vec n}}{{\vec n\cdot\vec n}}\vec n={_v2(d2)}$$",
+            rf"$\overrightarrow{{\mathrm{{QF_2}}}}={_v2(QF2)}$ で $\vec d\,'={_ftex(ratio)}\,\overrightarrow{{\mathrm{{QF_2}}}}$"
             r"(同じ向き)なので, 反射した光は $\mathrm F_2$ を通る."]
 
 
-def ellipse_statement(e):
-    if e.kind == "tilt":
-        return (rf"楕円 ${e.eq}={e.rhs}$ の焦点は $\mathrm F_1{_pt(e.F1)}$, $\mathrm F_2{_pt(e.F2)}$ である. "
-                rf"$\mathrm F_1$ から楕円上の点 $\mathrm Q{_pt(e.Q)}$ に向けて光を放つ. ")
-    return (rf"楕円 ${e.eq}={e.rhs}$ の焦点 $\mathrm F_1{_pt(e.F1)}$ から, 楕円上の点 "
-            rf"$\mathrm Q{_pt(e.Q)}$ に向けて光を放つ. ")
+def ellipse_statement(A_, B_, C_, Q, F1):
+    return (rf"楕円 $\dfrac{{x^2}}{{{A_}^2}}+\dfrac{{y^2}}{{{B_}^2}}=1$ の焦点 $\mathrm F_1({F1[0]},\ {F1[1]})$ から, 楕円上の点 "
+            rf"$\mathrm Q{_v2(Q)}$ に向けて光を放つ. ")
 
 
 MIRROR = (r"ただし, 法線ベクトル $\vec n$ をもつ壁で反射すると, 向き $\vec d$ は "
-          r"$\vec d\,'=\vec d-2\dfrac{\vec d\cdot\vec n}{\vec n\cdot\vec n}\vec n$ に変わる"
-          r"(この式は $\vec n$ を定数倍しても変わらない).")
-
-ELLIPSE_TITLES = {"x": "楕円の焦点と光の反射", "y": "楕円の焦点と光の反射(焦点が y 軸上)",
-                  "tilt": "斜めの楕円の焦点と光の反射"}
+          r"$\vec d\,'=\vec d-2\dfrac{\vec d\cdot\vec n}{\vec n\cdot\vec n}\vec n$ に変わる.")
 
 
-def g_ellipse(rng, kind="x"):
-    e = ellipse_parts(rng, kind)
-    fig, afig = ellipse_figs(e)
-    choices = [Choice(vtex(prim(e.d2)), True, value=tuple(prim(e.d2))),
-               Choice(vtex(prim(e.d)), why="それは反射する前の向き $\\overrightarrow{\\mathrm{F_1Q}}$。"),
-               Choice(vtex(prim(e.n)), why="それは法線ベクトルの向き。反射の公式で $\\vec d\\,'$ を計算しよう。"),
-               Choice(vtex(prim([-x for x in e.d2])), why="向きが逆。$\\vec d\\,'$ は楕円の内側に向かう。")]
-    if len({c.tex for c in choices}) < 4:
-        raise Retry
-    hint_g = (r"$xy$ の項も忘れずに偏微分する。" if kind == "tilt" else "")
+def g_ellipse(rng):
+    A_, B_, C_, Q, n, d, k, d2, QF2, F1, F2 = ellipse_parts(rng)
+    fig, afig = ellipse_figs(A_, B_, C_, Q, F1, F2)
+    choices = [Choice(vtex(prim(d2)), True, value=tuple(prim(d2))),
+               Choice(vtex(prim(d)), why="それは反射する前の向き $\\overrightarrow{\\mathrm{F_1Q}}$。"),
+               Choice(vtex(prim(n)), why="それは法線ベクトルの向き。反射の公式で $\\vec d\\,'$ を計算しよう。"),
+               Choice(vtex(prim([-x for x in d2])), why="向きが逆。$\\vec d\\,'$ は楕円の内側に向かう。")]
     return Problem(
-        ELLIPSE_TITLES[kind], "標準",
-        ellipse_statement(e) + "点 $\\mathrm Q$ で反射した光の進む向きを表すベクトルを選べ"
+        "楕円の焦点と光の反射", "標準",
+        ellipse_statement(A_, B_, C_, Q, F1) + "点 $\\mathrm Q$ で反射した光の進む向きを表すベクトルを選べ"
         "(向きが同じなら長さは問わない)。" + MIRROR,
         choices,
-        hints=[r"楕円 $g(x,y)=" + e.rhs + r"$ の点 $\mathrm Q$ での法線ベクトルは $\nabla g(\mathrm Q)$。" + hint_g
-               + r"向きだけ使うので, 定数倍して整数ベクトルにしてよい。",
+        hints=[r"楕円 $g(x,y)=\dfrac{x^2}{a^2}+\dfrac{y^2}{b^2}=1$ の点 $\mathrm Q$ での法線ベクトルは $\nabla g(\mathrm Q)$。",
                r"入射ベクトル $\vec d=\overrightarrow{\mathrm{F_1Q}}$ を反射の公式に代入する。結果はもう一方の焦点 $\mathrm F_2$ を向く。"],
-        solution=ellipse_solution(e),
-        meta=dict(kind=kind, eq=e.eq, point=e.Q), figure=fig, answer_figure=afig,
-        exam_statement=ellipse_statement(e) + "点 $\\mathrm Q$ で反射した光が, もう一方の焦点 $\\mathrm F_2$ を"
+        solution=ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2),
+        meta=dict(A=A_, B=B_, Q=Q, F1=F1, F2=F2), figure=fig, answer_figure=afig,
+        exam_statement=ellipse_statement(A_, B_, C_, Q, F1) + "点 $\\mathrm Q$ で反射した光が, もう一方の焦点 $\\mathrm F_2$ を"
         "通ることを示せ. " + MIRROR,
         exam_answer="")
 
 
-def guided_ellipse(rng, kind="x"):
-    e = ellipse_parts(rng, kind)
-    fig, afig = ellipse_figs(e)
-    sol = ellipse_solution(e)
-    return ExamItem(ELLIPSE_TITLES[kind], ellipse_statement(e) + MIRROR + " 次の問いに答えよ.",
-                    [Part(rf"$g(x,y)={e.eq}$ とおくとき, 点 $\mathrm Q$ における法線ベクトル "
-                          r"$\nabla g(\mathrm Q)$ を求めよ.", _v2(e.grad), [sol[0]]),
+def guided_ellipse(rng):
+    A_, B_, C_, Q, n, d, k, d2, QF2, F1, F2 = ellipse_parts(rng)
+    fig, afig = ellipse_figs(A_, B_, C_, Q, F1, F2)
+    sol = ellipse_solution(A_, B_, C_, Q, n, d, k, d2, QF2)
+    return ExamItem("楕円の焦点と光の反射", ellipse_statement(A_, B_, C_, Q, F1) + MIRROR + " 次の問いに答えよ.",
+                    [Part(rf"$g(x,y)=\dfrac{{x^2}}{{{A_}^2}}+\dfrac{{y^2}}{{{B_}^2}}$ とおくとき, 点 $\mathrm Q$ における法線ベクトル "
+                          r"$\nabla g(\mathrm Q)$ を求めよ.", _v2(n), [sol[0]]),
                      Part(r"点 $\mathrm Q$ で反射した光が, もう一方の焦点 $\mathrm F_2$ を通ることを示せ.", "", sol[1:])],
-                    meta=dict(kind=kind, eq=e.eq, point=e.Q), figure=fig, answer_figure=afig)
-
-
-def _ellipse_kind(kind):
-    return (lambda rng: g_ellipse(rng, kind)), (lambda rng: guided_ellipse(rng, kind))
-
-
-g_ellipse_y, guided_ellipse_y = _ellipse_kind("y")
-g_ellipse_tilt, guided_ellipse_tilt = _ellipse_kind("tilt")
+                    meta=dict(A=A_, B=B_, Q=Q, F1=F1, F2=F2), figure=fig, answer_figure=afig)
 
 # ============================================================
 # 標準:曲線をつないだ C1 + C2 に沿う線積分(半円 + 直径 / 線分 + 四分円)
@@ -1226,15 +1217,13 @@ REGISTRY = [
     ProblemType("flux", "ベクトル場の面積分(流束)", "標準", g_surface_flux),
     ProblemType("gauss", "ガウスの発散定理", "標準", g_gauss, guided=guided_gauss),
     ProblemType("stokes", "ストークスの定理", "標準", g_stokes, guided=guided_stokes),
-    ProblemType("ellipse", "楕円の焦点と光の反射", "標準", g_ellipse, guided=guided_ellipse),
-    ProblemType("ellipse_y", "楕円の焦点と光の反射(焦点が y 軸上)", "標準", g_ellipse_y, guided=guided_ellipse_y),
-    ProblemType("ellipse_tilt", "斜めの楕円の焦点と光の反射", "標準", g_ellipse_tilt, guided=guided_ellipse_tilt),
 ]
+# 楕円の反射は「発展」のページに移した(vec_integrals.tab_ellipse_exercise)
+REGISTRY_ELLIPSE = [ProblemType("ellipse", "楕円の焦点と光の反射", "標準", g_ellipse, guided=guided_ellipse)]
+
 GUIDED_NAMES = {"gline": "勾配と勾配場の線積分", "green": "グリーンの定理(被積分関数 → 線積分)",
                 "gauss": "発散 → ガウスの発散定理", "stokes": "回転 → ストークスの定理",
                 "ellipse": "法線ベクトル → 反射光が焦点を通ること",
-                "ellipse_y": "法線ベクトル → 反射光が焦点を通ること(焦点が y 軸上)",
-                "ellipse_tilt": "法線ベクトル → 反射光が焦点を通ること(斜めの楕円)",
                 "reverse": "−C のベクトル関数 → −C に沿う線積分", "piece": "C₁, C₂ ごとの線積分 → C₁+C₂ に沿う線積分"}
 
 

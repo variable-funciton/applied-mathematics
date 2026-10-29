@@ -18,6 +18,7 @@ CHAPTERS = [
     ("ベクトル解析 第2章 スカラー場とベクトル場", ex_ch2.REGISTRY),
     ("ベクトル解析 第3章 線積分・面積分", ex_ch3.REGISTRY),
     ("ベクトル解析 発展 ロドリゲスの回転公式", ex_rodrigues.REGISTRY),
+    ("ベクトル解析 発展 楕円の内部での光の反射", ex_ch3.REGISTRY_ELLIPSE),
     ("ラプラス変換 第1章 定義と性質", ex_laplace.REGISTRY1),
     ("ラプラス変換 第2章 応用", ex_laplace.REGISTRY2),
     ("特殊関数 ガンマ関数・ベータ関数", ex_special.REGISTRY),
