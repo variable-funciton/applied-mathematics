@@ -32,7 +32,6 @@ CURRICULUM = {
             ("5. ガウスの発散定理", vi.tab_gauss),
             ("6. ストークスの定理", vi.tab_stokes),
             ("7. 勾配の意味", vi.tab_gradient_meaning),
-            ("8. 楕円の内部での光の反射", vi.tab_ellipse),
             ("演習(第3章)", ex_ch3.tab),
         ],
         "応用 学科別の応用例": [
@@ -44,6 +43,8 @@ CURRICULUM = {
         "発展": [
             ("ロドリゲスの回転公式", rodrigues.tab_rodrigues),
             ("演習(ロドリゲスの回転公式)", ex_rodrigues.tab),
+            ("楕円の内部での光の反射", vi.tab_ellipse),
+            ("演習(楕円の内部での光の反射)", vi.tab_ellipse_exercise),
         ],
     },
     "② ラプラス変換": {
