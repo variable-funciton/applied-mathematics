@@ -268,34 +268,40 @@ def tikz3d(spec):
     return out
 
 
-def ellipse_foci(spec):
-    """焦点(仕様に foci があればそれ。なければ a ≥ b なら x 軸上、a < b なら y 軸上)"""
-    if spec.get("foci"):
-        return [tuple(map(float, f)) for f in spec["foci"]]
+def _ellipse_geom(spec):
+    """図の仕様から (a, b, 回転角, F1, F2, x の広がり, y の広がり, 法線の向き)。古い仕様(焦点が x 軸上)にも対応"""
     a, b = spec["ab"]
-    c = math.sqrt(abs(a * a - b * b))
-    return [(-c, 0.0), (c, 0.0)] if a >= b else [(0.0, -c), (0.0, c)]
+    th = spec.get("theta", 0.0)
+    Q = spec["Q"]
+    n0 = (2 * Q[0] / a ** 2, 2 * Q[1] / b ** 2)   # x²/a² + y²/b² = 1(回転なし)の法線
+    if a < b and not th:                      # 古い仕様で縦長:焦点は y 軸上
+        a, b, th = b, a, math.pi / 2
+    c = math.sqrt(a * a - b * b)
+    F1, F2 = spec.get("foci", ((-c * math.cos(th), -c * math.sin(th)), (c * math.cos(th), c * math.sin(th))))
+    ex = math.hypot(a * math.cos(th), b * math.sin(th))
+    ey = math.hypot(a * math.sin(th), b * math.cos(th))
+    n = spec.get("nvec", n0)
+    return a, b, th, F1, F2, ex, ey, n
 
 
 def tikz_ellipse(spec):
-    a, b = spec["ab"]
-    (f1x, f1y), (f2x, f2y) = ellipse_foci(spec)
-    sc = 5.5 / (2 * max(a, b))
+    a, b, th, F1, F2, ex, ey, n = _ellipse_geom(spec)
+    sc = 5.5 / (2 * max(ex, ey))
+    rot = f", rotate={math.degrees(th):g}" if th else ""
     out = [rf"\begin{{tikzpicture}}[scale={sc:.3g}]",
-           rf"  \draw[->, thick] ({-a * 1.2:.2f},0) -- ({a * 1.25:.2f},0) node[right] {{$x$}};",
-           rf"  \draw[->, thick] (0,{-b * 1.25:.2f}) -- (0,{b * 1.3:.2f}) node[above] {{$y$}};",
-           rf"  \draw[very thick] (0,0) ellipse ({a} and {b});",
-           rf"  \fill ({f1x:g},{f1y:g}) circle ({2 / sc:.2f}pt) node[{'below' if a >= b else 'right'}] {{$\mathrm{{F}}_1$}};",
-           rf"  \fill ({f2x:g},{f2y:g}) circle ({2 / sc:.2f}pt) node[{'below' if a >= b else 'right'}] {{$\mathrm{{F}}_2$}};"]
+           rf"  \draw[->, thick] ({-ex * 1.2:.2f},0) -- ({ex * 1.25:.2f},0) node[right] {{$x$}};",
+           rf"  \draw[->, thick] (0,{-ey * 1.25:.2f}) -- (0,{ey * 1.3:.2f}) node[above] {{$y$}};",
+           rf"  \draw[very thick{rot}] (0,0) ellipse ({a:.4g} and {b:.4g});",
+           rf"  \fill ({F1[0]:g},{F1[1]:g}) circle ({2 / sc:.2f}pt) node[below left] {{$\mathrm{{F}}_1$}};",
+           rf"  \fill ({F2[0]:g},{F2[1]:g}) circle ({2 / sc:.2f}pt) node[below right] {{$\mathrm{{F}}_2$}};"]
     for p, q in spec.get("rays", []):
         out.append(rf"  \draw[-latex, very thick, red] ({p[0]:.3f},{p[1]:.3f}) -- ({q[0]:.3f},{q[1]:.3f});")
     Q = spec["Q"]
     out.append(rf"  \fill ({Q[0]:.3f},{Q[1]:.3f}) circle ({2 / sc:.2f}pt) node[{'above' if Q[1] >= 0 else 'below'} "
                rf"{'right' if Q[0] >= 0 else 'left'}] {{$\mathrm{{Q}}$}};")
     if spec.get("normal"):
-        n = (2 * Q[0] / a ** 2, 2 * Q[1] / b ** 2)
         L = math.hypot(*n)
-        s = 0.35 * min(a, b) / L
+        s = 0.35 * max(ex, ey) / L
         out.append(rf"  \draw[-latex, thick, blue] ({Q[0]:.3f},{Q[1]:.3f}) -- ({Q[0] - s * n[0]:.3f},{Q[1] - s * n[1]:.3f}) "
                    r"node[left] {$-\nabla g$};")
     out.append(r"\end{tikzpicture}")
@@ -340,22 +346,24 @@ def plotly3d(spec, height=420):
 
 
 def plotly_ellipse(spec, height=380):
-    a, b = spec["ab"]
-    (f1x, f1y), (f2x, f2y) = ellipse_foci(spec)
+    a, b, th, F1, F2, ex, ey, n = _ellipse_geom(spec)
     t = np.linspace(0, 2 * np.pi, 300)
-    fig = go.Figure(go.Scatter(x=a * np.cos(t), y=b * np.sin(t), mode="lines", line=dict(color="black", width=3)))
+    X, Y = a * np.cos(t), b * np.sin(t)
+    fig = go.Figure(go.Scatter(x=math.cos(th) * X - math.sin(th) * Y, y=math.sin(th) * X + math.cos(th) * Y,
+                               mode="lines", line=dict(color="black", width=3)))
     for p, q in spec.get("rays", []):
         fig.add_annotation(x=q[0], y=q[1], ax=p[0], ay=p[1], xref="x", yref="y", axref="x", ayref="y", showarrow=True,
                            arrowhead=3, arrowsize=1.5, arrowwidth=2.5, arrowcolor="#d62728", text="")
     Q = spec["Q"]
-    fig.add_trace(go.Scatter(x=[f1x, f2x, Q[0]], y=[f1y, f2y, Q[1]], mode="markers+text", text=["F₁", "F₂", "Q"],
+    fig.add_trace(go.Scatter(x=[F1[0], F2[0], Q[0]], y=[F1[1], F2[1], Q[1]], mode="markers+text", text=["F₁", "F₂", "Q"],
                              textposition="bottom center", marker=dict(size=9, color="black")))
     if spec.get("normal"):
-        n = np.array([2 * Q[0] / a ** 2, 2 * Q[1] / b ** 2])
-        n = n / np.linalg.norm(n) * 0.35 * min(a, b)
-        fig.add_annotation(x=Q[0] - n[0], y=Q[1] - n[1], ax=Q[0], ay=Q[1], xref="x", yref="y", axref="x", ayref="y",
+        nv = np.array(n, float)
+        nv = nv / np.linalg.norm(nv) * 0.35 * max(ex, ey)
+        fig.add_annotation(x=Q[0] - nv[0], y=Q[1] - nv[1], ax=Q[0], ay=Q[1], xref="x", yref="y", axref="x", ayref="y",
                            showarrow=True, arrowhead=3, arrowwidth=2, arrowcolor="#1f77b4", text="")
-    layout(fig, height=height, equal=True, xlab="x", ylab="y", legend=False, xrange=(-1.2 * a, 1.2 * a), yrange=(-1.3 * b, 1.3 * b))
+    layout(fig, height=height, equal=True, xlab="x", ylab="y", legend=False,
+           xrange=(-1.2 * ex, 1.2 * ex), yrange=(-1.3 * ey, 1.3 * ey))
     return fig
 
 
