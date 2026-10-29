@@ -1,4 +1,5 @@
 """① ベクトル解析 第3章 線積分・面積分(グリーンの定理は vector.py)"""
+import math
 from fractions import Fraction as Fr
 
 import numpy as np
@@ -705,9 +706,113 @@ def _light_animation(path, static, a, b, frames=120, title=None, height=480):
     return fig
 
 
-PYTH = [(Fr(3, 5), Fr(4, 5)), (Fr(4, 5), Fr(3, 5)), (Fr(5, 13), Fr(12, 13)), (Fr(12, 13), Fr(5, 13)),
-        (Fr(8, 17), Fr(15, 17)), (Fr(15, 17), Fr(8, 17))]
-ELL = [(5, 4), (5, 3), (10, 8), (10, 6), (13, 12), (13, 5), (17, 15), (17, 8), (25, 24), (25, 7)]
+# 楕円 x^2/p + y^2/q = 1 (p - q = c^2) と, その上の格子点 Q(x0, y0) (第1象限).
+# 法線を整数ベクトルにすると, 反射の計算に出てくる数はすべて 30 以下の整数になる組だけを選んである.
+# Q を左半分 (x < 0) に移すと d・n / n・n が 6/5 などになるので, 出題は右半分 (符号は y のみ) に限る.
+# 焦点が y 軸上の楕円は, この表の x と y を入れかえて作る (計算に出てくる数は同じ).
+ELL_CASES = [(45, 36, 3, (5, 4)), (40, 24, 4, (5, 3)), (40, 15, 5, (4, 3)), (16, 12, 2, (2, 3)),
+             (18, 2, 4, (3, 1)), (45, 20, 5, (3, 4)), (18, 9, 3, (4, 1)), (45, 9, 6, (5, 2)), (72, 36, 6, (8, 2))]
+
+# 斜めの楕円 A x^2 + B xy + C y^2 = D. 焦点 F1 = (-u, -v), F2 = (u, v), 長半径^2 = a2.
+# 焦点 ±f (f は整数ベクトル) の楕円は a2 |P|^2 - (P・f)^2 = a2 (a2 - |f|^2) と書けるので, 係数はすべて整数になる.
+# Q は対称軸の上にない格子点で, ∇g は整数ベクトル, d・n / n・n は整数になる組だけを選んである.
+# (x^2 + xy + y^2 = D の形は, 焦点と Q がともに格子点になる D がないので入れていない)
+TILT_CASES = [(5, 8, 5, 9, 9, (2, -2), (1, -2)), (5, 8, 5, 9, 9, (2, -2), (2, -1)),
+              (2, 1, 2, 30, 20, (2, -2), (4, -1)), (2, 1, 2, 30, 20, (2, -2), (-1, 4)),
+              (17, 8, 2, 18, 18, (1, -4), (0, -3)), (2, 8, 17, 18, 18, (4, -1), (3, 0)),
+              (7, 4, 4, 24, 8, (1, -2), (2, -1)), (4, 4, 7, 24, 8, (2, -1), (1, -2)),
+              (8, 4, 5, 36, 9, (1, -2), (2, -2)), (5, 4, 8, 36, 9, (2, -1), (2, -2))]
+ELL_KINDS = {"x": "焦点が x 軸上", "y": "焦点が y 軸上", "tilt": "斜めの楕円"}
+
+
+def prim_int(v):
+    """有理数のベクトルを, 同じ向きの原始的な整数ベクトルに"""
+    v = [Fr(x) for x in v]
+    L = 1
+    for x in v:
+        L = L * x.denominator // math.gcd(L, x.denominator)
+    w = [int(x * L) for x in v]
+    g = math.gcd(*[abs(x) for x in w])
+    return [x // g for x in w]
+
+
+def _mono(c, var, first):
+    """係数 c の項 c·var を TeX に(先頭でなければ符号つき)"""
+    if c == 0:
+        return ""
+    sign = "-" if c < 0 else ("" if first else "+")
+    m = abs(c)
+    return sign + ("" if m == 1 and var else str(m)) + var
+
+
+def _poly(terms):
+    out, first = "", True
+    for c, var in terms:
+        t = _mono(c, var, first)
+        if t:
+            out, first = out + t, False
+    return out or "0"
+
+
+def ellipse_count(kind):
+    return len(TILT_CASES) if kind == "tilt" else len(ELL_CASES)
+
+
+def ellipse_case(kind, pick, s=1):
+    """反射の問題 1 題分のデータ. kind は "x", "y", "tilt". s = ±1 で y 方向(y 軸型は x 方向)に反転する.
+    F1 から Q に向けて光を放ち, Q で反射した光が F2 を通る."""
+    from types import SimpleNamespace
+    if kind in ("x", "y"):
+        p, q, c, (x0, y0) = ELL_CASES[pick]
+        if kind == "x":
+            P_, Qd, F2, Q, theta = p, q, (c, 0), (x0, s * y0), 0.0
+        else:
+            P_, Qd, F2, Q, theta = q, p, (0, c), (s * y0, x0), math.pi / 2
+        eq = rf"\dfrac{{x^2}}{{{P_}}}+\dfrac{{y^2}}{{{Qd}}}"
+        rhs = "1"
+        gform = (rf"\dfrac{{2x}}{{{P_}}}", rf"\dfrac{{2y}}{{{Qd}}}")
+        grad = (Fr(2 * Q[0], P_), Fr(2 * Q[1], Qd))
+        a2, b2 = max(P_, Qd), min(P_, Qd)
+    else:
+        A, B, C, D, a2, (u, v), Q = TILT_CASES[pick]
+        if s == -1:
+            B, v, Q = -B, -v, (Q[0], -Q[1])
+        F2, theta = (u, v), math.atan2(v, u)
+        eq = _poly([(A, "x^2"), (B, "xy"), (C, "y^2")])
+        rhs = str(D)
+        gform = (_poly([(2 * A, "x"), (B, "y")]), _poly([(B, "x"), (2 * C, "y")]))
+        grad = (Fr(2 * A * Q[0] + B * Q[1]), Fr(B * Q[0] + 2 * C * Q[1]))
+        b2 = a2 - u * u - v * v
+    F1 = (-F2[0], -F2[1])
+    n = tuple(prim_int(grad))
+    d = (Q[0] - F1[0], Q[1] - F1[1])
+    k = Fr(d[0] * n[0] + d[1] * n[1], n[0] ** 2 + n[1] ** 2)
+    d2 = (d[0] - 2 * k * n[0], d[1] - 2 * k * n[1])
+    QF2 = (F2[0] - Q[0], F2[1] - Q[1])
+    a_, b_ = math.sqrt(a2), math.sqrt(b2)
+    ext = (math.hypot(a_ * math.cos(theta), b_ * math.sin(theta)), math.hypot(a_ * math.sin(theta), b_ * math.cos(theta)))
+    return SimpleNamespace(kind=kind, eq=eq, rhs=rhs, gform=gform, F1=F1, F2=F2, Q=Q, grad=grad, n=n, d=d, k=k,
+                           d2=d2, QF2=QF2, a=a_, b=b_, theta=theta, ext=ext)
+
+
+def ellipse_points(e, num=400):
+    """楕円 e の周上の点 (x 座標の列, y 座標の列)"""
+    t = np.linspace(0, 2 * np.pi, num)
+    X, Y = e.a * np.cos(t), e.b * np.sin(t)
+    c, s = math.cos(e.theta), math.sin(e.theta)
+    return c * X - s * Y, s * X + c * Y
+
+
+def _ptex(P):
+    return "(" + r",\ ".join(str(x) for x in P) + ")"
+
+
+def ellipse_statement_md(e):
+    """問題文の最初の文(焦点の位置と, 光を放つ点)"""
+    if e.kind == "tilt":
+        return (rf"楕円 ${e.eq}={e.rhs}$ の焦点は $F_1{_ptex(e.F1)}$、$F_2{_ptex(e.F2)}$ である。"
+                rf"$F_1$ から楕円上の点 $Q{_ptex(e.Q)}$ に向けて光を放つ。")
+    return rf"楕円 ${e.eq}={e.rhs}$ の焦点 $F_1{_ptex(e.F1)}$ から、楕円上の点 $Q{_ptex(e.Q)}$ に向けて光を放つ。"
 
 
 def _f(x):
@@ -795,52 +900,52 @@ def tab_ellipse():
 
 
 def tab_ellipse_exercise():
-    """サンプル問題(乱数で数値を変える、図で確かめる)+ 4択の演習"""
+    """サンプル問題(乱数で数値を変える、図で確かめる)+ 4択の演習。数値はすべて整数で計算できる組だけ"""
     import random
     from topics import ex_ch3
     from topics.ex_core import render
     st.info("楕円の焦点から放った光が、壁で反射してもう一方の焦点を通ることを、法線ベクトル(勾配)と鏡映の公式で確かめる。"
-            "楕円の形によって、焦点は $x$ 軸上にも $y$ 軸上にもある。")
+            "焦点が $x$ 軸上・$y$ 軸上の楕円と、斜めの楕円がある。どれも、法線を整数ベクトルにすれば整数の計算で解ける。")
     st.subheader("サンプル問題(乱数で数値を変えて出題)")
     if "el_seed" not in st.session_state:
         st.session_state["el_seed"] = 1
-    if st.button("新しい問題をつくる", key="el_new"):
+    c1, c2 = st.columns([2, 1])
+    kind = c1.radio("楕円の種類", list(ELL_KINDS), format_func=ELL_KINDS.get, horizontal=True, key="el_kind")
+    if c2.button("新しい問題をつくる", key="el_new"):
         st.session_state["el_seed"] += 1
-    rng = random.Random(st.session_state["el_seed"])
-    A_, B_, C_, Q, n, d, k, d2, QF2, F1, F2 = ex_ch3.ellipse_parts(rng)
-    st.markdown(f"楕円 $\\dfrac{{x^2}}{{{A_}^2}}+\\dfrac{{y^2}}{{{B_}^2}}=1$ の焦点 $F_1{_vf(F1)}$ から、"
-                f"楕円上の点 $Q{_vf(Q)}$ に向けて光を放つ。")
-    st.markdown("1. $g(x,y)=\\dfrac{x^2}{a^2}+\\dfrac{y^2}{b^2}$ とおき、Q における法線ベクトル $\\nabla g$ を求めよ。\n"
+    rng = random.Random(f"{kind}-{st.session_state['el_seed']}")
+    e = ellipse_case(kind, rng.randrange(ellipse_count(kind)), rng.choice([1, -1]))
+    st.markdown(ellipse_statement_md(e))
+    st.markdown(f"1. $g(x,y)={e.eq}$ とおき、Q における法線ベクトル $\\nabla g$ を求めよ。\n"
                 "2. 入射ベクトル $\\vec d=\\overrightarrow{F_1Q}$ と、反射後の方向ベクトル $\\vec d\\,'$ を求めよ。\n"
                 "3. 反射した光がもう一方の焦点 $F_2$ を通ることを示せ。")
     st.caption("ヒント(鏡映):法線ベクトル $\\vec n$ の直線で反射すると "
                "$\\vec d\\,'=\\vec d-2\\dfrac{\\vec d\\cdot\\vec n}{\\vec n\\cdot\\vec n}\\vec n$ となる。"
-               "焦点は、$a>b$ なら $x$ 軸上、$a<b$ なら $y$ 軸上にある。")
+               "この式は $\\vec n$ を定数倍しても変わらないので、$\\vec n$ は向きが同じ簡単な整数ベクトルに取りかえてよい。"
+               + ("$xy$ の項も忘れずに偏微分する。" if kind == "tilt" else ""))
     if st.toggle("解答・解説を表示", key="el_ans"):
+        d2, QF2, k = e.d2, e.QF2, e.k
         ratio = d2[0] / QF2[0] if QF2[0] != 0 else d2[1] / QF2[1]
-        axis = "x" if A_ > B_ else "y"
-        st.markdown(f"$a={A_},\\ b={B_}$ で ${'a>b' if A_ > B_ else 'a<b'}$ なので、焦点は ${axis}$ 軸上。"
-                    f"$c=\\sqrt{{{max(A_, B_)}^2-{min(A_, B_)}^2}}={C_}$ より $F_1{_vf(F1)},\\ F_2{_vf(F2)}$。")
-        st.latex(r"1.\ \nabla g(Q)=\left(\frac{2x}{a^2},\ \frac{2y}{b^2}\right)=" + _vf(n))
-        st.latex(r"2.\ \vec d=\overrightarrow{F_1Q}=" + _vf(d) + r",\quad \frac{\vec d\cdot\vec n}{\vec n\cdot\vec n}="
+        st.latex(rf"1.\ \nabla g(Q)=\left({e.gform[0]},\ {e.gform[1]}\right)=" + _vf(e.grad)
+                 + r"\quad\Longrightarrow\quad \vec n=" + _vf(e.n) + r"\ (\text{同じ向きの整数ベクトル})")
+        st.latex(r"2.\ \vec d=\overrightarrow{F_1Q}=" + _vf(e.d) + r",\quad \frac{\vec d\cdot\vec n}{\vec n\cdot\vec n}="
                  + _f(k) + r",\quad \vec d\,'=" + _vf(d2))
         st.latex(r"3.\ \overrightarrow{QF_2}=" + _vf(QF2) + r",\quad \vec d\,'=" + _f(ratio)
                  + r"\,\overrightarrow{QF_2}\ (\text{平行で同じ向き})")
         st.caption("Q から $\\vec d\\,'$ の向きに進むと F₂ に着く。")
     st.markdown("**図で確かめる**(▶ で光を放つ)")
-    Qf = np.array([float(Q[0]), float(Q[1])])
-    nQ = np.array([2 * Qf[0] / A_ ** 2, 2 * Qf[1] / B_ ** 2])
+    Qf = np.array([float(e.Q[0]), float(e.Q[1])])
+    nQ = np.array([float(e.n[0]), float(e.n[1])])
     nQ /= np.linalg.norm(nQ)
-    F1f, F2f = np.array(F1, float), np.array(F2, float)
-    path = np.array([F1f, Qf, F2f])
-    tt = np.linspace(0, 2 * PI, 400)
-    sc = min(A_, B_) * 0.35
-    static = [go.Scatter(x=A_ * np.cos(tt), y=B_ * np.sin(tt), mode="lines", line=dict(color=C1, width=3), name="楕円"),
+    path = np.array([e.F1, Qf, e.F2], dtype=float)
+    ex, ey = ellipse_points(e)
+    sc = e.b * 0.5
+    static = [go.Scatter(x=ex, y=ey, mode="lines", line=dict(color=C1, width=3), name="楕円"),
               arrow(Qf[0], Qf[1], -sc * nQ[0], -sc * nQ[1], color=C3, name="法線 ∇g(Q)", width=2),
-              go.Scatter(x=[F1f[0], F2f[0], Qf[0]], y=[F1f[1], F2f[1], Qf[1]], mode="markers+text", text=["F₁", "F₂", "Q"],
-                         textposition="bottom center", marker=dict(size=11, color="black", symbol="star"),
-                         name="焦点と Q")]
-    show(_light_animation(path, static, A_, B_, frames=80, height=460))
+              go.Scatter(x=[e.F1[0], e.F2[0], Qf[0]], y=[e.F1[1], e.F2[1], Qf[1]], mode="markers+text",
+                         text=["F₁", "F₂", "Q"], textposition="bottom center",
+                         marker=dict(size=11, color="black", symbol="star"), name="焦点と Q")]
+    show(_light_animation(path, static, e.ext[0], e.ext[1], frames=80, height=460))
     st.caption("F₁ を出た光は Q で反射し、もう一方の焦点 F₂ にちょうど届く。")
     st.divider()
     render("ellipse", ex_ch3.REGISTRY_ELLIPSE, "ベクトル解析 発展 楕円の内部での光の反射")
