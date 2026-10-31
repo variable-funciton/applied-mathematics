@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_rodrigues, rodrigues, vec_apps  # noqa: E402
+from topics import ex_gradient, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -45,6 +45,8 @@ CURRICULUM = {
             ("演習(ロドリゲスの回転公式)", ex_rodrigues.tab),
             ("楕円の内部での光の反射", vi.tab_ellipse),
             ("演習(楕円の内部での光の反射)", vi.tab_ellipse_exercise),
+            ("勾配降下法", gradient_descent.tab_gradient_descent),
+            ("演習(勾配降下法)", ex_gradient.tab),
         ],
     },
     "② ラプラス変換": {
