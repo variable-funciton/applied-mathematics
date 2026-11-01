@@ -153,8 +153,7 @@ def survey_box(url, title):
         c1, c2 = st.columns([2.2, 1])
         with c1:
             st.subheader(f"📝 {title}")
-            st.markdown("アプリをよりよくするためのアンケートです。回答は任意・匿名で、成績には関係しません。"
-                        "所要時間は 5〜8 分ほどです。")
+            st.markdown("アプリをよりよくするためのアンケートです。回答は任意・匿名で、成績には関係しません。")
             st.link_button("アンケートに回答する(Microsoft Forms)", url, type="primary")
             st.caption("学校の Microsoft アカウントでサインインして回答します。")
         with c2:
