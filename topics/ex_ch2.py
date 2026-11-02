@@ -184,6 +184,18 @@ def rand_field(rng):
     return [rand_terms(rng, n=2, maxdeg=3, mixed=False) for _ in range(3)]
 
 
+SIMPLE_MONOS = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (0, 1, 1), (1, 0, 1)]
+
+
+def rand_field_simple(rng):
+    """試験向け:各成分は x, y, z, xy, yz, zx から1〜2項(係数は ±1〜±3)。偏微分が暗算でできる"""
+    F = []
+    for _ in range(3):
+        k = rng.choice([1, 2])
+        F.append([(rng.choice([-3, -2, -1, 1, 2, 3]), e) for e in rng.sample(SIMPLE_MONOS, k)])
+    return F
+
+
 def ftex(F):
     return r"\vec F=\left(" + r",\ ".join(ptex(c) for c in F) + r"\right)"
 
@@ -218,8 +230,8 @@ def div_steps(F, P):
             rf"点 $\mathrm P{pt(P)}$ で $({vals[0]})+({vals[1]})+({vals[2]})={sum(vals)}$"]
 
 
-def g_div(rng):
-    F = rand_field(rng)
+def g_div(rng, field=None):
+    F = (field or rand_field)(rng)
     P = rand_point(rng)
     d = div_at(F, P)
     vals = [ev(pd(F[i], i), P) for i in range(3)]
@@ -265,8 +277,8 @@ def curl_steps(F, P):
             rf"点 $\mathrm P{pt(P)}$ で $\nabla\times\vec F={vtex(r)}$"]
 
 
-def g_curl(rng):
-    F = rand_field(rng)
+def g_curl(rng, field=None):
+    F = (field or rand_field)(rng)
     P = rand_point(rng)
     r = curl_at(F, P)
     if sum(x != 0 for x in r) < 2 or r[1] == 0:
@@ -287,12 +299,31 @@ def g_curl(rng):
                    solution=curl_steps(F, P), meta=dict(F=F, P=P))
 
 
-def guided_div_curl(rng):
-    p = g_curl(rng)
+def guided_div_curl(rng, field=None):
+    p = g_curl(rng, field)
     F, P = p.meta["F"], p.meta["P"]
     return ExamItem("発散と回転", rf"ベクトル場 ${ftex(F)}$ と点 $\mathrm P{pt(P)}$ について, 次の問いに答えよ.",
                     [Part(r"点 $\mathrm P$ における発散 $\nabla\cdot\vec F$ を求めよ.", str(div_at(F, P)), div_steps(F, P)),
                      Part(r"点 $\mathrm P$ における回転 $\nabla\times\vec F$ を求めよ.", vtex(curl_at(F, P)), curl_steps(F, P))], meta=p.meta)
+
+
+# ------------------------------------------------------------
+# 試験向け(計算が単純):成分が1次式か xy などの積だけ
+# ------------------------------------------------------------
+def _simple(gen, title):
+    def g(rng):
+        p = gen(rng, rand_field_simple)
+        p.title = title
+        return p
+    return g
+
+
+g_div_simple = _simple(g_div, "発散 div(単純な場)")
+g_curl_simple = _simple(g_curl, "回転 rot(単純な場)")
+
+
+def guided_div_curl_simple(rng):
+    return guided_div_curl(rng, rand_field_simple)
 
 
 # ============================================================
@@ -461,11 +492,13 @@ REGISTRY = [
     ProblemType("dir", "方向微分係数", "基本", g_directional, guided=guided_grad_dir),
     ProblemType("div", "発散 div", "基本", g_div),
     ProblemType("curl", "回転 rot", "基本", g_curl, guided=guided_div_curl),
+    ProblemType("div_s", "発散 div(単純な場)", "基本", g_div_simple),
+    ProblemType("curl_s", "回転 rot(単純な場)", "基本", g_curl_simple, guided=guided_div_curl_simple),
     ProblemType("maxdir", "最も増加する向きと最大値", "標準", g_maxdir, guided=guided_maxdir),
     ProblemType("level", "等位面の接平面", "標準", g_level_plane, guided=guided_level_plane),
     ProblemType("identity", "ベクトル解析の公式", "標準", g_identity),
 ]
-GUIDED_NAMES = {"dir": "勾配と方向微分係数", "curl": "発散と回転", "maxdir": "勾配と最も増加する向き",
+GUIDED_NAMES = {"dir": "勾配と方向微分係数", "curl": "発散と回転", "curl_s": "発散と回転(単純な場)", "maxdir": "勾配と最も増加する向き",
                 "level": "等位面の法線と接平面"}
 
 
