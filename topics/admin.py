@@ -41,8 +41,25 @@ def catalog():
     return out
 
 
-def make_items(selection, seed):
-    """selection: [(表示名, 題数)] → ExamItem のリスト"""
+# ロドリゲスの回転公式:試験では導出の時間がないので、必要なら問題文にヒントとして載せる
+RODRIGUES_HINT = (r" (ヒント:単位ベクトル $\vec k$ を軸に, ベクトル $\vec v$ を右ねじの向きに角 $\theta$ 回転させたベクトルは "
+                  r"$\vec v\,'=\vec v\cos\theta+(\vec k\times\vec v)\sin\theta+\vec k\,(\vec k\cdot\vec v)(1-\cos\theta)$ "
+                  r"である(ロドリゲスの回転公式).)")
+RODRIGUES_HINT_MATRIX = (r" (ヒント:単位ベクトル $\vec k=(k_1,k_2,k_3)$ を軸とする角 $\theta$ の回転行列は "
+                         r"$R=I+\sin\theta\,K+(1-\cos\theta)K^2$, "
+                         r"$K=\begin{pmatrix}0&-k_3&k_2\\ k_3&0&-k_1\\ -k_2&k_1&0\end{pmatrix}$ である"
+                         r"(ロドリゲスの回転公式). ベクトルは縦ベクトルとして扱う.)")
+
+
+def add_hint(item, key):
+    """ロドリゲスの回転公式の型にヒントを付ける"""
+    if key.startswith("rg_"):
+        item.intro = item.intro + (RODRIGUES_HINT_MATRIX if key == "rg_matrix" else RODRIGUES_HINT)
+    return item
+
+
+def make_items(selection, seed, rodrigues_hint=False):
+    """selection: [(表示名, 題数)] → ExamItem のリスト。rodrigues_hint=True ならロドリゲスの回転公式をヒントとして載せる"""
     cat = {c[0]: c for c in catalog()}
     items = []
     k = 0
@@ -61,6 +78,8 @@ def make_items(selection, seed):
                     raise RuntimeError(f"{t.name}: 誘導問題を生成できませんでした")
             else:
                 items.append(exam_item_from_problem(build(t, rng)))
+            if rodrigues_hint:
+                add_hint(items[-1], t.key)
             k += 1
     return items
 
@@ -222,8 +241,10 @@ def tab():
     seed = int(c1.number_input("問題番号", 1, 99999, step=1, key="exam_seed"))
     c2.button("別の数値で作り直す", on_click=_new_seed, key="exam_new")
     shuffle = c2.checkbox("出題順をシャッフルする", key="exam_shuffle")
+    rhint = c2.checkbox("ロドリゲスの回転公式をヒントとして問題文に載せる", value=True, key="exam_rhint",
+                        help="ロドリゲスの回転公式の型を選んだときだけ効く。導出の時間がない試験向け。")
 
-    items = make_items(chosen, seed)
+    items = make_items(chosen, seed, rodrigues_hint=rhint)
     if shuffle:
         random.Random(seed).shuffle(items)
 

@@ -237,6 +237,90 @@ def g_vector_line(rng):
         solution=sol, meta=meta, figure={"kind": "curve3d", "pts": curve_pts(fn, 0, t1)})
 
 
+# ------------------------------------------------------------
+# 試験向け:成分が1次式のベクトル場の線積分(線分に沿う)
+# ------------------------------------------------------------
+def lin_field(rng, dim):
+    """各成分 = ax + by (+ cz) + d(係数は小さな整数, 1〜2項 + 定数)"""
+    F = []
+    for _ in range(dim):
+        vars_ = rng.sample(range(dim), rng.choice([1, 2]))
+        terms = [(rng.choice([-3, -2, -1, 1, 2, 3]), tuple(1 if j == i else 0 for j in range(3))) for i in vars_]
+        k = rng.choice([0, 0, 1, -1, 2, -2, 3])
+        if k:
+            terms.append((k, (0, 0, 0)))
+        F.append(terms)
+    while len(F) < 3:
+        F.append([])
+    return F
+
+
+def vline_lin_parts(rng):
+    dim = rng.choice([2, 2, 3])
+    Fl = lin_field(rng, dim)
+    A = [rng.randint(-2, 2) for _ in range(dim)] + [0] * (3 - dim)
+    d = [rng.choice([-2, -1, 1, 2, 3]) for _ in range(dim)] + [0] * (3 - dim)
+    g = [F(0)]
+    for i in range(dim):
+        g = padd(g, [x * d[i] for x in subst(Fl[i], A, d)])
+    while len(g) > 1 and g[-1] == 0:
+        g = g[:-1]
+    I = pint01(g)
+    if I == 0:
+        raise Retry
+    B = [A[i] + d[i] for i in range(3)]
+    V2 = ["x", "y", "z"][:dim]
+    comp = lambda c: ptex(c) if c else "0"  # noqa: E731
+    Ftex = r"\left(" + r",\ ".join(comp(Fl[i]) for i in range(dim)) + r"\right)"
+    curve = r"\vec r(t)=\left(" + r",\ ".join(lin_tex([(d[i], "t")], A[i]) for i in range(dim)) + r"\right)\ (0\le t\le 1)"
+    on = [tpoly_tex(subst(Fl[i], A, d)) for i in range(dim)]
+    sol = [rf"$\dfrac{{d\vec r}}{{dt}}={vtex(d[:dim])}$",
+           r"曲線上では $\vec F=\left(" + r",\ ".join(on) + r"\right)$",
+           rf"$$\vec F\cdot\frac{{d\vec r}}{{dt}}={tpoly_tex(g)}$$",
+           rf"$$\int_C\vec F\cdot d\vec r=\int_0^1\left({tpoly_tex(g)}\right)dt={tex_fr(I)}$$"]
+    return dim, Fl, A, d, B, g, I, Ftex, curve, sol, V2
+
+
+def g_vline_lin(rng):
+    dim, Fl, A, d, B, g, I, Ftex, curve, sol, V2 = vline_lin_parts(rng)
+    gr = [F(0)]
+    for i in range(dim):
+        gr = padd(gr, pmul(subst(Fl[i], A, d), [F(A[i]), F(d[i])]))
+    Ir = pint01(gr)
+    endv = sum(ev(Fl[i], B) * d[i] for i in range(dim))
+    startv = sum(ev(Fl[i], A) * d[i] for i in range(dim))
+    cand = [(-I, "向きに注意。$t$ が増える向き(始点 → 終点)に積分する。"),
+            (Ir, "内積の相手は $\\vec r(t)$ ではなく $\\dfrac{d\\vec r}{dt}$。"),
+            (F(endv), "終点での値だけでは線積分にならない。$t$ の式にしてから $0$ から $1$ まで積分する。"),
+            (F(startv), "始点での値だけでは線積分にならない。$t$ の式にしてから積分する。"),
+            (2 * I, "$\\int_0^1 t\\,dt=\\frac12$。積分の計算を確かめよう。")]
+    choices = [Choice(tex_fr(I), True, value=float(I))]
+    seen = {I}
+    for v, why in cand:
+        if v not in seen and len(choices) < 4:
+            choices.append(Choice(tex_fr(v), why=why, value=float(v)))
+            seen.add(v)
+    if len(choices) < 4:
+        raise Retry
+    fig = ({"kind": "path2d", "pieces": [{"pts": [[A[0], B[0]], [A[1], B[1]]], "label": "C"}],
+            "points": [(A[0], A[1], "A"), (B[0], B[1], "B")]} if dim == 2 else
+           {"kind": "curve3d", "pts": curve_pts(lambda t: tuple(A[i] + d[i] * t for i in range(3)), 0, 1)})
+    return Problem("ベクトル場の線積分(成分が1次式)", "基本",
+                   rf"曲線 $C:\ {curve}$ に沿って, 線積分 $\displaystyle\int_C{Ftex}\cdot d\vec r$ を求めよ。",
+                   choices,
+                   hints=[r"$\displaystyle\int_C\vec F\cdot d\vec r=\int_a^b\vec F(\vec r(t))\cdot\frac{d\vec r}{dt}\,dt$。",
+                          r"曲線上の $\vec F$ を $t$ の1次式で表し、$\dfrac{d\vec r}{dt}$ との内積をとってから積分する。"],
+                   solution=sol, meta=dict(F=Fl, A=A, d=d, dim=dim), figure=fig)
+
+
+def guided_vline_lin(rng):
+    dim, Fl, A, d, B, g, I, Ftex, curve, sol, V2 = vline_lin_parts(rng)
+    return ExamItem("ベクトル場の線積分", rf"曲線 $C:\ {curve}$ と, ベクトル場 $\vec F={Ftex}$ について, 次の問いに答えよ.",
+                    [Part(r"$\vec F(\vec r(t))\cdot\dfrac{d\vec r}{dt}$ を $t$ の式で表せ.", tpoly_tex(g), sol[:3]),
+                     Part(r"線積分 $\displaystyle\int_C\vec F\cdot d\vec r$ を求めよ.", tex_fr(I), sol[3:])],
+                    meta=dict(F=Fl, A=A, d=d, dim=dim))
+
+
 # ============================================================
 # 基本3:∇S の線積分(問7の形)
 # ============================================================
@@ -386,7 +470,8 @@ def region_integral(reg, c0, c1, c2):
     return (k * (c1 * sa + c2 * oa), F(c0 * deg * R * R, 360), k * (c1 * sb + c2 * ob))
 
 
-def green_parts(rng):
+def green_parts(rng, const=False):
+    """const=True なら ∂Q/∂x − ∂P/∂y が定数になる P, Q(試験向け:重積分が「定数 × 面積」で済む)"""
     kind = rng.choice(["rect", "tri", "sector"])
     if kind == "rect":
         reg = dict(kind=kind, a=rng.randint(2, 4), b=rng.randint(2, 5))
@@ -398,13 +483,22 @@ def green_parts(rng):
     nz = [-3, -2, -1, 1, 2, 3, 4]
     al, be, ga, de = rng.choice(nz + [0]), rng.choice([0, 0, 1, -1]), rng.choice([0, 1, -1, 2]), rng.choice([0, 1, -2])
     mu, nu, la, rho = rng.choice(nz + [0]), rng.choice([0, 0, 1, -1, 2]), rng.choice([0, 1, -1, 3]), rng.choice([0, 2, 4, -1])
+    if const:
+        # P = γy + δx² + εx, Q = λx + ρy² + ζy:∂Q/∂x − ∂P/∂y = λ − γ(定数)
+        al = be = mu = nu = 0
+        ga, la = rng.choice([-3, -2, -1, 1, 2, 3, 0]), rng.choice([-3, -2, -1, 1, 2, 3, 4, 0])
+        if la == ga:
+            raise Retry
     P = [(al, (1, 1, 0)), (be, (0, 2, 0)), (ga, (0, 1, 0)), (de, (2, 0, 0))]
     Q = [(mu, (2, 0, 0)), (nu, (1, 1, 0)), (la, (1, 0, 0)), (rho, (0, 2, 0))]
     P, Q = [t for t in P if t[0]], [t for t in Q if t[0]]
     if not P or not Q:
         raise Retry
     c0, c1, c2 = la - ga, 2 * mu - al, nu - 2 * be
-    if (c1, c2) == (0, 0) or (kind == "sector" and c0 == 0 and rng.random() < 0.5):
+    if const:
+        if c0 == 0 or (c1, c2) != (0, 0):
+            raise Retry
+    elif (c1, c2) == (0, 0) or (kind == "sector" and c0 == 0 and rng.random() < 0.5):
         raise Retry
     I = region_integral(reg, c0, c1, c2)
     if combo_float(I) == 0:
@@ -456,8 +550,8 @@ def green_solution(reg, P, Q, cs, I):
     return sol
 
 
-def g_green(rng):
-    reg, P, Q, cs, I = green_parts(rng)
+def g_green(rng, const=False):
+    reg, P, Q, cs, I = green_parts(rng, const)
     st, PQ, fig = green_text(reg, P, Q)
     c0, c1, c2 = cs
     # 誤答:符号が逆 / Q_x + P_y / P_x + Q_y(発散の形)
@@ -496,8 +590,8 @@ def g_green(rng):
         solution=green_solution(reg, P, Q, cs, I), meta=dict(reg=reg, P=P, Q=Q, I=I), figure=fig)
 
 
-def guided_green(rng):
-    reg, P, Q, cs, I = green_parts(rng)
+def guided_green(rng, const=False):
+    reg, P, Q, cs, I = green_parts(rng, const)
     st, PQ, fig = green_text(reg, P, Q)
     sol = green_solution(reg, P, Q, cs, I)
     c0, c1, c2 = cs
@@ -1216,11 +1310,14 @@ def guided_reverse_line(rng):
 REGISTRY = [
     ProblemType("sline", "スカラー場の線積分", "基本", g_scalar_line),
     ProblemType("vline", "ベクトル場の線積分", "基本", g_vector_line),
+    ProblemType("vline_lin", "ベクトル場の線積分(成分が1次式)", "基本", g_vline_lin, guided=guided_vline_lin),
     ProblemType("gline", "勾配場の線積分", "基本", g_grad_line, guided=guided_grad_line),
     ProblemType("reverse", "逆向きの曲線に沿う線積分", "基本", g_reverse_line, guided=guided_reverse_line),
     ProblemType("piece", "曲線をつないだ線積分", "標準", g_piece_line, guided=guided_piece_line),
     ProblemType("potential", "保存場のポテンシャル", "標準", g_potential),
     ProblemType("green", "グリーンの定理", "標準", g_green, guided=guided_green),
+    ProblemType("green_c", "グリーンの定理(被積分関数が定数)", "標準", lambda rng: _titled(g_green(rng, True), "グリーンの定理(被積分関数が定数)"),
+                guided=lambda rng: guided_green(rng, True)),
     ProblemType("garea", "グリーンの定理と面積", "標準", g_area_green),
     ProblemType("ssurf", "スカラー場の面積分", "基本", g_surface_scalar),
     ProblemType("flux", "ベクトル場の面積分(流束)", "標準", g_surface_flux),
@@ -1234,7 +1331,14 @@ REGISTRY_ELLIPSE = [
     ProblemType("ellipse_tilt", "斜めの楕円の焦点と光の反射", "標準", g_ellipse_tilt, guided=guided_ellipse_tilt),
 ]
 
+def _titled(p, title):
+    p.title = title
+    return p
+
+
 GUIDED_NAMES = {"gline": "勾配と勾配場の線積分", "green": "グリーンの定理(被積分関数 → 線積分)",
+                "vline_lin": "F·dr/dt → ベクトル場の線積分(成分が1次式)",
+                "green_c": "グリーンの定理(被積分関数が定数)",
                 "gauss": "発散 → ガウスの発散定理", "stokes": "回転 → ストークスの定理",
                 "ellipse": "法線ベクトル → 反射光が焦点を通ること",
                 "ellipse_y": "法線ベクトル → 反射光が焦点を通ること(焦点が y 軸上)",
