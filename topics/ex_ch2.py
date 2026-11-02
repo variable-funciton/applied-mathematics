@@ -413,14 +413,20 @@ def guided_level_plane(rng):
 # ============================================================
 # 標準3:ベクトル解析の公式
 # ============================================================
+# C^1 級・C^2 級は授業で扱っていないので, 使う所には必ず注意を添える
+C2_NOTE = (r"(注意:$C^2$ 級とは, 2回までのすべての偏導関数が存在して連続であることをいう. このとき偏微分の順序を入れかえて "
+           r"$f_{xy}=f_{yx}$ としてよい. 同じように $C^1$ 級は1回までの偏導関数が連続であること. "
+           r"多項式や $e^x,\ \sin x,\ \cos x$ などを組み合わせた, ふだん扱う関数はすべて $C^2$ 級である.)")
+C2_SHORT = r"($C^2$ 級:2回までの偏導関数がすべて存在して連続. このとき $f_{xy}=f_{yx}$ のように偏微分の順序を入れかえてよい)"
+
 TRUE_ID = [
     (r"\nabla\times(\nabla f)=\vec 0",
      [r"$\nabla f=(f_x,\ f_y,\ f_z)$ の回転の $x$ 成分は $\dfrac{\partial}{\partial y}f_z-\dfrac{\partial}{\partial z}f_y=f_{zy}-f_{yz}$。",
-      r"$f$ が $C^2$ 級なら偏微分の順序を交換できるので $f_{zy}=f_{yz}$、よって $0$。$y,\ z$ 成分も同様。"]),
+      r"$f$ が $C^2$ 級" + C2_SHORT + r"なら偏微分の順序を交換できるので $f_{zy}=f_{yz}$、よって $0$。$y,\ z$ 成分も同様。"]),
     (r"\nabla\cdot(\nabla\times\vec F)=0",
      [r"$\nabla\times\vec F=\left(\partial_yF_3-\partial_zF_2,\ \partial_zF_1-\partial_xF_3,\ \partial_xF_2-\partial_yF_1\right)$。",
       r"発散をとると $\partial_x\partial_yF_3-\partial_x\partial_zF_2+\partial_y\partial_zF_1-\partial_y\partial_xF_3"
-      r"+\partial_z\partial_xF_2-\partial_z\partial_yF_1=0$(偏微分の順序交換)。"]),
+      r"+\partial_z\partial_xF_2-\partial_z\partial_yF_1=0$($\vec F$ が $C^2$ 級なので偏微分の順序を交換できる)。"]),
     (r"\nabla\cdot(\nabla f)=\dfrac{\partial^2f}{\partial x^2}+\dfrac{\partial^2f}{\partial y^2}+\dfrac{\partial^2f}{\partial z^2}",
      [r"$\nabla\cdot(f_x,\ f_y,\ f_z)=\partial_x f_x+\partial_y f_y+\partial_z f_z=f_{xx}+f_{yy}+f_{zz}$(ラプラシアン $\Delta f$)。"]),
     (r"\nabla(fg)=f\,\nabla g+g\,\nabla f",
@@ -447,12 +453,13 @@ def g_identity(rng):
     return Problem(
         "ベクトル解析の公式", "標準",
         r"$f,\ g$ を滑らかなスカラー場、$\vec F,\ \vec G$ を滑らかなベクトル場とする。次のうち、"
-        r"常に成り立つ式はどれか。",
+        r"常に成り立つ式はどれか。"
+        r"(ここで「滑らか」とは、必要なだけ何回でも偏微分でき、その偏導関数が連続であることをいう。$C^2$ 級ともいう。)",
         choices,
-        hints=[r"成分で書いて確かめる。偏微分の順序は交換できる($f_{xy}=f_{yx}$)。",
+        hints=[r"成分で書いて確かめる。偏微分の順序は交換できる($f_{xy}=f_{yx}$)。" + C2_SHORT,
                r"積の微分法 $(fg)'=f'g+fg'$ が、成分ごとに使われる。"],
         solution=[rf"正しいのは ${t}$。"] + proof + ["他の式は、成分で計算すると成り立たない例がある。"],
-        exam_statement=rf"$f,\ g$ を $C^2$ 級のスカラー場, $\vec F$ を $C^2$ 級のベクトル場とする. ${t}$ が成り立つことを示せ.",
+        exam_statement=rf"$f,\ g$ を $C^2$ 級のスカラー場, $\vec F$ を $C^2$ 級のベクトル場とする. ${t}$ が成り立つことを示せ. " + C2_NOTE,
         exam_answer="", exam_solution=proof)
 
 

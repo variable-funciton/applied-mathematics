@@ -332,6 +332,9 @@ def tab_div_rot():
             st.latex(r"\mathrm{rot}\,\nabla f=\frac{\partial}{\partial x}\frac{\partial f}{\partial y}"
                      r"-\frac{\partial}{\partial y}\frac{\partial f}{\partial x}=0\quad"
                      r"(\text{偏微分の順序交換})")
+            st.caption("注意:偏微分の順序を入れかえてよい($f_{xy}=f_{yx}$)のは、$f$ が $C^2$ 級"
+                       "(2回までのすべての偏導関数が存在して連続)のとき。多項式や $e^x,\\ \\sin x$ などを組み合わせた、"
+                       "ふだん扱う関数はすべて $C^2$ 級なので、この授業では気にせず入れかえてよい。")
 
 
 # ---------- グリーンの定理 ----------
