@@ -243,8 +243,11 @@ def tab_properties():
 # ============================================================
 def tab_spectrum():
     st.info("$|F(\\omega)|$ を振幅スペクトル、$\\arg F(\\omega)$ を位相スペクトル、$|F(\\omega)|^2$ をエネルギースペクトルという。"
-            "時間領域と周波数領域のエネルギーは等しい(パーセバルの等式)。")
-    st.latex(r"\int_{-\infty}^{\infty}|f(t)|^2dt=\frac{1}{2\pi}\int_{-\infty}^{\infty}|F(\omega)|^2d\omega")
+            "時間領域と周波数領域のエネルギーは等しい(プランシュレルの等式)。")
+    st.latex(r"\int_{-\infty}^{\infty}|f(t)|^2dt=\frac{1}{2\pi}\int_{-\infty}^{\infty}|F(\omega)|^2d\omega\qquad(\text{プランシュレルの等式})")
+    st.caption("フーリエ級数のパーセバルの等式 $\\dfrac{1}{2\\pi}\\int_{-\\pi}^{\\pi}|f|^2dx=\\sum|c_n|^2$ を, "
+               "フーリエ変換に移したもの。合成積定理(1+.)から $\\int f(t)\\overline{g(t)}dt=\\dfrac{1}{2\\pi}\\int F(\\omega)\\overline{G(\\omega)}d\\omega$ "
+               "も同様に示せる($g=f$ とするとプランシュレルの等式)。")
     sig = st.selectbox("信号", ["減衰振動 e^{−at} sin ω₀t (t ≥ 0)", "波束 e^{−t²/(2σ²)} cos ω₀t", "矩形パルス(幅 w)"],
                        key="sp_s")
     c = st.columns(2)

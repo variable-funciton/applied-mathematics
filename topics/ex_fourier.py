@@ -1,4 +1,4 @@
-"""数学IV フーリエ解析 第1章 フーリエ級数:演習の問題生成
+"""数学IV フーリエ解析 第1章 フーリエ級数:演習の問題生成(実数形・複素形)
 
 規約(アプリの本文と同じ):周期 2L の f について
     f(x) ~ a_0/2 + Σ (a_n cos(nπx/L) + b_n sin(nπx/L)),  a_n = (1/L)∫_{-L}^{L} f cos(nπx/L) dx,  b_n も同様
@@ -172,9 +172,9 @@ def family(kind, L, c=1, A=None, B=None):
     raise ValueError(kind)
 
 
-def series_tex(fam, an=None, bn=None, a0h=None, swap=False):
-    """フーリエ級数の式。swap=True なら cos と sin を入れかえた誤答"""
-    L = fam["L"]
+def series_tex(fam, an=None, bn=None, a0h=None, swap=False, L=None):
+    """フーリエ級数の式。swap=True なら cos と sin を入れかえた誤答。L を指定すると cos の中身だけ変える(誤答用)"""
+    L = fam["L"] if L is None else L
     an = fam["an"] if an is None else an
     bn = fam["bn"] if bn is None else bn
     a0h = fam["a0"].scale(F(1, 2)) if a0h is None else a0h
@@ -365,6 +365,59 @@ WRONG_SUMS = [P(F(1, 6), 2), P(F(1, 8), 2), P(F(1, 12), 2), P(F(1, 4), 1), P(F(1
               P(F(1, 3), 2), P(F(1, 90), 4), P(F(1, 96), 4), P(F(1, 48), 4)]
 
 
+def pi_uni(v):
+    """PiNum(整数係数の単項)を目盛り用の文字に:2π², −π, 3"""
+    if not v.t:
+        return "0"
+    (k, c), = v.t.items()
+    sg = "−" if c < 0 else ""
+    a = abs(c)
+    if k == 0:
+        return sg + str(a)
+    return sg + ("" if a == 1 else str(a)) + "π" + ("" if k == 1 else "²³⁴"[k - 2])
+
+
+def wrap_pi(x):
+    """(−π, π] に戻す"""
+    return x - 2 * PI * math.ceil((x - PI) / (2 * PI) - 1e-12)
+
+
+def fgraph(fam, mark=None, K=3):
+    """周期 2π に拡張した f のグラフ(ex_fig の fgraph 仕様)。不連続点は白丸・黒丸で示す"""
+    f = fam["f"]
+    pieces, op, cl = [], [], []
+    for k in range(-K, K):
+        xs = [k * PI + (PI) * j / 60 for j in range(61)]
+        xs[0] += 1e-9
+        xs[-1] -= 1e-9
+        pieces.append([xs, [float(f(wrap_pi(x))) for x in xs]])
+    for k in range(-K + 1, K):
+        xb = k * PI
+        lft, rgt, val = float(f(wrap_pi(xb - 1e-9))), float(f(wrap_pi(xb + 1e-9))), float(f(wrap_pi(xb)))
+        if abs(lft - rgt) > 1e-6:
+            op += [(xb, v) for v in (lft, rgt) if abs(v - val) > 1e-6]
+            cl.append((xb, val))
+    xt = [(k * PI, (r"\pi" if k == 1 else (r"-\pi" if k == -1 else f"{k}\\pi")) if k else "0",
+           ("π" if k == 1 else ("−π" if k == -1 else f"{k}π".replace("-", "−"))) if k else "0") for k in range(-K, K + 1)]
+    kd = fam["kind"]
+    c = fam.get("c", 1)
+    if kd == "sq":
+        yv = [P(c, 2)]
+    elif kd == "abs":
+        yv = [P(c, 1)]
+    elif kd == "x":
+        yv = [P(c, 1), P(-c, 1)]
+    elif kd == "step":
+        yv = [P(fam["A"]), P(fam["B"])]
+    else:
+        yv = []
+    yt = [(float(v), v.tex(), pi_uni(v)) for v in yv if v.t]
+    return dict(kind="fgraph", pieces=pieces, open=op, closed=cl, xt=xt, yt=yt, mark=mark)
+
+
+X0NUM = {"0": 0.0, r"\pi": PI, r"\frac{\pi}{2}": PI / 2}
+
+
 def conv_sum_parts(rng):
     case = rng.choice(["sq_pi", "sq_0", "abs_0", "x_half", "step_half"])
     c = rng.choice([1, 1, 2])
@@ -399,13 +452,21 @@ def g_conv_sum(rng):
     choices = [Choice(val.tex(), True, value=float(val))] + [Choice(w.tex(), why="$x_0$ を代入した式を、求める級数について解き直そう。",
                                                                     value=float(w)) for w in wrong[:3]]
     return Problem("収束定理による級数の和", "標準",
-                   rf"周期 $2\pi$ の関数 {fam_text(fam)} のフーリエ級数は $f(x)\sim {series_tex(fam)}$ である。"
+                   rf"周期 $2\pi$ の関数 {fam_text(fam)}(グラフは下の図)のフーリエ級数は $f(x)\sim {series_tex(fam)}$ である。"
                    rf"収束定理を用いて, ${stex}$ の値を求めよ。",
                    choices, hints=[r"$f$ が連続な点 $x_0$ では, フーリエ級数は $f(x_0)$ に収束する。",
                                    rf"$x={x0}$ を代入して, 求める級数が出てくる形にする。"],
-                   solution=sol, meta=dict(val=float(val), sum=stex),
+                   solution=sol, meta=dict(val=float(val), sum=stex, fam=fam, x0=X0NUM[x0]),
                    exam_statement=rf"周期 $2\pi$ の関数 {fam_text(fam)} のフーリエ級数は $f(x)\sim {series_tex(fam)}$ である. "
-                   rf"収束定理を用いて, ${stex}={val.tex()}$ を示せ.", exam_answer="")
+                   rf"収束定理を用いて, ${stex}={val.tex()}$ を示せ.", exam_answer="",
+                   figure=fgraph(fam), answer_figure=conv_mark(fam, x0))
+
+
+def conv_mark(fam, x0):
+    """解答の図:代入する点 x0 に印をつける"""
+    xv = X0NUM[x0]
+    uni = "x=" + {"0": "0", r"\pi": "π", r"\frac{\pi}{2}": "π/2"}[x0]
+    return fgraph(fam, mark=(xv, float(fam["f"](xv)), "x=" + x0, uni))
 
 
 def guided_conv_sum(rng):
@@ -413,7 +474,7 @@ def guided_conv_sum(rng):
     return ExamItem("フーリエ級数と収束定理", rf"周期 $2\pi$ の関数 {fam_text(fam)} について, 次の問いに答えよ.",
                     [Part(r"$f$ のフーリエ級数を求めよ.", series_tex(fam), coef_solution(fam)),
                      Part(rf"収束定理を用いて, ${stex}$ の値を求めよ.", val.tex(), sol[1:])],
-                    meta=dict(val=float(val)))
+                    meta=dict(val=float(val)), figure=fgraph(fam), answer_figure=conv_mark(fam, x0))
 
 
 # ============================================================
@@ -503,15 +564,220 @@ def guided_parseval_sum(rng):
                     meta=dict(val=float(val)))
 
 
+# ============================================================
+# 標準:一般周期のフーリエ級数(級数全体を選ぶ)
+# ============================================================
+def g_series_general(rng):
+    L = rng.choice([1, 2, 3])
+    fam = pick_family(rng, ["x", "abs", "sq", "step", "half"], L)
+    an, bn = fam["an"], fam["bn"]
+    ok = series_tex(fam)
+    m = {"x": 1, "abs": 1, "sq": 2, "half": 1, "step": 0}[fam["kind"]]
+
+    def mod(fn):
+        return dict(an=fn(an) if an is not None else None, bn=fn(bn) if bn is not None else None)
+    cands = [(series_tex(fam, L="pi"), r"周期 $2L$ では $\cos\dfrac{n\pi x}{L},\ \sin\dfrac{n\pi x}{L}$ を使う($\cos nx$ は周期 $2\pi$ のとき)。"),
+             (series_tex(fam, **mod(lambda c: Coef(c.R / F(L) ** m, c.pat, c.p, c.q))),
+              rf"$x=\dfrac{{Lu}}{{\pi}}$ と置換すると係数に $L^{{{m}}}$ が出る。"),
+             (series_tex(fam, **mod(lambda c: Coef(c.R, FLIP[c.pat], c.p, c.q))), r"符号の形を確かめよう:$\cos n\pi=(-1)^n$。"),
+             (series_tex(fam, **mod(lambda c: Coef(c.R, c.pat, c.p, c.q - 1))), r"$\dfrac{n\pi x}{L}$ の積分で出る $\pi$ の個数を確かめよう。")]
+    if fam["a0"].t:
+        cands.append((series_tex(fam, a0h=fam["a0"]), r"定数項は $\dfrac{a_0}{2}$($a_0$ ではない)。"))
+    if an is None or bn is None:
+        cands.append((series_tex(fam, swap=True), "偶関数のフーリエ級数は $\\cos$ だけ、奇関数は $\\sin$ だけ(定数項を除く)。"))
+    choices = [Choice(ok, True, value=ok)]
+    for t, why in cands:
+        if all(c.tex != t for c in choices) and len(choices) < 4:
+            choices.append(Choice(t, why=why, value=t))
+    if len(choices) < 4:
+        raise Retry
+    return Problem("一般周期のフーリエ級数", "標準",
+                   rf"周期 ${2 * L}$ の関数 {fam_text(fam)} のフーリエ級数を求めよ。",
+                   choices, hints=["規約:" + CONV, rf"$L={L}$。偶関数・奇関数かどうかを先に調べ, 部分積分を使う。"],
+                   solution=coef_solution(fam), meta=dict(fam=fam))
+
+
+# ============================================================
+# 標準:複素フーリエ係数
+# ============================================================
+CONV_C = (r"$f(x)\sim\displaystyle\sum_{n=-\infty}^{\infty}c_ne^{in\pi x/L}$, "
+          r"$c_n=\dfrac{1}{2L}\displaystyle\int_{-L}^{L}f(x)e^{-in\pi x/L}dx$")
+
+
+class CCoef:
+    """複素数の係数 re + i·im(re, im は Coef か None)"""
+    def __init__(self, re=None, im=None):
+        self.re = re if re is not None and re.R != 0 else None
+        self.im = im if im is not None and im.R != 0 else None
+
+    def __call__(self, n):
+        return (self.re(n) if self.re else 0.0) + 1j * (self.im(n) if self.im else 0.0)
+
+    def key(self):
+        return (self.re.key() if self.re else None, self.im.key() if self.im else None)
+
+    def tex(self):
+        parts = ([self.re.tex()] if self.re else []) + ([self.im.tex() + "i"] if self.im else [])
+        return "+".join(parts) if parts else "0"
+
+
+def ccoef(fam, conj=False, scale=F(1, 2)):
+    """c_n = (a_n − i b_n)/2(conj=True なら (a_n + i b_n)/2 の誤答)"""
+    an, bn = fam["an"], fam["bn"]
+    re = Coef(an.R * scale, an.pat, an.p, an.q) if an is not None else None
+    im = Coef((1 if conj else -1) * bn.R * scale, bn.pat, bn.p, bn.q) if bn is not None else None
+    return CCoef(re, im)
+
+
+def ccoef_solution(fam, cn):
+    L = fam["L"]
+    Lt = Ltex(L)
+    out = [rf"$c_n=\dfrac{{1}}{{2L}}\displaystyle\int_{{-L}}^{{L}}f(x)e^{{-in\pi x/L}}dx$ で $e^{{-i\theta}}=\cos\theta-i\sin\theta$ を使うと, "
+           rf"$c_n=\dfrac{{a_n-ib_n}}{{2}}$($n\ne0$), $c_0=\dfrac{{a_0}}{{2}}$($L={Lt}$)。"]
+    if fam["an"] is not None:
+        out.append(rf"$a_n={fam['an'].tex()}$")
+    else:
+        out.append(r"$a_n=0$($n\ge1$)")
+    if fam["bn"] is not None:
+        out.append(rf"$b_n={fam['bn'].tex()}$")
+    else:
+        out.append(r"$b_n=0$")
+    out.append(rf"よって $$c_n={cn.tex()}\quad(n\ne0),\qquad c_0={fam['a0'].scale(F(1, 2)).tex()}$$")
+    return out
+
+
+def drop_i(cn):
+    """誤答:i のつけ忘れ・つけすぎ"""
+    if cn.re is None:
+        return CCoef(cn.im, None)
+    if cn.im is None:
+        return CCoef(None, cn.re)
+    return CCoef(cn.re, None)
+
+
+def g_ccoef(rng):
+    L = rng.choice(["pi", "pi", 1, 2])
+    fam = pick_family(rng, ["x", "abs", "sq", "step", "half"], L)
+    cn = ccoef(fam)
+    cands = [(ccoef(fam, conj=True), r"$c_n$ は $e^{-in\pi x/L}$ をかけて積分する:$c_n=\dfrac{a_n-ib_n}{2}$。$i$ の前の符号を確かめよう。"),
+             (ccoef(fam, scale=F(1)), r"$c_n$ の前の係数は $\dfrac{1}{2L}$($a_n$ の $\dfrac1L$ の半分)。"),
+             (CCoef(*(Coef(c.R, FLIP[c.pat], c.p, c.q) if c is not None else None for c in (cn.re, cn.im))),
+              r"符号の形を確かめよう:$e^{\pm in\pi}=(-1)^n$。"),
+             (drop_i(cn), r"$e^{-i\theta}=\cos\theta-i\sin\theta$ の虚部($i$ の項)を確かめよう。")]
+    name = r"c_n"
+    choices = [Choice(rf"{name}={cn.tex()}", True, value=cn.key())]
+    for c, why in cands:
+        t = rf"{name}={c.tex()}"
+        if c.key() != cn.key() and all(x.tex != t for x in choices) and len(choices) < 4:
+            choices.append(Choice(t, why=why, value=c.key()))
+    if len(choices) < 4:
+        raise Retry
+    per = r"2\pi" if L == "pi" else str(2 * L)
+    return Problem("複素フーリエ係数", "標準",
+                   rf"周期 ${per}$ の関数 {fam_text(fam)} の複素フーリエ係数 $c_n\ (n\ne0)$ を求めよ。",
+                   choices, hints=["規約:" + CONV_C, r"$c_n=\dfrac{a_n-ib_n}{2}$ を使うか, $e^{-in\pi x/L}$ をかけて直接部分積分する。"
+                                   r"$e^{\pm in\pi}=\cos n\pi=(-1)^n$。"],
+                   solution=ccoef_solution(fam, cn), meta=dict(fam=fam, cn=cn))
+
+
+# ------------------------------------------------------------
+# 指数関数 e^{kx} の複素フーリエ係数:c_n = (−1)^n sinh(kπ) / (π(k − in))
+# ------------------------------------------------------------
+SINH = r"ただし $\sinh x=\dfrac{e^x-e^{-x}}{2}$, $\cosh x=\dfrac{e^x+e^{-x}}{2}$ とする。"
+
+
+def ktex(k, s):
+    return s if k == 1 else f"{k}{s}"
+
+
+def exp_cn_tex(k, sign=-1, alt=True, half=False, cosh=False):
+    num = (r"(-1)^n" if alt else "") + (r"\cosh " if cosh else r"\sinh ") + ktex(k, r"\pi")
+    den = ("2" if half else "") + rf"\pi({k}{'-' if sign < 0 else '+'}in)"
+    return rf"\frac{{{num}}}{{{den}}}"
+
+
+def exp_parts(rng):
+    k = rng.choice([1, 2, 3])
+    ftex = rf"f(x)=e^{{{ktex(k, 'x')}}}\ (-\pi<x\le\pi)"
+    fam = dict(kind="exp", k=k, L="pi", tex=ftex, f=lambda x: math.exp(k * x))
+    cn = exp_cn_tex(k)
+    kp = ktex(k, r"\pi")
+    sol = [rf"$$c_n=\frac{{1}}{{2\pi}}\int_{{-\pi}}^{{\pi}}e^{{{ktex(k, 'x')}}}e^{{-inx}}dx=\frac{{1}}{{2\pi}}\left[\frac{{e^{{({k}-in)x}}}}{{{k}-in}}\right]_{{-\pi}}^{{\pi}}"
+           rf"=\frac{{e^{{{kp}}}e^{{-in\pi}}-e^{{-{kp}}}e^{{in\pi}}}}{{2\pi({k}-in)}}$$",
+           rf"$e^{{\pm in\pi}}=(-1)^n$ なので $$c_n=\frac{{(-1)^n(e^{{{kp}}}-e^{{-{kp}}})}}{{2\pi({k}-in)}}={cn}$$"]
+    return fam, k, cn, sol
+
+
+def g_exp_coef(rng):
+    fam, k, cn, sol = exp_parts(rng)
+    wrong = [(exp_cn_tex(k, sign=1), r"$e^{-inx}$ をかけるので, 指数は $(k-in)x$。$in$ の前の符号を確かめよう。"),
+             (exp_cn_tex(k, alt=False), r"$e^{\pm in\pi}=(-1)^n$ を忘れていないか。"),
+             (exp_cn_tex(k, half=True), r"$\dfrac{e^{a}-e^{-a}}{2}=\sinh a$ なので, 分母の $2$ は $\sinh$ に入る。"),
+             (exp_cn_tex(k, cosh=True), r"$e^{a}-e^{-a}$ は $2\sinh a$($\cosh$ は和)。")]
+    rng.shuffle(wrong)
+    choices = [Choice(rf"c_n={cn}", True, value=cn)] + [Choice(rf"c_n={t}", why=w, value=t) for t, w in wrong[:3]]
+    return Problem("複素フーリエ係数(指数関数)", "標準",
+                   rf"周期 $2\pi$ の関数 ${fam['tex']}$, $f(x+2\pi)=f(x)$ の複素フーリエ係数 $c_n$ を求めよ。" + SINH,
+                   choices, hints=["規約:" + CONV_C, r"$e^{kx}e^{-inx}=e^{(k-in)x}$ はそのまま積分できる(部分積分はいらない)。"],
+                   solution=sol, meta=dict(fam=fam, k=k))
+
+
+# ------------------------------------------------------------
+# 誘導:複素フーリエ係数 → パーセバルの等式(複素形)
+# ------------------------------------------------------------
+PARS_C = r"パーセバルの等式(複素形):$\dfrac{1}{2\pi}\displaystyle\int_{-\pi}^{\pi}|f(x)|^2dx=\sum_{n=-\infty}^{\infty}|c_n|^2$"
+
+
+def guided_ccoef(rng):
+    c = rng.choice([1, 2, 3])
+    fam = family("x", "pi", c=c)
+    cn = ccoef(fam)
+    I = P(F(c * c, 3), 2)       # (1/2π)∫ c²x² dx = c²π²/3
+    p1 = ccoef_solution(fam, cn)
+    p2 = [rf"$|c_n|^2=\dfrac{{{c * c}}}{{n^2}}\ (n\ne0)$, $c_0=0$, $\dfrac{{1}}{{2\pi}}\displaystyle\int_{{-\pi}}^{{\pi}}{coef_term(c * c, 'x^2')}dx={I.tex()}$。",
+          rf"$|c_{{-n}}|=|c_n|$ なので $${I.tex()}={2 * c * c}\sum_{{n=1}}^{{\infty}}\frac{{1}}{{n^2}}\quad\text{{より}}\quad "
+          r"\sum_{n=1}^{\infty}\frac{1}{n^2}=\frac{\pi^{2}}{6}$$"]
+    return ExamItem("複素フーリエ級数とパーセバルの等式",
+                    rf"周期 $2\pi$ の関数 {fam_text(fam)} について, 次の問いに答えよ. 複素フーリエ係数は "
+                    r"$c_n=\dfrac{1}{2\pi}\displaystyle\int_{-\pi}^{\pi}f(x)e^{-inx}dx$ とする.",
+                    [Part(r"複素フーリエ係数 $c_n\ (n\ne0)$ と $c_0$ を求めよ.", rf"c_n={cn.tex()}\ (n\ne0),\ c_0=0", p1),
+                     Part(PARS_C.replace("パーセバルの等式(複素形):", "パーセバルの等式 ") + r" を用いて, "
+                          r"$\displaystyle\sum_{n=1}^{\infty}\frac{1}{n^2}$ の値を求めよ.", r"\frac{\pi^{2}}{6}", p2)],
+                    meta=dict(fam=fam, cn=cn, val=PI ** 2 / 6))
+
+
+def guided_exp(rng):
+    fam, k, cn, sol = exp_parts(rng)
+    kp, k2p = ktex(k, r"\pi"), ktex(2 * k, r"\pi")
+    ans = rf"\frac{{\pi\cosh {kp}}}{{{'' if k == 1 else k}\sinh {kp}}}"
+    p2 = [rf"$|c_n|^2=\dfrac{{\sinh^2{kp}}}{{\pi^2({k * k}+n^2)}}$。",
+          rf"$\dfrac{{1}}{{2\pi}}\displaystyle\int_{{-\pi}}^{{\pi}}e^{{{ktex(2 * k, 'x')}}}dx=\dfrac{{e^{{{k2p}}}-e^{{-{k2p}}}}}{{{4 * k}\pi}}"
+          rf"=\dfrac{{\sinh {kp}\cosh {kp}}}{{{'' if k == 1 else k}\pi}}$(2倍角:$\sinh 2a=2\sinh a\cosh a$)。",
+          rf"パーセバルの等式より $$\frac{{\sinh {kp}\cosh {kp}}}{{{'' if k == 1 else k}\pi}}=\frac{{\sinh^2{kp}}}{{\pi^2}}\sum_{{n=-\infty}}^{{\infty}}\frac{{1}}{{n^2+{k * k}}}"
+          rf"\quad\text{{より}}\quad\sum_{{n=-\infty}}^{{\infty}}\frac{{1}}{{n^2+{k * k}}}={ans}$$"]
+    return ExamItem("指数関数の複素フーリエ級数",
+                    rf"周期 $2\pi$ の関数 ${fam['tex']}$, $f(x+2\pi)=f(x)$ について, 次の問いに答えよ. "
+                    r"複素フーリエ係数は $c_n=\dfrac{1}{2\pi}\displaystyle\int_{-\pi}^{\pi}f(x)e^{-inx}dx$ とする. " + SINH.replace("。", "."),
+                    [Part(r"複素フーリエ係数 $c_n$ を求めよ.", rf"c_n={cn}", sol),
+                     Part(PARS_C.replace("パーセバルの等式(複素形):", "パーセバルの等式 ") + r" を用いて, "
+                          rf"$\displaystyle\sum_{{n=-\infty}}^{{\infty}}\frac{{1}}{{n^2+{k * k}}}$ の値を求めよ.", ans, p2)],
+                    meta=dict(k=k, val=PI * math.cosh(k * PI) / (k * math.sinh(k * PI))))
+
+
 REGISTRY = [
     ProblemType("fs_2pi", "周期 2π のフーリエ級数", "基本", g_series_2pi),
     ProblemType("fs_conv", "収束定理(級数が収束する値)", "基本", g_conv_value),
     ProblemType("fs_gen", "一般周期のフーリエ係数", "標準", g_coef_general),
+    ProblemType("fs_gens", "一般周期のフーリエ級数", "標準", g_series_general),
+    ProblemType("fc_coef", "複素フーリエ係数", "標準", g_ccoef, guided=guided_ccoef),
+    ProblemType("fc_exp", "複素フーリエ係数(指数関数)", "標準", g_exp_coef, guided=guided_exp),
     ProblemType("fs_sum", "収束定理による級数の和", "標準", g_conv_sum, guided=guided_conv_sum),
     ProblemType("fs_pars", "パーセバルの等式(係数の2乗和)", "標準", g_parseval),
     ProblemType("fs_psum", "パーセバルの等式による級数の和", "標準", g_parseval_sum, guided=guided_parseval_sum),
 ]
-GUIDED_NAMES = {"fs_sum": "フーリエ級数 → 収束定理による級数の和", "fs_psum": "∫f² → パーセバルの等式による級数の和"}
+GUIDED_NAMES = {"fs_sum": "フーリエ級数 → 収束定理による級数の和", "fs_psum": "∫f² → パーセバルの等式による級数の和",
+                "fc_coef": "複素フーリエ係数 → パーセバルの等式(複素形)で Σ1/n²",
+                "fc_exp": "e^{kx} の複素フーリエ係数 → Σ1/(n²+k²)"}
 
 
 def tab():
