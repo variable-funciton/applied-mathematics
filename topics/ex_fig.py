@@ -471,6 +471,72 @@ def seg_pts(A, B, n=21):
     return [list(map(float, A[0] + (B[0] - A[0]) * t)), list(map(float, A[1] + (B[1] - A[1]) * t))]
 
 
+# ============================================================
+# 周期関数のグラフ(フーリエ級数の演習)
+#   {"kind": "fgraph", "pieces": [[[x..], [y..]], ...], "open": [(x, y)], "closed": [(x, y)],
+#    "xt": [(x, "\\pi", "π")], "yt": [(y, "\\pi^2", "π²")], "mark": (x, y, "x_0") or None}
+#   x は実際の値(π を含む)。LaTeX では x/π を 1 目盛りにして描く
+# ============================================================
+def plotly_fgraph(spec, height=320):
+    fig = go.Figure()
+    for x, y in spec["pieces"]:
+        fig.add_trace(go.Scatter(x=x, y=y, mode="lines", line=dict(color="#1f77b4", width=3), hoverinfo="skip",
+                                 showlegend=False))
+    for key, fill in (("open", "white"), ("closed", "#1f77b4")):
+        pts = spec.get(key, [])
+        if pts:
+            fig.add_trace(go.Scatter(x=[p[0] for p in pts], y=[p[1] for p in pts], mode="markers", hoverinfo="skip",
+                                     marker=dict(color=fill, size=9, line=dict(color="#1f77b4", width=2)), showlegend=False))
+    if spec.get("mark"):
+        x, y, lab = spec["mark"][:3]
+        lab = spec["mark"][3] if len(spec["mark"]) > 3 else _html(lab)
+        fig.add_trace(go.Scatter(x=[x], y=[y], mode="markers+text", text=[lab], textposition="top right",
+                                 marker=dict(color="#d62728", size=12), textfont=dict(size=16, color="#d62728"),
+                                 hoverinfo="skip", showlegend=False))
+    fig.update_xaxes(tickvals=[t[0] for t in spec["xt"]], ticktext=[t[2] for t in spec["xt"]], zeroline=True,
+                     zerolinecolor="black", zerolinewidth=2)
+    fig.update_yaxes(tickvals=[t[0] for t in spec["yt"]], ticktext=[t[2] for t in spec["yt"]], zeroline=True,
+                     zerolinecolor="black", zerolinewidth=2)
+    layout(fig, height=height, xlab="x", ylab="y", legend=False)
+    return fig
+
+
+def tikz_fgraph(spec):
+    import math as _m
+    ys = [v for _, y in spec["pieces"] for v in y] + [0.0]
+    ymax = max(abs(v) for v in ys) or 1.0
+    sy = 1.6 / ymax
+    X = lambda x: x / _m.pi  # noqa: E731
+    xs = [X(v) for x, _ in spec["pieces"] for v in x]
+    lo, hi = min(xs), max(xs)
+    ylo, yhi = min(min(ys) * sy, 0) - 0.4, max(max(ys) * sy, 0) + 0.4
+    out = [r"\begin{tikzpicture}[scale=0.9]",
+           rf"  \draw[->, thick] ({lo - 0.3:.2f},0) -- ({hi + 0.4:.2f},0) node[right] {{$x$}};",
+           rf"  \draw[->, thick] (0,{ylo:.2f}) -- (0,{yhi:.2f}) node[above] {{$y$}};"]
+    for v, t, _ in spec["xt"]:
+        if abs(v) > 1e-12:
+            out.append(rf"  \draw ({X(v):.3f},0.06) -- ({X(v):.3f},-0.06) node[below, font=\scriptsize] {{${t}$}};")
+    for v, t, _ in spec["yt"]:
+        if abs(v) > 1e-12:
+            out.append(rf"  \draw[gray!60, dashed] ({lo:.2f},{v * sy:.3f}) -- ({hi:.2f},{v * sy:.3f});")
+            out.append(rf"  \node[left, font=\scriptsize, fill=white, inner sep=1pt] at (0,{v * sy:.3f}) {{${t}$}};")
+    for x, y in spec["pieces"]:
+        step = max(1, len(x) // 30)
+        pts = list(zip(x[::step], y[::step]))
+        if pts[-1] != (x[-1], y[-1]):
+            pts.append((x[-1], y[-1]))
+        out.append(r"  \draw[very thick, blue] plot coordinates {" + " ".join(f"({X(a):.3f},{b * sy:.3f})" for a, b in pts) + "};")
+    for x, y in spec.get("open", []):
+        out.append(rf"  \draw[blue, thick, fill=white] ({X(x):.3f},{y * sy:.3f}) circle (1.6pt);")
+    for x, y in spec.get("closed", []):
+        out.append(rf"  \fill[blue] ({X(x):.3f},{y * sy:.3f}) circle (1.8pt);")
+    if spec.get("mark"):
+        x, y, lab = spec["mark"][:3]
+        out.append(rf"  \fill[red] ({X(x):.3f},{y * sy:.3f}) circle (2.4pt) node[above right, red] {{${lab}$}};")
+    out.append(r"\end{tikzpicture}")
+    return out
+
+
 def plotly_fig(spec, height=420):  # noqa: F811
     if spec is None:
         return None
@@ -480,6 +546,8 @@ def plotly_fig(spec, height=420):  # noqa: F811
         return plotly_ellipse(spec, height)
     if spec["kind"] == "path2d":
         return plotly_path2d(spec, height)
+    if spec["kind"] == "fgraph":
+        return plotly_fgraph(spec, min(height, 340))
     return _plotly2d(spec, height)
 
 
@@ -493,6 +561,8 @@ def tikz(spec):  # noqa: F811
         lines = [r"\begin{center}"] + tikz_ellipse(spec) + [r"\end{center}"]
     elif spec["kind"] == "path2d":
         lines = [r"\begin{center}"] + tikz_path2d(spec) + [r"\end{center}"]
+    elif spec["kind"] == "fgraph":
+        lines = [r"\begin{center}"] + tikz_fgraph(spec) + [r"\end{center}"]
     else:
         code = _tikz2d(spec)
         if not code:
