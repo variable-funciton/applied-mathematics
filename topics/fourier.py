@@ -1,7 +1,10 @@
 """③ フーリエ解析:フーリエ級数・離散フーリエ変換・フーリエ変換"""
+import io
+
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
+from scipy.io import wavfile
 
 from common import C1, C2, C3, C4, GRAY, layout, show, trapz
 
@@ -53,6 +56,32 @@ def coefficients(name, d):
     b[np.abs(b) < 1e-9] = 0
     energy = trapz(f ** 2, x) / PI
     return a, b, energy
+
+
+# ---------- 音声化 ----------
+F0 = 440.0          # 基本周波数(A4)
+FS = 44100          # サンプリングレート
+DUR = 2.0           # 秒
+NYQ_N = int((FS / 2) // F0)   # 440n Hz がナイキスト周波数 22050 Hz 未満になる最大の n(= 50)
+
+
+@st.cache_data
+def wave_audio(name, d, N, fejer=False):
+    """部分和 S_N(またはフェイェール平均)を基本周波数 440 Hz の音にした WAV(bytes)と, 使った項数"""
+    a, b, _ = coefficients(name, d)
+    t = np.arange(int(FS * DUR)) / FS
+    x = 2 * PI * F0 * t                          # 1 秒に 440 周期(x の周期 2π が 1/440 秒)
+    Nuse = min(N, NYQ_N)
+    y = partial_sum(x, a, b, Nuse, fejer) - a[0] / 2   # 定数項(直流)は音にならないので除く
+    peak = float(np.max(np.abs(y)))
+    y = y / peak * 0.8 if peak > 1e-12 else y
+    ramp = int(0.01 * FS)                         # 始めと終わりの 10 ms をなめらかに(プチッという音を防ぐ)
+    env = np.ones_like(y)
+    env[:ramp] = np.linspace(0, 1, ramp)
+    env[-ramp:] = np.linspace(1, 0, ramp)
+    buf = io.BytesIO()
+    wavfile.write(buf, FS, (y * env * 32767).astype(np.int16))
+    return buf.getvalue(), Nuse
 
 
 def partial_sum(x, a, b, N, fejer=False):
@@ -117,6 +146,27 @@ def tab_series():
         st.caption("不連続点の近くでは、N を増やしても行き過ぎ(跳びの約 9%)が消えない:**ギブス現象**。"
                    "ただし行き過ぎる場所は不連続点に近づき、平均二乗誤差は 0 に向かう"
                    "(「3. 収束定理とパーセバルの等式」の節)。フェイェール平均を使うとギブス現象は起こらない。")
+
+    st.subheader("音で聴く")
+    st.markdown(f"部分和 $S_{{{N}}}(x)$ を, 基本周波数 440 Hz(ラの音 A4)の音にして再生する。"
+                "$x$ の1周期を $\\dfrac{1}{440}$ 秒にあてるので, $n$ 番目の項は $440n$ Hz の音(倍音)になる。"
+                "項数 N を変えると, 音色が変わる。")
+    wav, Nuse = wave_audio(name, d, N)
+    st.audio(wav, format="audio/wav")
+    if np.all(np.abs(np.hypot(*coefficients(name, d)[:2])[1:Nuse + 1]) < 1e-9):
+        st.warning("この N では定数項以外の項がすべて 0 なので, 音は出ない(全波整流 |sin x| は n が偶数の項しかない。N を 2 以上にしよう)。")
+    cap = (f"サンプリングレート {FS} Hz, 約 {DUR:g} 秒。高さ(440 Hz)は N によらず同じで, N を増やすと倍音が加わって音色が変わる。"
+           "音量はどの N でも最大値がそろうように調整している。周期 2L の選び方は音には関係しない。")
+    if N > NYQ_N:
+        cap += (f" N = {N} のうち, 22050 Hz(サンプリングレートの半分)未満の n ≤ {NYQ_N} の項だけを使っている"
+                "(それより高い音は正しく記録できず, 別の高さの音にまざってしまうため。人の耳に聞こえるのも約 20000 Hz まで)。")
+    st.caption(cap)
+    if fejer:
+        st.markdown(f"フェイェール平均 $\\sigma_{{{N}}}(x)$ の音(高い倍音ほど弱めてある)")
+        st.audio(wave_audio(name, d, N, True)[0], format="audio/wav")
+    with st.expander("聞きくらべ:純音(N = 1)"):
+        st.audio(wave_audio(name, d, 1)[0], format="audio/wav")
+        st.caption("N = 1 は基本波だけ(sin または cos の1つの波)の音。音さの音に近い, やわらかい音になる。")
 
     st.subheader("スペクトル")
     st.markdown(
