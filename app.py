@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -82,6 +82,12 @@ CURRICULUM = {
             ("3. スペクトル", f2.tab_spectrum),
             ("4. 離散フーリエ変換と複素フーリエ級数", f2.tab_dft_series),
             ("4+. FFT とフィルタ", fourier.tab_dft),
+        ],
+        "応用 学科別の応用例": [
+            ("機械への応用", fourier_apps.tab_mech),
+            ("電気電子への応用", fourier_apps.tab_elec),
+            ("都市への応用", fourier_apps.tab_city),
+            ("化学への応用", fourier_apps.tab_chem),
         ],
         "発展": [
             ("1. ギブス現象", fourier_adv.tab_gibbs),
