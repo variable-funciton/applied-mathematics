@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_gradient, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -71,6 +71,7 @@ CURRICULUM = {
             ("1. 一般周期のフーリエ級数", fourier.tab_series),
             ("2. 複素フーリエ級数", f2.tab_complex_series),
             ("3. 収束定理とパーセバルの等式", f2.tab_convergence_parseval),
+            ("演習(第1章)", ex_fourier.tab),
         ],
         "第2章 フーリエ変換": [
             ("1. フーリエ変換と積分定理", f2.tab_integral_theorem),
