@@ -118,6 +118,26 @@ REFS = {
              title="Mathematical framework of cone beam 3D reconstruction via the first derivative of the Radon transform",
              journal="Lecture Notes in Math.", volume="1497", pages="66–97", year=1991, url="https://doi.org/10.1007/BFb0084509",
              note="円錐ビーム CT のデータを3次元ラドン変換の微分に結びつける。"),
+        dict(key="cooleytukey1965", kind="article", level="原論文", authors="J. W. Cooley, J. W. Tukey",
+             title="An algorithm for the machine calculation of complex Fourier series", journal="Math. Comp.", volume="19",
+             pages="297–301", year=1965, url="https://doi.org/10.1090/S0025-5718-1965-0178586-1", note="高速フーリエ変換(FFT)の論文。"),
+        dict(key="heideman1985", kind="article", level="発展", authors="M. T. Heideman, D. H. Johnson, C. S. Burrus",
+             title="Gauss and the history of the fast Fourier transform", journal="Arch. Hist. Exact Sci.", volume="34",
+             pages="265–277", year=1985, url="https://doi.org/10.1007/BF00348431", note="ガウスによる FFT の先駆けと FFT の歴史。"),
+        dict(key="ieee_fft", kind="web", level="資料", authors="IEEE History Center",
+             title="Milestones: First Demonstration of the Fast Fourier Transform (FFT), 1964", publisher="Engineering and Technology History Wiki",
+             year=None, url="https://ethw.org/Milestones:First_Demonstration_of_the_Fast_Fourier_Transform_(FFT),_1964",
+             note="IBM での FFT の実演と, 地下核実験の検出という開発の動機。"),
+        dict(key="shannon1949", kind="article", level="原論文", authors="C. E. Shannon", title="Communication in the presence of noise",
+             journal="Proc. IRE", volume="37", pages="10–21", year=1949, url="https://doi.org/10.1109/JRPROC.1949.232969",
+             note="標本化定理(1940年投稿)。"),
+        dict(key="someya1949", kind="book", level="原論文", authors="染谷勲", title="波形伝送(高周波科学論叢 第3輯)",
+             publisher="修教社", year=1949, note="シャノンと独立に標本化定理を示した。"),
+        dict(key="yoshino2015", kind="article", level="発展", authors="吉野邦生", title="標本化定理における複素解析的手法",
+             journal="数理解析研究所講究録", volume="1972", pages="67–83", year=2015,
+             url="https://www.kurims.kyoto-u.ac.jp/~kyodo/kokyuroku/contents/pdf/1972-05.pdf", note="シャノン=染谷の標本化定理の解説と発展(日本語)。"),
+        dict(key="unser2000", kind="article", level="発展", authors="M. Unser", title="Sampling—50 years after Shannon",
+             journal="Proc. IEEE", volume="88", pages="569–587", year=2000, note="標本化定理のその後の発展(スプライン・ウェーブレット)。"),
         dict(key="bracewell2000", kind="book", level="応用", authors="R. N. Bracewell", title="The Fourier Transform and Its Applications, 3rd ed.",
              publisher="McGraw-Hill", year=2000, note="工学でのフーリエ変換の使い方(英語)。"),
         dict(key="wilbraham1848", kind="article", level="原論文", authors="H. Wilbraham", title="On a certain periodic function",
@@ -233,7 +253,9 @@ def bibtex(refs):
                      pages=r["pages"].replace("–", "--"), year=r["year"])
             typ = "article"
         elif r["kind"] == "web":
-            f = dict(author=auth, title=r["title"], howpublished=r["publisher"], year=r["year"])
+            f = dict(author=auth, title=r["title"], howpublished=r["publisher"])
+            if r.get("year"):
+                f["year"] = r["year"]
             typ = "misc"
         else:
             f = {("editor" if extra == "eds." else "author"): auth, "title": r["title"], "publisher": r["publisher"],

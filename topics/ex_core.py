@@ -331,7 +331,8 @@ def md_to_tex(s):
 def choices_tex(choices):
     """4択の選択肢。短ければ1行に4つ、長ければ1行に2つ"""
     cells = [rf"{lab}\ ${c.tex}$" for lab, c in zip(LABELS, choices)]
-    if max(len(c.tex) for c in choices) <= 28:
+    visible = max(len(re.sub(r"\\[a-zA-Z]+|[{}\\ ^_]", "", c.tex)) for c in choices)   # 表示される文字数の目安
+    if max(len(c.tex) for c in choices) <= 28 and visible <= 14:
         return r"\noindent" + r"\hfill ".join(cells) + r"\hfill\null"
     rows = []
     for k in (0, 2):
