@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, radon, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, radon, dft, ex_dft, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -83,8 +83,14 @@ CURRICULUM = {
             ("2. フーリエ変換の性質と公式", f2.tab_properties),
             ("2+. 代表的な変換対と不確定性", fourier.tab_transform),
             ("3. スペクトル", f2.tab_spectrum),
-            ("4. 離散フーリエ変換と複素フーリエ級数", f2.tab_dft_series),
-            ("4+. FFT とフィルタ", fourier.tab_dft),
+        ],
+        "第3章 離散フーリエ変換": [
+            ("1. 離散フーリエ変換の定義と性質", dft.tab_definition),
+            ("2. 離散フーリエ変換と複素フーリエ級数", f2.tab_dft_series),
+            ("3. 高速フーリエ変換(FFT)のしくみ", dft.tab_fft),
+            ("4. FFT とフィルタ", fourier.tab_dft),
+            ("5. シャノンの標本化定理", dft.tab_sampling),
+            ("演習(第3章)", ex_dft.tab),
         ],
         "応用 学科別の応用例": [
             ("機械への応用", fourier_apps.tab_mech),
@@ -135,7 +141,6 @@ CURRICULUM = {
         "その他": [
             ("デルタ関数のモデル関数", other.tab_delta),
             ("フーリエ変換とフーリエ級数の関係", other.tab_series_vs_transform),
-            ("サンプリング定理", other.tab_sampling),
         ],
     },
     "⑦ 特殊関数": {
