@@ -311,6 +311,48 @@ def make_set(registry, names, n, seed):
     return out
 
 
+@st.fragment
+def problem_block(ck, seed, i, v, vkey, p):
+    """1問分の表示。答え・ヒント・解答の操作では, この問題だけが再実行される(st.fragment)。
+    「同じ型でもう一問」は問題が入れかわり, ページ下の LaTeX 一式も変わるので, ページ全体を再実行する。"""
+    base = f"{ck}_{seed}_{i}_{v}"
+    st.markdown(f"#### 問{i + 1}　{p.title}　〔{p.level}〕" + (f"(類題 {v})" if v else ""))
+    st.markdown(punct(p.statement))
+    if p.figure is not None:
+        from topics.ex_fig import plotly_fig
+        st.plotly_chart(plotly_fig(p.figure, height=360), width="stretch", key=f"{base}_fig")
+    for lab, c in zip(LABELS, p.choices):
+        st.markdown(f"{lab}　${c.tex}$")
+    ans = st.radio("答え", LABELS, index=None, horizontal=True, key=f"{base}_ans")
+    if ans is not None:
+        c = p.choices[LABELS.index(ans)]
+        if c.correct:
+            st.success("正解! ")
+        else:
+            st.error(punct("不正解. " + (c.why or "もう一度計算を確かめよう。")))
+    hkey = f"{base}_h"
+    k = st.session_state.get(hkey, 0)
+    for j, h in enumerate(p.hints[:k], 1):
+        st.markdown(punct(f"ヒント{j}:{h}"))
+    b1, b2, b3 = st.columns(3)
+    if k < len(p.hints):
+        b1.button(f"ヒントを見る({k + 1}/{len(p.hints)})", on_click=_inc, args=(hkey,), key=f"{base}_hb")
+    show = b2.checkbox("解答を表示", key=f"{base}_sol")
+    if b3.button("同じ型でもう一問", key=f"{base}_more"):
+        _inc(vkey)
+        st.rerun(scope="app")
+    if show:
+        correct = LABELS[[c.correct for c in p.choices].index(True)]
+        with st.container(border=True):
+            st.markdown(f"正解:{correct}")
+            for s_ in p.solution:
+                st.markdown(punct(s_))
+            if p.answer_figure is not None:
+                from topics.ex_fig import plotly_fig
+                st.plotly_chart(plotly_fig(p.answer_figure, height=340), width="stretch", key=f"{base}_afig")
+    st.divider()
+
+
 def render(chapter, registry, title):
     """章の演習ページ"""
     ck = f"ex_{chapter}"
@@ -342,40 +384,7 @@ def render(chapter, registry, title):
 
     st.divider()
     for i, t, v, vkey, p in probs:
-        base = f"{ck}_{seed}_{i}_{v}"
-        st.markdown(f"#### 問{i + 1}　{p.title}　〔{p.level}〕" + (f"(類題 {v})" if v else ""))
-        st.markdown(punct(p.statement))
-        if p.figure is not None:
-            from topics.ex_fig import plotly_fig
-            st.plotly_chart(plotly_fig(p.figure, height=360), width="stretch", key=f"{base}_fig")
-        for lab, c in zip(LABELS, p.choices):
-            st.markdown(f"{lab}　${c.tex}$")
-        ans = st.radio("答え", LABELS, index=None, horizontal=True, key=f"{base}_ans")
-        if ans is not None:
-            c = p.choices[LABELS.index(ans)]
-            if c.correct:
-                st.success("正解! ")
-            else:
-                st.error(punct("不正解. " + (c.why or "もう一度計算を確かめよう。")))
-        hkey = f"{base}_h"
-        k = st.session_state.get(hkey, 0)
-        for j, h in enumerate(p.hints[:k], 1):
-            st.markdown(punct(f"ヒント{j}:{h}"))
-        b1, b2, b3 = st.columns(3)
-        if k < len(p.hints):
-            b1.button(f"ヒントを見る({k + 1}/{len(p.hints)})", on_click=_inc, args=(hkey,), key=f"{base}_hb")
-        show = b2.checkbox("解答を表示", key=f"{base}_sol")
-        b3.button("同じ型でもう一問", on_click=_inc, args=(vkey,), key=f"{base}_more")
-        if show:
-            correct = LABELS[[c.correct for c in p.choices].index(True)]
-            with st.container(border=True):
-                st.markdown(f"正解:{correct}")
-                for s in p.solution:
-                    st.markdown(punct(s))
-                if p.answer_figure is not None:
-                    from topics.ex_fig import plotly_fig
-                    st.plotly_chart(plotly_fig(p.answer_figure, height=340), width="stretch", key=f"{base}_afig")
-        st.divider()
+        problem_block(ck, seed, i, v, vkey, p)
 
     st.subheader("紙で解く(LaTeX でダウンロード)")
     st.caption("いま表示している問題(類題に切りかえた問題を含む)を、数学IB の試験と同じ構成の LaTeX 一式"
