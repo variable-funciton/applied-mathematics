@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -91,11 +91,14 @@ CURRICULUM = {
             ("電気電子への応用", fourier_apps.tab_elec),
             ("都市への応用", fourier_apps.tab_city),
             ("化学への応用", fourier_apps.tab_chem),
+            ("ウェーブレットの応用(4学科)", wavelet.tab_wavelet_apps),
         ],
         "発展": [
             ("1. ギブス現象", fourier_adv.tab_gibbs),
             ("2. ピンスキー現象", fourier_adv.tab_pinsky),
             ("3. 倉坪現象(高次元のフーリエ級数と格子点)", fourier_adv.tab_kuratsubo),
+            ("4. ハール・ウェーブレットと多重解像度", wavelet.tab_haar),
+            ("演習(ウェーブレット)", ex_wavelet.tab),
         ],
     },
     "④ 複素関数": {
