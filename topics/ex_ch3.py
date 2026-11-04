@@ -12,7 +12,7 @@ from fractions import Fraction
 import numpy as np
 
 from topics.ex_ch2 import V, ev, pd, ptex, rand_terms, simplify
-from topics.ex_core import (Choice, ExamItem, Part, Problem, ProblemType, Retry, lin_tex, render, tex_fr, tex_root,
+from topics.ex_core import (vec_styled, Choice, ExamItem, Part, Problem, ProblemType, Retry, lin_tex, render, tex_fr, tex_root,
                             vtex)
 
 F = Fraction
@@ -583,7 +583,7 @@ def g_green(rng, const=False):
         "グリーンの定理", "標準",
         st + rf"グリーンの定理を用いて, 線積分 $\displaystyle {PQ}$ を求めよ。",
         choices,
-        hints=[r"グリーンの定理:$\displaystyle\oint_C P\,dx+Q\,dy=\iint_D\left(\frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}\right)dxdy$"
+        hints=[r"グリーンの定理:$\displaystyle\int_C P\,dx+Q\,dy=\iint_D\left(\frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}\right)dxdy$"
                r"($C$ は $D$ の境界を反時計回りに一周する)。",
                r"$\dfrac{\partial Q}{\partial x}-\dfrac{\partial P}{\partial y}$ を計算してから、領域 $D$ で2重積分する。"
                r"扇形は極座標を使う。"],
@@ -636,10 +636,10 @@ def g_area_green(rng):
     return Problem(
         "グリーンの定理と面積", "標準",
         rf"曲線 $C:\ {curve}$ で囲まれた図形の面積 $S$ を, グリーンの定理から得られる公式 "
-        r"$S=\dfrac12\displaystyle\oint_C(x\,dy-y\,dx)$ を用いて求めよ。",
+        r"$S=\dfrac12\displaystyle\int_C(x\,dy-y\,dx)$ を用いて求めよ。",
         choices,
         hints=[r"グリーンの定理で $P=-y,\ Q=x$ とすると $\dfrac{\partial Q}{\partial x}-\dfrac{\partial P}{\partial y}=2$ なので "
-               r"$\oint_C(x\,dy-y\,dx)=2S$。",
+               r"$\int_C(x\,dy-y\,dx)=2S$。",
                r"$dx=\dfrac{dx}{dt}dt,\ dy=\dfrac{dy}{dt}dt$ として $t$ の積分にする。"],
         solution=sol, meta=dict(kind=kind, S=S), figure={"kind": "curve2d", "pts": curve_pts(fn, 0, 2 * math.pi)[:2]})
 
@@ -865,7 +865,7 @@ def stokes_parts(rng):
         fig = {"kind": "disk3d", "R": R, "orient": True}
     ctext = rf"その境界 $C:\ x^2+y^2={R * R},\ z=0$($z$ 軸の正の側から見て反時計回り)"
     sol = [rf"$\nabla\times\vec F={vtex(list(rot))}$",
-           rf"ストークスの定理より, 面積分は $C$ に沿った線積分 $\displaystyle\oint_C\vec F\cdot d\vec r$ に等しい. "
+           rf"ストークスの定理より, 面積分は $C$ に沿った線積分 $\displaystyle\int_C\vec F\cdot d\vec r$ に等しい. "
            rf"$C$ を縁とする円板 $D:\ x^2+y^2\le{R * R},\ z=0$($\vec n=(0,0,1)$)で計算してもよいので",
            rf"$$\iint_S(\nabla\times\vec F)\cdot\vec n\,dS=\iint_D{b1 - a1}\,dxdy={b1 - a1}\cdot\pi\cdot{R}^2={combo_tex(I)}$$"]
     return R, Fl, rot, I, stext, ctext, fig, Ftex, sol, (a1, b1)
@@ -885,7 +885,7 @@ def g_stokes(rng):
         rf"{stext} と, {ctext} を考える. ${Ftex}$ について, ストークスの定理を用いて "
         r"$\displaystyle\iint_S(\nabla\times\vec F)\cdot\vec n\,dS$ を求めよ。",
         choices,
-        hints=[r"ストークスの定理:$\displaystyle\iint_S(\nabla\times\vec F)\cdot\vec n\,dS=\oint_C\vec F\cdot d\vec r$。",
+        hints=[r"ストークスの定理:$\displaystyle\iint_S(\nabla\times\vec F)\cdot\vec n\,dS=\int_C\vec F\cdot d\vec r$。",
                r"縁 $C$ が同じなら、曲面を取りかえても値は同じ。$xy$ 平面上の円板で計算すると楽。"],
         solution=sol, meta=dict(R=R, F=Fl), figure=fig)
 
@@ -1348,3 +1348,8 @@ GUIDED_NAMES = {"gline": "勾配と勾配場の線積分", "green": "グリー�
 
 def tab():
     render("ch3", REGISTRY, "第3章 線積分・面積分")
+
+
+# 表記をそろえる:分数は \dfrac, 分数を含む ( ) は \left( \right)(ex_core.vec_styled)
+REGISTRY = vec_styled(REGISTRY)
+REGISTRY_ELLIPSE = vec_styled(REGISTRY_ELLIPSE)

@@ -36,7 +36,7 @@ def line_integral(Fx, Fy, path, n=4001):
 
 
 def circle_flux(Ex, Ey, cx, cy, R, n=4000):
-    """円(反時計回り)を外向きに通る流束 ∮ E·n ds"""
+    """円(反時計回り)を外向きに通る流束 ∫_C E·n ds"""
     th = np.linspace(0, 2 * np.pi, n + 1)[:-1]
     x, y = cx + R * np.cos(th), cy + R * np.sin(th)
     return float(np.sum(Ex(x, y) * np.cos(th) + Ey(x, y) * np.sin(th)) * R * 2 * np.pi / n)
@@ -115,15 +115,15 @@ MECH_EXAMPLES = [
       r"(3) $\varphi=x^2y$ とすると $\nabla\varphi=(2xy,\ x^2)=\vec F$。仕事は $\varphi(\mathrm A)-\varphi(\mathrm O)=2$ で、"
       r"道筋によらない(保存力)。"]),
     (r"$z$ 軸のまわりに角速度 $\omega=3\ \mathrm{rad/s}$ で回る円板の速度場 $\vec v=\vec\omega\times\vec r$($\vec\omega=(0,0,3)$)を求め、"
-     r"$\mathrm{rot}\,\vec v$ を計算せよ。また、半径 $2\ \mathrm m$ の円周に沿う循環 $\displaystyle\oint_C\vec v\cdot d\vec r$ を求め、"
+     r"$\mathrm{rot}\,\vec v$ を計算せよ。また、半径 $2\ \mathrm m$ の円周に沿う循環 $\displaystyle\int_C\vec v\cdot d\vec r$ を求め、"
      r"ストークスの定理で確かめよ。",
      [r"$\vec v=(0,0,3)\times(x,y,z)=(-3y,\ 3x,\ 0)$。",
       r"$\mathrm{rot}\,\vec v=\left(0,\ 0,\ \dfrac{\partial(3x)}{\partial x}-\dfrac{\partial(-3y)}{\partial y}\right)=(0,\ 0,\ 6)=2\vec\omega$。",
       r"円周 $\vec r=(2\cos t,\ 2\sin t,\ 0)$ では $\vec v\cdot\dfrac{d\vec r}{dt}=12\sin^2t+12\cos^2t=12$, "
-      r"$\displaystyle\oint_C\vec v\cdot d\vec r=\int_0^{2\pi}12\,dt=24\pi\ \mathrm{m^2/s}$。",
+      r"$\displaystyle\int_C\vec v\cdot d\vec r=\int_0^{2\pi}12\,dt=24\pi\ \mathrm{m^2/s}$。",
       r"ストークスの定理:$\displaystyle\iint_S(\mathrm{rot}\,\vec v)\cdot\vec n\,dS=6\times\pi\cdot2^2=24\pi$ で一致する。"]),
     (r"平面の水の流れ $\vec v=(x,\ -y)\ \mathrm{[m/s]}$ について、$\mathrm{div}\,\vec v$ を求めよ。"
-     r"また、正方形 $0\le x\le1,\ 0\le y\le1$ の周から外へ流れ出る流量 $\displaystyle\oint_C\vec v\cdot\vec n\,ds$ を求めよ。",
+     r"また、正方形 $0\le x\le1,\ 0\le y\le1$ の周から外へ流れ出る流量 $\displaystyle\int_C\vec v\cdot\vec n\,ds$ を求めよ。",
      [r"$\mathrm{div}\,\vec v=\dfrac{\partial x}{\partial x}+\dfrac{\partial(-y)}{\partial y}=1-1=0$(非圧縮性の流れ)。",
       r"右の辺 $x=1$:$\vec n=(1,0)$, $\vec v\cdot\vec n=1$ で $1$。左の辺 $x=0$:$\vec v\cdot(-1,0)=-x=0$ で $0$。",
       r"上の辺 $y=1$:$\vec v\cdot(0,1)=-1$ で $-1$。下の辺 $y=0$:$\vec v\cdot(0,-1)=y=0$ で $0$。",
@@ -154,7 +154,7 @@ def tab_elec():
         "- **電位と電場**:$\\vec E=-\\nabla\\varphi$。電場は電位の下がる向きで、等電位線に垂直。\n"
         "- **ガウスの法則**:閉曲面を貫く電場の流束は、内側の電荷だけで決まる:$\\displaystyle\\oiint_S\\vec E\\cdot\\vec n\\,dS=\\frac{Q}{\\varepsilon_0}$、"
         "微分形は $\\mathrm{div}\\,\\vec E=\\dfrac{\\rho}{\\varepsilon_0}$。\n"
-        "- **アンペールの法則**:電流のまわりの磁場の循環 $\\displaystyle\\oint_C\\vec B\\cdot d\\vec r=\\mu_0I$、微分形は $\\mathrm{rot}\\,\\vec B=\\mu_0\\vec j$。")
+        "- **アンペールの法則**:電流のまわりの磁場の循環 $\\displaystyle\\int_C\\vec B\\cdot d\\vec r=\\mu_0I$、微分形は $\\mathrm{rot}\\,\\vec B=\\mu_0\\vec j$。")
     st.subheader("動かして確かめる:閉曲線を貫く電場の流束(ガウスの法則)")
     st.caption("紙面に垂直な線電荷が2本ある平面の電場(単位は λ/(2πε₀) = 1)。円を動かすと、流束は円の内側の電荷だけで決まる。")
     c1, c2, c3, c4, c5 = st.columns(5)
@@ -195,7 +195,7 @@ def tab_elec():
         if flux is None:
             st.warning("円が電荷の上を通っている。少し動かそう。")
         else:
-            st.metric("流束 ∮E·n ds(数値)", f"{flux:.4f}")
+            st.metric("流束 ∫_C E·n ds(数値)", f"{flux:.4f}")
             st.metric("2π × (内側の電荷の和)", f"{2 * math.pi * inside:.4f}")
         st.caption("円の外の電荷は、入る分と出る分が打ち消し合うので流束に効かない。"
                    "これが $\\mathrm{div}\\,\\vec E=0$(電荷のない所)とガウスの発散定理の意味。")
@@ -215,10 +215,10 @@ ELEC_EXAMPLES = [
       r"$r=|\vec r|$ として $\dfrac{\partial}{\partial x}\dfrac{x}{r^3}=\dfrac{1}{r^3}-\dfrac{3x^2}{r^5}$。"
       r"$y,\ z$ も同様に足すと $\dfrac{3}{r^3}-\dfrac{3(x^2+y^2+z^2)}{r^5}=0$。"]),
     (r"$z$ 軸上を流れる直線電流 $I$ のまわりの磁場は $\vec B=\dfrac{\mu_0I}{2\pi}\dfrac{(-y,\ x,\ 0)}{x^2+y^2}$ である。"
-     r"$xy$ 平面上の原点中心・半径 $a$ の円 $C$(反時計回り)に沿う循環 $\displaystyle\oint_C\vec B\cdot d\vec r$ を求めよ。"
+     r"$xy$ 平面上の原点中心・半径 $a$ の円 $C$(反時計回り)に沿う循環 $\displaystyle\int_C\vec B\cdot d\vec r$ を求めよ。"
      r"また、$z$ 軸の外で $\mathrm{rot}\,\vec B=\vec 0$ であることを示せ。",
      [r"$\vec r=(a\cos t,\ a\sin t,\ 0)$ とすると $\vec B\cdot\dfrac{d\vec r}{dt}=\dfrac{\mu_0I}{2\pi a^2}(a^2\sin^2t+a^2\cos^2t)=\dfrac{\mu_0I}{2\pi}$。",
-      r"$$\oint_C\vec B\cdot d\vec r=\int_0^{2\pi}\frac{\mu_0I}{2\pi}dt=\mu_0I$$($a$ によらない:アンペールの法則)",
+      r"$$\int_C\vec B\cdot d\vec r=\int_0^{2\pi}\frac{\mu_0I}{2\pi}dt=\mu_0I$$($a$ によらない:アンペールの法則)",
       r"$\mathrm{rot}\,\vec B$ の $z$ 成分は $\dfrac{\mu_0I}{2\pi}\left\{\dfrac{\partial}{\partial x}\dfrac{x}{x^2+y^2}+\dfrac{\partial}{\partial y}\dfrac{y}{x^2+y^2}\right\}"
       r"=\dfrac{\mu_0I}{2\pi}\cdot\dfrac{(y^2-x^2)+(x^2-y^2)}{(x^2+y^2)^2}=0$。$x,\ y$ 成分は $0$。"
       r"電流の外では渦なし(第2章「天気予報の風」のランキン渦の外側と同じ形)。"]),
@@ -271,7 +271,7 @@ def tab_chem():
         st.plotly_chart(fig, width="stretch", key="ch_fig")
     with B:
         st.metric("円の内側の物質量", f"{inside:.4f}")
-        st.metric("外へ出る流束 ∮J·n ds(数値)", f"{flux:.4f}")
+        st.metric("外へ出る流束 ∫_C J·n ds(数値)", f"{flux:.4f}")
         st.metric("内側の量の減る速さ −dm/dt", f"{-dmdt:.4f}")
         st.caption("流束と「内側の量の減る速さ」が一致する:連続の式 ∂c/∂t = −div J を円の内側で積分した形(発散定理)。")
     examples("chem", CHEM_EXAMPLES)
@@ -381,9 +381,9 @@ CITY_EXAMPLES = [
       r"$|\nabla h|=0.4\sqrt2\approx0.566$ なので $\tan\theta=0.566$, $\theta\approx29.5^\circ$。"]),
     (r"厚さ $b$ の帯水層の中心にある井戸から、毎秒 $Q\ \mathrm{[m^3/s]}$ の地下水をくみ上げる。"
      r"井戸に向かう地下水の流速を $\vec v=-\dfrac{Q}{2\pi b}\dfrac{(x,\ y)}{x^2+y^2}$ とするとき、井戸を中心とする半径 $r$ の円を"
-     r"外向きに通る流量 $b\displaystyle\oint_C\vec v\cdot\vec n\,ds$ を求めよ。また、井戸の外で $\mathrm{div}\,\vec v=0$ を示せ。",
+     r"外向きに通る流量 $b\displaystyle\int_C\vec v\cdot\vec n\,ds$ を求めよ。また、井戸の外で $\mathrm{div}\,\vec v=0$ を示せ。",
      [r"円周上では $\vec n=\dfrac{(x,y)}{r}$ なので $\vec v\cdot\vec n=-\dfrac{Q}{2\pi br}$(一定)。",
-      r"$$b\oint_C\vec v\cdot\vec n\,ds=b\times\left(-\frac{Q}{2\pi br}\right)\times2\pi r=-Q$$"
+      r"$$b\int_C\vec v\cdot\vec n\,ds=b\times\left(-\frac{Q}{2\pi br}\right)\times2\pi r=-Q$$"
       r"どの半径でも $-Q$(内向きに $Q$):くみ上げた量だけ周囲から集まる。",
       r"$\dfrac{\partial}{\partial x}\dfrac{x}{x^2+y^2}+\dfrac{\partial}{\partial y}\dfrac{y}{x^2+y^2}=\dfrac{(y^2-x^2)+(x^2-y^2)}{(x^2+y^2)^2}=0$ "
       r"より $\mathrm{div}\,\vec v=0$。井戸の外では水は湧き出しも消えもしない。"]),

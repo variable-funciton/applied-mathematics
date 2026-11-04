@@ -7,7 +7,7 @@ from math import gcd
 
 import numpy as np
 
-from topics.ex_core import (Choice, Problem, ProblemType, Retry, lin_tex, poly_tex, render, sqrt_parts,
+from topics.ex_core import (vec_styled, Choice, Problem, ProblemType, Retry, lin_tex, poly_tex, render, sqrt_parts,
                             tex_fr, tex_frac_root, tex_root, vtex)
 
 
@@ -648,3 +648,7 @@ REGISTRY = [
 
 def tab():
     render("ch1", REGISTRY, "第1章 ベクトル関数")
+
+
+# 表記をそろえる:分数は \dfrac, 分数を含む ( ) は \left( \right)(ex_core.vec_styled)
+REGISTRY = vec_styled(REGISTRY)

@@ -303,9 +303,9 @@ def tab_div_rot():
         st.markdown("**円の中心での値(公式)**")
         st.write(f"div F = **{dv:.4f}**、 rot F = **{rt:.4f}**")
         st.markdown("**半径 ε の円で数値計算**")
-        st.latex(r"\frac{1}{\pi\varepsilon^2}\oint_C\boldsymbol F\cdot\boldsymbol n\,ds"
+        st.latex(r"\frac{1}{\pi\varepsilon^2}\int_C\boldsymbol F\cdot\boldsymbol n\,ds"
                  rf"={flux / area:.4f}")
-        st.latex(r"\frac{1}{\pi\varepsilon^2}\oint_C\boldsymbol F\cdot d\boldsymbol r"
+        st.latex(r"\frac{1}{\pi\varepsilon^2}\int_C\boldsymbol F\cdot d\boldsymbol r"
                  rf"={circ / area:.4f}")
         st.caption("ε を小さくすると、上の値が div F・rot F に近づく(定数の場なら最初から一致)。")
         if contains_origin:
@@ -340,8 +340,8 @@ def tab_div_rot():
 # ---------- グリーンの定理 ----------
 def tab_green():
     st.info("グリーンの定理:境界を一周する線積分 = 内部の rot(または div)の面積分。")
-    st.latex(r"\oint_C P\,dx+Q\,dy=\iint_D\left(\frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}"
-             r"\right)dxdy,\qquad \oint_C P\,dy-Q\,dx=\iint_D\left(\frac{\partial P}{\partial x}"
+    st.latex(r"\int_C P\,dx+Q\,dy=\iint_D\left(\frac{\partial Q}{\partial x}-\frac{\partial P}{\partial y}"
+             r"\right)dxdy,\qquad \int_C P\,dy-Q\,dx=\iint_D\left(\frac{\partial P}{\partial x}"
              r"+\frac{\partial Q}{\partial y}\right)dxdy")
     name, F = pick_field("gr")
     st.latex(F["tex"] + r",\quad \mathrm{rot}\,\boldsymbol F=" + F["rtex"]
@@ -417,10 +417,10 @@ def tab_green():
         show(fig)
     with cB:
         st.markdown("**循環(接線方向)**")
-        st.latex(rf"\oint_C P\,dx+Q\,dy={circ:.5f}")
+        st.latex(rf"\int_C P\,dx+Q\,dy={circ:.5f}")
         st.latex(rf"\iint_D \mathrm{{rot}}\,\boldsymbol F\,dxdy={rot_int:.5f}")
         st.markdown("**流出量(法線方向)**")
-        st.latex(rf"\oint_C P\,dy-Q\,dx={flux:.5f}")
+        st.latex(rf"\int_C P\,dy-Q\,dx={flux:.5f}")
         st.latex(rf"\iint_D \mathrm{{div}}\,\boldsymbol F\,dxdy={div_int:.5f}")
         ok = abs(circ - rot_int) < 1e-3 * max(1, abs(circ)) and \
             abs(flux - div_int) < 1e-3 * max(1, abs(flux))
@@ -434,17 +434,17 @@ def tab_green():
             st.warning("数値誤差がやや大きいようです。")
 
     with st.expander("練習問題"):
-        st.markdown("**問5** $C$:単位円(反時計回り)のとき、$\\displaystyle\\oint_C -y\\,dx+x\\,dy$ を"
+        st.markdown("**問5** $C$:単位円(反時計回り)のとき、$\\displaystyle\\int_C -y\\,dx+x\\,dy$ を"
                     "グリーンの定理で求めよ。")
         st.markdown("**問6** 点渦 $\\boldsymbol F=\\frac{(-y,x)}{x^2+y^2}$ について、"
                     "原点を囲む任意の単純閉曲線での循環が $2\\pi$ になる理由を説明せよ。")
         if st.toggle("解答・解説を表示", key="pr_vector_427"):
             st.markdown("**答5**")
             st.latex(r"\iint_D (1-(-1))\,dxdy=2\times(\text{円の面積})=2\pi")
-            st.write("一般に $\\frac12\\oint_C -y\\,dx+x\\,dy$ は D の面積になる(面積公式)。")
+            st.write("一般に $\\frac12\\int_C -y\\,dx+x\\,dy$ は D の面積になる(面積公式)。")
             st.markdown("**答6**")
             st.write("原点を囲む小さな円 $C_\\varepsilon$ をとり、$C$ と $C_\\varepsilon$ で挟まれた領域に"
-                     "グリーンの定理を使うと rot F = 0 より $\\oint_C=\\oint_{C_\\varepsilon}$。"
+                     "グリーンの定理を使うと rot F = 0 より $\\int_C=\\int_{C_\\varepsilon}$。"
                      "円周上では $\\boldsymbol F\\cdot d\\boldsymbol r=d\\theta$ なので $2\\pi$。")
 
 

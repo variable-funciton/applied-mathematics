@@ -6,7 +6,7 @@
 """
 from fractions import Fraction
 
-from topics.ex_core import Choice, ExamItem, Part, Problem, ProblemType, Retry, render, tex_fr, vtex
+from topics.ex_core import vec_styled, Choice, ExamItem, Part, Problem, ProblemType, Retry, render, tex_fr, vtex
 
 F = Fraction
 AXIS_NAME = {0: "x", 1: "y", 2: "z"}
@@ -257,3 +257,7 @@ GUIDED_NAMES = {"rg_ninety": "平行・垂直成分 → 90° 回転(ロドリゲ
 
 def tab():
     render("rodrigues", REGISTRY, "ベクトル解析 発展 ロドリゲスの回転公式")
+
+
+# 表記をそろえる:分数は \dfrac, 分数を含む ( ) は \left( \right)(ex_core.vec_styled)
+REGISTRY = vec_styled(REGISTRY)
