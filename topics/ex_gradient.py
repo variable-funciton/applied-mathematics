@@ -7,7 +7,7 @@
 """
 from fractions import Fraction
 
-from topics.ex_core import Choice, ExamItem, Part, Problem, ProblemType, Retry, lin_tex, render, tex_fr, vtex
+from topics.ex_core import vec_styled, Choice, ExamItem, Part, Problem, ProblemType, Retry, lin_tex, render, tex_fr, vtex
 
 F = Fraction
 UPDATE = r"$\vec x_{k+1}=\vec x_k-\eta\,\nabla f(\vec x_k)$"
@@ -273,3 +273,7 @@ GUIDED_NAMES = {"gd_step": "勾配 → 1ステップと f の減少(勾配降下
 
 def tab():
     render("gradient", REGISTRY, "ベクトル解析 発展 勾配降下法")
+
+
+# 表記をそろえる:分数は \dfrac, 分数を含む ( ) は \left( \right)(ex_core.vec_styled)
+REGISTRY = vec_styled(REGISTRY)

@@ -126,7 +126,7 @@ def tab_vector_line():
         st.markdown(
             "なので、保存場では次が成り立つ(単連結な領域では、これらはすべて同値)。\n"
             "1. 線積分(仕事)は**始点と終点だけで決まり、途中の経路によらない**\n"
-            "2. どんな閉曲線を一周しても $\\oint_C\\vec F\\cdot d\\vec r=0$(一周すると、した仕事が 0 に戻る)\n"
+            "2. どんな閉曲線を一周しても $\\int_C\\vec F\\cdot d\\vec r=0$(一周すると、した仕事が 0 に戻る)\n"
             "3. $\\mathrm{rot}\\,\\vec F=\\vec 0$(平面なら $\\dfrac{\\partial Q}{\\partial x}=\\dfrac{\\partial P}{\\partial y}$)\n\n"
             "「保存」の名前は、力学的エネルギー(運動エネルギー + 位置エネルギー)が保存されることから。"
             "重力や静電気力は保存力、摩擦力は保存力ではない(同じ点に戻っても、経路が長いほど多くの仕事が失われる)。"
@@ -449,7 +449,7 @@ def curl(F, x, y, z, h=1e-5):
 def tab_stokes():
     st.info("閉曲線 C に沿った循環 = C を縁とする曲面 S 上の rot の流束。"
             "**縁が同じなら、どんな曲面でも値は同じ**。rot は「その点での単位面積あたりの回転の強さと軸」を表す。")
-    st.latex(r"\oint_C\vec F\cdot d\vec r=\iint_S(\nabla\times\vec F)\cdot\vec n\,dS")
+    st.latex(r"\int_C\vec F\cdot d\vec r=\iint_S(\nabla\times\vec F)\cdot\vec n\,dS")
     name = st.selectbox("ベクトル場", list(SF), key="sk_f")
     F = SF[name]
     st.latex(STEX[name])
@@ -492,7 +492,7 @@ def tab_stokes():
     with cA:
         show(fig)
     with cB:
-        st.metric("循環 ∮_C F·dr", f"{line_int:.6f}")
+        st.metric("循環 ∫_C F·dr", f"{line_int:.6f}")
         st.metric("∬_S (rot F)·n dS", f"{surf_int:.6f}")
         st.caption("曲面を円板・半球・放物面と取りかえても、右辺は変わらない(縁 C が同じだから)。緑の円錐は rot F。")
 
@@ -531,7 +531,7 @@ def tab_stokes():
                     "ストークスの定理から説明せよ。")
         if st.toggle("解答・解説を表示", key="pr_vec_integrals_515"):
             st.markdown("**答9**")
-            st.latex(r"\oint_C\vec F\cdot d\vec r=\int_0^{2\pi}a^2\,dt=2\pi a^2,\qquad "
+            st.latex(r"\int_C\vec F\cdot d\vec r=\int_0^{2\pi}a^2\,dt=2\pi a^2,\qquad "
                      r"\iint_S(0,0,2)\cdot\vec n\,dS=2\cdot\pi a^2")
             st.markdown("**答10**")
             st.write("$\\nabla\\times\\nabla\\varphi=\\vec0$ なので右辺が 0。")

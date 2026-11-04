@@ -154,6 +154,114 @@ def vtex(v):
     return r"\left(" + r",\ ".join(tex_fr(c) for c in v) + r"\right)"
 
 
+
+# ------------------------------------------------------------
+# ベクトル解析の演習・試験の表記:分数は \dfrac, 分数を含む ( ) は \left( \right)
+# ------------------------------------------------------------
+_MATH = re.compile(r"(\$\$.+?\$\$|\\\[.+?\\\]|\$[^$]+\$)", re.S)
+
+
+def _dfrac(m):
+    r"""\frac → \dfrac(上付き・下付きの { } の中は \frac のまま)"""
+    out, i, stack = [], 0, []          # stack:開いている { が添字のものなら True
+    while i < len(m):
+        if m.startswith("\\frac", i) and (i == 0 or m[i - 1] not in "dt") and not any(stack):
+            out.append("\\dfrac")
+            i += 5
+            continue
+        ch = m[i]
+        if ch == "\\" and i + 1 < len(m):          # \{ \} などの1文字コマンドはそのまま
+            out.append(m[i:i + 2])
+            i += 2
+            continue
+        if ch == "{":
+            j = len(out) - 1
+            stack.append(j >= 0 and out[j] in ("^", "_"))
+        elif ch == "}" and stack:
+            stack.pop()
+        out.append(ch)
+        i += 1
+    return "".join(out)
+
+
+def _left_right(m):
+    r"""分数(\dfrac)を含む ( ) を \left( \right) に。すでに \left, \right のものや, 対応のとれない括弧はそのまま"""
+    opens, pairs = [], []
+    i = 0
+    while i < len(m):
+        if m.startswith("\\left(", i) or m.startswith("\\right)", i):
+            i += 6 if m.startswith("\\left(", i) else 7
+            continue
+        if m[i] == "\\" and i + 1 < len(m) and m[i + 1] in "()":
+            i += 2
+            continue
+        if m[i] == "(":
+            opens.append(i)
+        elif m[i] == ")":
+            if not opens:
+                return m
+            pairs.append((opens.pop(), i))
+        i += 1
+    if opens:
+        return m
+    targets = sorted((a, b) for a, b in pairs if "\\dfrac" in m[a:b])
+    if not targets:
+        return m
+    rep = {}
+    for a, b in targets:
+        rep[a], rep[b] = "\\left(", "\\right)"
+    return "".join(rep.get(k, ch) for k, ch in enumerate(m))
+
+
+def vec_math(m):
+    return _left_right(_dfrac(m))
+
+
+def vec_text(s):
+    """Markdown の文(数式は $..$ / $$..$$)の数式の部分だけを変換する"""
+    if not s:
+        return s
+    parts = _MATH.split(s)
+    for k in range(1, len(parts), 2):
+        parts[k] = vec_math(parts[k])
+    return "".join(parts)
+
+
+def vec_style_obj(o):
+    """Problem / ExamItem の表記をそろえる(その場で書きかえて返す)"""
+    if isinstance(o, Problem):
+        o.statement = vec_text(o.statement)
+        o.hints = [vec_text(h) for h in o.hints]
+        o.solution = [vec_text(x) for x in o.solution]
+        for c in o.choices:
+            c.tex = vec_math(c.tex)
+            c.why = vec_text(c.why)
+        o.exam_statement = vec_text(o.exam_statement)
+        o.exam_answer = vec_math(o.exam_answer) if o.exam_answer else o.exam_answer
+        o.exam_solution = [vec_text(x) for x in o.exam_solution] if o.exam_solution else o.exam_solution
+    elif isinstance(o, ExamItem):
+        o.intro = vec_text(o.intro)
+        for p in o.parts:
+            p.statement = vec_text(p.statement)
+            p.answer = vec_math(p.answer) if p.answer else p.answer
+            p.solution = [vec_text(x) for x in p.solution]
+    return o
+
+
+def vec_styled(registry):
+    """問題の型の一覧の gen / guided を, 表記をそろえる版にかえる"""
+    def wrap(fn):
+        if fn is None:
+            return None
+
+        def g(rng, *a, **k):
+            return vec_style_obj(fn(rng, *a, **k))
+        g.__name__ = getattr(fn, "__name__", "g")
+        g.__wrapped__ = fn
+        return g
+    return [ProblemType(t.key, t.name, t.level, wrap(t.gen), wrap(t.guided)) for t in registry]
+
+
 def is_square(n):
     return n >= 0 and isqrt(n) ** 2 == n
 

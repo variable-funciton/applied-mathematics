@@ -90,7 +90,7 @@ def rankine(X, Y, Vm, rm, alpha, sign):
 
 
 def circle_integrals(Vm, rm, alpha, sign, rho, n=720):
-    """半径 rho [km] の円(反時計回り)に沿う循環 ∮ v·dr と、外向きの流出量 ∮ v·n ds [m²/s] を数値積分で"""
+    """半径 rho [km] の円(反時計回り)に沿う循環 ∫_C v·dr と、外向きの流出量 ∫_C v·n ds [m²/s] を数値積分で"""
     t = np.linspace(0, 2 * np.pi, n + 1)
     X, Y = rho * np.cos(t), rho * np.sin(t)
     u, v, _, _ = rankine(X, Y, Vm, rm, alpha, sign)
@@ -158,8 +158,8 @@ def _section_model():
         st.markdown("**閉曲線 C で確かめる**(単位 m²/s)")
         st.markdown(
             f"| | 線積分(数値) | 2重積分 |\n|---|---|---|\n"
-            f"| 循環 $\\oint_C\\vec v\\cdot d\\vec r$ と $\\iint\\mathrm{{rot}}\\,dA$ | {circ:.4g} | {R_ex:.4g} |\n"
-            f"| 流出量 $\\oint_C\\vec v\\cdot\\vec n\\,ds$ と $\\iint\\mathrm{{div}}\\,dA$ | {flux:.4g} | {D_ex:.4g} |")
+            f"| 循環 $\\int_C\\vec v\\cdot d\\vec r$ と $\\iint\\mathrm{{rot}}\\,dA$ | {circ:.4g} | {R_ex:.4g} |\n"
+            f"| 流出量 $\\int_C\\vec v\\cdot\\vec n\\,ds$ と $\\iint\\mathrm{{div}}\\,dA$ | {flux:.4g} | {D_ex:.4g} |")
         st.caption("どちらも一致する(グリーンの定理。ストークスの定理・ガウスの発散定理の平面版)。"
                    "ρ を rₘ より大きくしても循環は変わらない:回転は内側だけにある。")
     with st.expander("読み取ってみよう"):

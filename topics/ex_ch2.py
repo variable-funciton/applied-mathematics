@@ -5,7 +5,7 @@
 from fractions import Fraction
 from math import gcd
 
-from topics.ex_core import (Choice, ExamItem, Part, Problem, ProblemType, Retry, lin_tex, render, sqrt_parts,
+from topics.ex_core import (vec_styled, Choice, ExamItem, Part, Problem, ProblemType, Retry, lin_tex, render, sqrt_parts,
                             tex_fr, tex_root, vtex)
 
 V = "xyz"
@@ -511,3 +511,7 @@ GUIDED_NAMES = {"dir": "勾配と方向微分係数", "curl": "発散と回転",
 
 def tab():
     render("ch2", REGISTRY, "第2章 スカラー場とベクトル場")
+
+
+# 表記をそろえる:分数は \dfrac, 分数を含む ( ) は \left( \right)(ex_core.vec_styled)
+REGISTRY = vec_styled(REGISTRY)
