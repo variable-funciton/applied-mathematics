@@ -13,7 +13,8 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from common import C1, C2, C3, C4, GRAY, layout, show
-from topics.fourier_kernels import page_refs
+from topics.fourier_kernels import REF, page_refs
+from topics.references import fmt
 from topics.vec_apps import examples
 
 PI = np.pi
@@ -160,9 +161,74 @@ def haar_fn(x, j=0, k=0):
     return np.where((u >= 0) & (u < 0.5), 1.0, np.where((u >= 0.5) & (u < 1), -1.0, 0.0))
 
 
+def tiling_figs():
+    """時間周波数平面の分け方(フーリエ・短時間フーリエ・ウェーブレット)の3つの図"""
+    figs = []
+    for title, boxes, col in (
+            ("フーリエ変換", [(0, 8, i, i + 1) for i in range(8)], C1),
+            ("短時間フーリエ変換(窓の幅が一定)", [(2 * k, 2 * k + 2, 2 * i, 2 * i + 2) for i in range(4) for k in range(4)], C3),
+            ("ウェーブレット変換", [(k * 8 / n, (k + 1) * 8 / n, y0, y0 + hgt)
+                                 for y0, hgt, n in [(0, 1, 2), (1, 1, 2), (2, 2, 4), (4, 4, 8)] for k in range(n)], C2)):
+        fig = go.Figure()
+        for x0, x1, y0, y1 in boxes:
+            fig.add_shape(type="rect", x0=x0, x1=x1, y0=y0, y1=y1, line=dict(color="black", width=1), fillcolor=col, opacity=0.55)
+        fig.update_xaxes(range=[0, 8], showticklabels=False)
+        fig.update_yaxes(range=[0, 8], showticklabels=False)
+        layout(fig, title=title, xlab="時間", ylab="周波数", height=280, legend=False)
+        figs.append(fig)
+    return figs
+
+
+def ref_list(items):
+    """折りたたみの中で使う参考文献の一覧(expander の入れ子を避ける)"""
+    st.markdown("**参考文献**")
+    st.markdown("\n".join(f"- {fmt(REF[k])}  \n  {w}" for k, w in items))
+
+
+def history():
+    with st.expander("ウェーブレット解析はどのように生まれたか(フーリエ解析の何が問題だったのか)", expanded=False):
+        st.markdown(
+            "**1. フーリエ解析の弱点**  \n"
+            "フーリエ係数 $c_n=\\frac{1}{2\\pi}\\int f(x)e^{-inx}dx$ は**区間全体**の積分で決まる。そのため\n"
+            "- 一か所だけの変化(衝撃・段差)が, すべての係数に少しずつ広がる。係数を見ても「いつ・どこで」起きたかがわからない。\n"
+            "- 不連続点があると係数の減り方が遅く($1/n$ 程度), 部分和にはギブス現象が残る。\n"
+            "- 音声・音楽・地震波のように**周波数が時間とともに変わる信号**(非定常な信号)を, 1つのスペクトルでは表しきれない。")
+        st.markdown(
+            "**2. 窓をかけたフーリエ変換(ガボール, 1946)**  \n"
+            "信号に短い窓をかけて, 少しずつずらしながらフーリエ変換する(短時間フーリエ変換)。"
+            "しかし窓の幅は一定なので, 時間の精度と周波数の精度は不確定性 $\\Delta t\\,\\Delta\\omega\\ge\\frac12$ の範囲で**固定**されてしまう"
+            "(「2+. 代表的な変換対と不確定性」の節)。短い高周波の変化と, 長く続く低周波の波を, 同じ窓で同時にうまくとらえることはできない。")
+        st.markdown(
+            "**3. 窓の幅を周波数に合わせて伸び縮みさせる(モルレー, 1980年前後)**  \n"
+            "石油探査で地震波の反射データを解析していた地球物理学者モルレーは, 1つの波形を**伸縮・平行移動**した関数(ondelette, 小さな波)で信号を分解する方法を経験的に考えた。"
+            "高い周波数には短い波, 低い周波数には長い波を使うので, 下の右の図のように時間周波数平面を分けられる。"
+            "物理学者グロスマンとともに, 連続ウェーブレット変換と, そこから信号を復元する公式を示した(1984)。")
+        for col_, fig_ in zip(st.columns(3), tiling_figs()):
+            with col_:
+                show(fig_)
+        st.caption("長方形1つが, 1つの係数が表す「時間の幅 × 周波数の幅」。フーリエ変換は周波数だけを細かく分け, 時間の情報をもたない。"
+                   "短時間フーリエ変換とウェーブレット変換では長方形の面積は同じ(不確定性で下限が決まる)だが, "
+                   "ウェーブレットでは高い周波数ほど時間の幅が短く(細かい時刻がわかる), 低い周波数ほど周波数の幅が狭い。")
+        st.markdown(
+            "**4. 数学の理論へ(1985年〜)**  \n"
+            "- メイエは, その復元公式が調和解析で知られていたカルデロンの公式と同じであることに気づき, **なめらかな正規直交ウェーブレット基底**を構成した。\n"
+            "- マラーとメイエは, 粗い近似と細かい補正に分ける**多重解像度解析**の枠組みをつくり, 高速なウェーブレット変換を可能にした(マラー, 1989)。\n"
+            "- ドブシーは, 有限の区間だけで値をもつ(台がコンパクトな)なめらかな直交ウェーブレットを構成した(1988)。\n"
+            "- 実は 1910 年のハールの関数系は, 最も簡単なウェーブレット基底(このページで扱うもの)だった。")
+        st.markdown(
+            "**5. 応用の広がり**  \n"
+            "データ圧縮(画像の JPEG 2000 など), 雑音除去, 医用画像, ハッブル宇宙望遠鏡の画像処理, "
+            "重力波の検出(LIGO, 2015年)の信号解析などに使われている。メイエはウェーブレット理論の功績により 2017 年のアーベル賞を受賞した。")
+        ref_list([("abel2017", "ウェーブレット理論の歴史と応用(アーベル賞の授賞理由)。"),
+                   ("gabor1946", "窓をかけたフーリエ変換。"), ("grossmann1984", "連続ウェーブレット変換。"),
+                   ("mallat1989", "多重解像度解析。"), ("daubechies1988", "台がコンパクトな直交ウェーブレット。"),
+                   ("haar1910", "ハール関数系。")])
+
+
 def tab_haar():
     st.info("フーリエ級数は, 全区間に広がる波 $\\cos nx,\\ \\sin nx$ の重ね合わせ。ウェーブレットは, **短い波を伸び縮み・平行移動したもの**の重ね合わせで, "
             "「どこで」「どのくらい細かい」変化が起きているかを同時に表せる。最も簡単なのがハール・ウェーブレット(1910)である。")
+    history()
     st.subheader("ハール関数")
     st.latex(r"\varphi(x)=\begin{cases}1&(0\le x<1)\\0&(\text{それ以外})\end{cases},\qquad "
              r"\psi(x)=\begin{cases}1&(0\le x<\frac12)\\-1&(\frac12\le x<1)\\0&(\text{それ以外})\end{cases},\qquad "
