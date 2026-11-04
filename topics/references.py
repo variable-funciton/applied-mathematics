@@ -78,6 +78,46 @@ REFS = {
         dict(key="pywt2019", kind="article", level="資料", authors="G. R. Lee, R. Gommers, F. Waselewski, K. Wohlfahrt, A. O'Leary",
              title="PyWavelets: A Python package for wavelet analysis", journal="J. Open Source Softw.", volume="4",
              pages="1237", year=2019, url="https://pywavelets.readthedocs.io/", note="Python のウェーブレット変換ライブラリ PyWavelets(pywt)の論文。リンクは解説書。"),
+        dict(key="gabor1946", kind="article", level="原論文", authors="D. Gabor", title="Theory of communication",
+             journal="J. Inst. Electr. Eng. Part III", volume="93", pages="429–457", year=1946,
+             note="窓をかけたフーリエ変換(ガボール変換・短時間フーリエ変換)と時間周波数の不確定性。"),
+        dict(key="grossmann1984", kind="article", level="原論文", authors="A. Grossmann, J. Morlet",
+             title="Decomposition of Hardy functions into square integrable wavelets of constant shape", journal="SIAM J. Math. Anal.",
+             volume="15", pages="723–736", year=1984, url="https://doi.org/10.1137/0515056", note="連続ウェーブレット変換と逆変換の公式。"),
+        dict(key="daubechies1988", kind="article", level="原論文", authors="I. Daubechies",
+             title="Orthonormal bases of compactly supported wavelets", journal="Comm. Pure Appl. Math.", volume="41",
+             pages="909–996", year=1988, url="https://doi.org/10.1002/cpa.3160410705", note="台がコンパクトでなめらかな直交ウェーブレット。"),
+        dict(key="mallat1989", kind="article", level="原論文", authors="S. G. Mallat",
+             title="A theory for multiresolution signal decomposition: the wavelet representation",
+             journal="IEEE Trans. Pattern Anal. Mach. Intell.", volume="11", pages="674–693", year=1989,
+             url="https://doi.org/10.1109/34.192463", note="多重解像度解析と高速ウェーブレット変換。"),
+        dict(key="abel2017", kind="web", level="資料", authors="The Norwegian Academy of Science and Letters",
+             title="The Abel Prize 2017: Yves Meyer (citation)", publisher="International Mathematical Union", year=2017,
+             url="https://www.mathunion.org/fileadmin/IMU/Prizes/Abel/2017/Abelprize_2017_Meyer_citation.pdf",
+             note="ウェーブレット理論の歴史(ハール, モルレー, カルデロン, メイエ, マラー, ドブシー)と応用。"),
+        dict(key="radon1917", kind="article", level="原論文", authors="J. Radon",
+             title="Über die Bestimmung von Funktionen durch ihre Integralwerte längs gewisser Mannigfaltigkeiten",
+             journal="Ber. Verh. Sächs. Akad. Wiss. Leipzig, Math.-Phys. Kl.", volume="69", pages="262–277", year=1917,
+             note="ラドン変換と逆変換の原論文(ドイツ語)。"),
+        dict(key="cormack1963", kind="article", level="原論文", authors="A. M. Cormack",
+             title="Representation of a function by its line integrals, with some radiological applications",
+             journal="J. Appl. Phys.", volume="34", pages="2722–2727", year=1963, note="X 線 CT の数学的な基礎(続編 II は 35 (1964), 2908–2913)。"),
+        dict(key="nobel1979", kind="web", level="資料", authors="Nobel Prize Outreach", title="The Nobel Prize in Physiology or Medicine 1979",
+             publisher="nobelprize.org", year=1979, url="https://www.nobelprize.org/prizes/medicine/1979/summary/",
+             note="コーマックとハウンスフィールド「コンピュータ断層撮影の開発」。"),
+        dict(key="natterer2001", kind="book", level="発展", authors="F. Natterer", title="The Mathematics of Computerized Tomography (Classics in Applied Mathematics)",
+             publisher="SIAM", year=2001, isbn="978-0-89871-493-7", note="CT の数学の標準的な教科書。ラドン変換の性質・逆変換・数値解法(英語)。"),
+        dict(key="helgason1999", kind="book", level="発展", authors="S. Helgason", title="The Radon Transform, 2nd ed. (Progress in Mathematics 5)",
+             publisher="Birkhäuser", year=1999, note="積分幾何としてのラドン変換(英語)。"),
+        dict(key="kakslaney2001", kind="book", level="応用", authors="A. C. Kak, M. Slaney", title="Principles of Computerized Tomographic Imaging (Classics in Applied Mathematics)",
+             publisher="SIAM", year=2001, url="https://engineering.purdue.edu/~malcolm/pct",
+             note="フィルタ補正逆投影法などの再構成アルゴリズム。個人利用なら Web で読める(英語, 原著 IEEE Press 1988)。"),
+        dict(key="epstein2007", kind="book", level="発展", authors="C. L. Epstein", title="Introduction to the Mathematics of Medical Imaging, 2nd ed.",
+             publisher="SIAM", year=2007, isbn="978-0-89871-642-9", note="医用画像の数学。フーリエ解析からラドン変換・CT・MRI まで(英語)。"),
+        dict(key="grangeat1991", kind="article", level="応用", authors="P. Grangeat",
+             title="Mathematical framework of cone beam 3D reconstruction via the first derivative of the Radon transform",
+             journal="Lecture Notes in Math.", volume="1497", pages="66–97", year=1991, url="https://doi.org/10.1007/BFb0084509",
+             note="円錐ビーム CT のデータを3次元ラドン変換の微分に結びつける。"),
         dict(key="bracewell2000", kind="book", level="応用", authors="R. N. Bracewell", title="The Fourier Transform and Its Applications, 3rd ed.",
              publisher="McGraw-Hill", year=2000, note="工学でのフーリエ変換の使い方(英語)。"),
         dict(key="wilbraham1848", kind="article", level="原論文", authors="H. Wilbraham", title="On a certain periodic function",
@@ -163,6 +203,8 @@ def fmt(r):
     if r["kind"] == "article":
         t = f"「{r['title']}」" if is_ja(r["title"]) else f"“{r['title']}”"
         s = f"{r['authors']}, {t}, *{r['journal']}* **{r['volume']}** ({r['year']}), {r['pages']}."
+    elif r["kind"] == "web":
+        s = f"{r['authors']}, *{r['title']}*, {r['publisher']}."
     elif is_ja(r["title"]):
         s = f"{r['authors']}『{r['title']}』{r['publisher']}, {r['year']}."
     else:
@@ -190,6 +232,9 @@ def bibtex(refs):
             f = dict(author=auth, title=r["title"], journal=r["journal"], volume=r["volume"],
                      pages=r["pages"].replace("–", "--"), year=r["year"])
             typ = "article"
+        elif r["kind"] == "web":
+            f = dict(author=auth, title=r["title"], howpublished=r["publisher"], year=r["year"])
+            typ = "misc"
         else:
             f = {("editor" if extra == "eds." else "author"): auth, "title": r["title"], "publisher": r["publisher"],
                  "year": r["year"]}
