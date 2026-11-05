@@ -13,8 +13,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from common import C1, C2, C3, C4, GRAY, layout, show
-from topics.fourier_kernels import REF, page_refs
-from topics.references import fmt
+from topics.fourier_kernels import page_refs, ref_line
 from topics.vec_apps import examples
 
 PI = np.pi
@@ -182,7 +181,7 @@ def tiling_figs():
 def ref_list(items):
     """折りたたみの中で使う参考文献の一覧(expander の入れ子を避ける)"""
     st.markdown("**参考文献**")
-    st.markdown("\n".join(f"- {fmt(REF[k])}  \n  {w}" for k, w in items))
+    st.markdown("\n".join(f"- {ref_line(k)}  \n  {w}" for k, w in items))
 
 
 def history():

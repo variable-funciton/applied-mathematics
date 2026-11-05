@@ -14,16 +14,26 @@ import streamlit as st
 from common import C1, C2, C3, C4, GRAY, layout, show
 from topics.fourier import wrap
 from topics.fourier3 import XG, cn_grid, per_conv
-from topics.references import REFS, fmt
+import importlib
 
 PI = np.pi
-REF = {r["key"]: r for rs in REFS.values() for r in rs}
+
+
+def ref_line(key):
+    """参考文献の1行。呼ぶたびに今の topics.references を見る
+    (Streamlit は変更されたファイルだけを読み直すので, 読み込み時に作った表は古いまま残ることがある)"""
+    R = importlib.import_module("topics.references")
+    for rs in R.REFS.values():
+        for r in rs:
+            if r["key"] == key:
+                return R.fmt(r)
+    return f"(文献 {key} が見つかりません)"
 
 
 def page_refs(items):
     """[(文献のキー, 該当箇所の説明), ...]"""
     with st.expander("参考文献"):
-        st.markdown("\n".join(f"- {fmt(REF[k])}  \n  {where}" for k, where in items))
+        st.markdown("\n".join(f"- {ref_line(k)}  \n  {where}" for k, where in items))
         st.caption("書誌情報は「📚 参考文献」のページにまとめてある(BibTeX もダウンロードできる)。")
 
 
