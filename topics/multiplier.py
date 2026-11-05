@@ -180,16 +180,46 @@ def tab_multiplier():
              r"\widehat{I_\alpha f}(\omega)=|\omega|^{-\alpha}\hat f(\omega),\qquad c_\alpha=\frac{1}{2\Gamma(\alpha)\cos\frac{\pi\alpha}{2}}")
     st.caption("$\\int|t|^{\\alpha-1}e^{-i\\omega t}dt=2\\Gamma(\\alpha)\\cos\\frac{\\pi\\alpha}{2}\\,|\\omega|^{-\\alpha}$ から定数 $c_\\alpha$ が決まる。"
                "$m=|\\omega|^{-\\alpha}$ は $\\omega=0$ で有界でないので, $I_\\alpha$ は $L^2$ から $L^2$ への有界作用素ではない。")
-    c = st.columns(2)
-    a = c[0].slider("α", 0.1, 0.9, 0.5, 0.05, key="mp_a")
+    st.markdown("**例:矩形パルス** $f=\\chi_{[-w/2,\\,w/2]}$。$I_\\alpha f(t)=c_\\alpha\\displaystyle\\int_{t-w/2}^{t+w/2}|u|^{\\alpha-1}\\,du$ を計算すると")
+    st.latex(r"I_\alpha f(t)=\frac{c_\alpha}{\alpha}\times\begin{cases}"
+             r"\left(\dfrac w2+t\right)^{\alpha}+\left(\dfrac w2-t\right)^{\alpha} & \left(|t|\le\dfrac w2\right)\\[2mm]"
+             r"\left(|t|+\dfrac w2\right)^{\alpha}-\left(|t|-\dfrac w2\right)^{\alpha} & \left(|t|\ge\dfrac w2\right)\end{cases}")
+    st.markdown("- 最大値は $t=0$ で $\\dfrac{2c_\\alpha}{\\alpha}\\left(\\dfrac w2\\right)^\\alpha$, 縁 $t=\\pm\\dfrac w2$ で $\\dfrac{c_\\alpha}{\\alpha}w^\\alpha$(連続)。"
+                "$I_\\alpha$ は平均ではなく「$\\alpha$ 回の積分」なので, 値は 1 を超えうるし, 幅 $w$ に対して $w^\\alpha$ 倍で大きくなる。\n"
+                "- 遠方では $I_\\alpha f(t)\\approx c_\\alpha w\\,|t|^{\\alpha-1}$ とゆっくり減衰する(核そのものの形)。\n"
+                "- **縁での特異性**:微分すると $f'=\\delta_{-w/2}-\\delta_{w/2}$ より")
+    st.latex(r"(I_\alpha f)'(t)=c_\alpha\left(\left|t+\frac w2\right|^{\alpha-1}-\left|t-\frac w2\right|^{\alpha-1}\right)")
+    st.markdown("となり, **核の特異性 $|u|^{\\alpha-1}$ がそのまま縁に現れる**:$I_\\alpha f$ は縁で連続だが接線は垂直で, "
+                "$I_\\alpha f(t)\\approx\\dfrac{c_\\alpha}{\\alpha}w^\\alpha-\\dfrac{c_\\alpha}{\\alpha}\\left|t-\\dfrac w2\\right|^\\alpha$ の尖り(α 次ヘルダー連続)をもつ。"
+                "$\\alpha\\to0$ では指数 $\\alpha-1\\to-1$ となって特異性は強くなり, 尖りは段差に近づく。")
+    st.markdown("- **定数 $c_\\alpha$ の役割**:$\\Gamma(\\alpha)\\approx\\dfrac1\\alpha$ より $c_\\alpha\\approx\\dfrac\\alpha2\\to0$。"
+                "定数なしの積分 $\\int|t-s|^{\\alpha-1}f(s)\\,ds$ は $\\alpha\\to0$ で $\\dfrac1\\alpha$ のように発散するが, "
+                "$c_\\alpha$ を掛けると打ち消され, $I_\\alpha f\\to f$($m=|\\omega|^{-\\alpha}\\to1$)となる。")
+    c = st.columns(3)
+    a = c[0].slider("α", 0.05, 0.95, 0.5, 0.05, key="mp_a")
     wid = c[1].slider("矩形パルスの幅 w", 0.25, 4.0, 1.0, 0.25, key="mp_w")
-    tr = np.linspace(-6, 6, 2401)
+    cmode = c[2].radio("縦軸", ["c_α あり(I_α f)", "c_α なし(核の積分のみ)"], key="mp_norm_c")
+    scale = (lambda aa: 1.0) if cmode.startswith("c_α あり") else (lambda aa: 1 / riesz_const(aa))
+    tr = np.linspace(-6, 6, 4801)
     fig = go.Figure(go.Scatter(x=tr, y=(np.abs(tr) < wid / 2).astype(float), mode="lines", line=dict(color=GRAY, width=2.5, shape="hv"), name="f"))
-    for aa, col in ((0.25, C3), (a, C2), (0.75, C4)):
-        fig.add_trace(go.Scatter(x=tr, y=riesz_pulse(tr, aa, wid), mode="lines", line=dict(color=col, width=2), name=f"I_α f(α = {aa:g})"))
+    comps = [aa for aa in (0.1, 0.9) if abs(aa - a) > 1e-9]
+    for aa, col in zip(comps, (C3, C4)):
+        fig.add_trace(go.Scatter(x=tr, y=scale(aa) * riesz_pulse(tr, aa, wid), mode="lines", line=dict(color=col, width=1.5, dash="dot"), name=f"α = {aa:g}"))
+    fig.add_trace(go.Scatter(x=tr, y=scale(a) * riesz_pulse(tr, a, wid), mode="lines", line=dict(color=C2, width=2.5), name=f"α = {a:g}(スライダー)"))
     layout(fig, title="矩形パルスのリースポテンシャル", xlab="t", height=320)
     show(fig)
-    st.caption("段差はなめらかになり(α 次のヘルダー連続), 遠くでは |t|^{α−1} のようにゆっくり減衰する。")
+    st.caption("c_α ありでは α → 0 で f に近づき, 縁の尖りは鋭くなる。c_α なしでは α → 0 で値が 1/α のように発散する(核 |t|^{α−1} の特異性が強まるため)。"
+               "逆に α → 1 では cos(πα/2) → 0 より c_α → ∞ となり, c_α ありの値は大きくなる(|ω|^{−1} は ω = 0 で可積分でない)。")
+
+    st.markdown("**縁 $t=w/2$ の拡大**:$\\dfrac{\\alpha}{c_\\alpha}\\bigl(I_\\alpha f(w/2)-I_\\alpha f(t)\\bigr)$ を $x=t-w/2$ に対して描く(主要部は $|x|^\\alpha$)。")
+    xr = np.linspace(-0.2, 0.2, 2001)
+    fig = go.Figure()
+    for aa, col in ((0.1, C3), (0.25, C1), (0.5, C2), (0.75, C4)):
+        y = aa / riesz_const(aa) * (riesz_pulse(np.array([wid / 2]), aa, wid)[0] - riesz_pulse(wid / 2 + xr, aa, wid))
+        fig.add_trace(go.Scatter(x=xr, y=y, mode="lines", line=dict(color=col, width=2), name=f"α = {aa:g}"))
+    layout(fig, title="縁の尖り:α が小さいほど鋭い(接線は垂直)", xlab="x = t − w/2", height=300)
+    show(fig)
+    st.caption("どの α でも x = 0 で接線が垂直(導関数 ∝ |x|^{α−1} → ∞)。α が小さいほど |x|^α は 0 の近くで急に立ち上がり, 段差(α = 0)に近づく。")
     st.markdown("**ハーディ・リトルウッド・ソボレフの不等式**(1次元):$0<\\alpha<1$, $1<p<\\dfrac1\\alpha$, $\\dfrac1q=\\dfrac1p-\\alpha$ のとき")
     st.latex(r"\|I_\alpha f\|_{L^q}\le C\|f\|_{L^p}")
     st.markdown("**$q$ がこの値でなければならない理由(スケーリング)**:幅 $w$ のパルス $f_w$ では $\\|f_w\\|_p=w^{1/p}$, "
