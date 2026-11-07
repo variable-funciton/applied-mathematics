@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -105,10 +105,12 @@ CURRICULUM = {
             ("3. 倉坪現象(高次元のフーリエ級数と格子点)", fourier_adv.tab_kuratsubo),
             ("4. ハール・ウェーブレットと多重解像度", wavelet.tab_haar),
             ("演習(ウェーブレット)", ex_wavelet.tab),
-            ("5. ラドン変換(R² と R³)", radon.tab_radon),
-            ("6. 関数空間 L² と Lᵖ", lp_spaces.tab_lp),
+            ("5. ウェーブレットによる画像の類似度判定", wavelet_image.tab_wavelet_image),
+            ("演習(画像の類似度判定)", ex_wavelet_image.tab),
+            ("6. ラドン変換(R² と R³)", radon.tab_radon),
+            ("7. 関数空間 L² と Lᵖ", lp_spaces.tab_lp),
             ("演習(L² と Lᵖ)", ex_lp.tab),
-            ("7. フーリエマルチプライヤー", multiplier.tab_multiplier),
+            ("8. フーリエマルチプライヤー", multiplier.tab_multiplier),
             ("演習(フーリエマルチプライヤー)", ex_multiplier.tab),
         ],
     },
