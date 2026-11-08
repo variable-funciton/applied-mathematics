@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -134,6 +134,10 @@ CURRICULUM = {
         ],
     },
     "⑤ 偏微分方程式": {
+        "偏微分方程式の解法": [
+            ("0. 変数分離法", pde_sep.tab_separation),
+            ("演習(変数分離法)", ex_pde_sep.tab),
+        ],
         "1次元波動方程式・1次元熱伝導方程式": [
             ("1. フーリエ級数と熱伝導方程式", pde.tab_heat),
             ("1. フーリエ級数と波動方程式", pde.tab_wave),
