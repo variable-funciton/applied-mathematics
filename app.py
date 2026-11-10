@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, laplace_ode, ex_lode, partial_fraction, ex_pfrac, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -55,9 +55,13 @@ CURRICULUM = {
             ("2. 相似性と移動法則", l2.tab_shift),
             ("3. 微分法則と積分法則", l2.tab_diff_int),
             ("4. 逆ラプラス変換", laplace.tab_inverse),
+            ("4+. 部分分数分解(ヘヴィサイドの方法)", partial_fraction.tab_partial_fraction),
+            ("演習(部分分数分解)", ex_pfrac.tab),
             ("演習(第1章)", ex_laplace.tab1),
         ],
         "第2章 ラプラス変換の応用": [
+            ("0. 線形微分方程式の解(準備)", laplace_ode.tab_linear_ode),
+            ("演習(線形微分方程式)", ex_lode.tab),
             ("1. 微分方程式への応用", laplace.tab_ode),
             ("1+. ばね・ダンパーの振動(アニメーション)", lap_sim.tab_spring),
             ("2. 合成積", l2.tab_convolution),
