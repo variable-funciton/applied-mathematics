@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from scipy.special import erfc
 
-from common import C1, C2, C3, C4, GRAY, layout, show
+from common import C1, C2, C3, C4, GRAY, animate, layout, show
 from topics.fourier_apps import refs
 from topics.vec_apps import examples
 
@@ -103,17 +103,29 @@ def tab_elec():
                 "- **反射**:線路の終端の負荷 $Z_L$ が $Z_0$ と違うと, 波が反射係数 $\\Gamma=\\dfrac{Z_L-Z_0}{Z_L+Z_0}$ で反射する(高速の信号でのノイズの原因, TDR による断線位置の測定)。\n"
                 "- **静電場**:電荷のない空間の電位はラプラス方程式 $\\Delta\\phi=0$ をみたす(コンデンサー, 絶縁設計)。半導体中のキャリアの広がりは拡散方程式で表される。")
     st.subheader("動かして確かめる:線路を進むパルスと終端での反射")
-    c = st.columns(2)
-    ld = c[0].radio("終端の負荷", list(LOADS), index=4, key="pa_load")
-    t = c[1].slider("時刻 t(線路の長さを進む時間を 1 とする)", 0.0, 2.4, 0.9, 0.05, key="pa_t")
+    st.markdown("**やってみよう**(グラフ下の **▶ 再生** を押すか, 時刻のスライダーをドラッグしてパルスを動かす):\n"
+                "1. 負荷を「**整合**」にして再生 → パルスは右端の負荷に**吸収され, 戻ってこない**。\n"
+                "2. 負荷を「**短絡**」にして再生 → 右端でパルスが**下向き(マイナス)にひっくり返って**戻ってくる。\n"
+                "3. 負荷を「**開放**」にして再生 → パルスは**上向き(プラス)のまま**戻ってくる。端では一瞬, 電圧が2倍になる。\n"
+                "4. 「$Z_L=3Z_0$」「$Z_L=Z_0/2$」では, 戻ってくるパルスの高さが反射係数 $\\Gamma$ 倍になっていることを確かめる。")
+    ld = st.radio("終端の負荷", list(LOADS), index=2, horizontal=True, key="pa_load")
     G = gamma(LOADS[ld])
-    x = np.linspace(0, 1, 801)
-    fig = go.Figure(go.Scatter(x=x, y=line_voltage(x, t, G), mode="lines", line=dict(color=C1, width=3), name="電圧 v(x, t)"))
-    fig.add_vline(x=1, line=dict(color=GRAY, width=4))
-    layout(fig, title=f"反射係数 Γ = {G:+.2f}", xlab="位置 x(右端が負荷)", ylab="v", height=300, yrange=(-1.2, 2.1))
+    x = np.linspace(0, 1, 401)
+    ts = np.round(np.arange(0, 2.41, 0.03), 2)
+
+    def inc(t):
+        return line_voltage(x, t, 0.0)
+
+    frames = [[line_voltage(x, t, G), inc(t), line_voltage(x, t, G) - inc(t)] for t in ts]
+    wall = go.Scatter(x=[1, 1], y=[-1.3, 2.2], mode="lines", line=dict(color=GRAY, width=6), name="終端(負荷)")
+    fig = animate(x, frames, ["電圧 v(x, t)(合計)", "入射波(右へ進む)", f"反射波(左へ戻る, Γ = {G:+.2f} 倍)"], [f"{t:.2f}" for t in ts],
+                  colors=["black", C1, C3], dashes=["solid", "dot", "dash"], static=[wall],
+                  title=f"{ld}:反射係数 Γ = {G:+.2f}", xlab="位置 x(右端の太線が負荷)", ylab="v", yrange=(-1.3, 2.2), height=420,
+                  duration=70, label_prefix="t = ")
     show(fig)
-    st.caption("開放端では同じ向き(Γ = +1), 短絡端では逆向き(Γ = −1)に反射し, 整合していると反射しない。"
-               "パルスが戻ってくるまでの時間から, ケーブルの断線や接触不良の位置が分かる(TDR)。")
+    st.caption("時刻はパルスが線路の長さを進む時間を 1 とした。入射波(青の点線)は右へ, 反射波(赤の破線)は左へ進み, "
+               "実際に測れる電圧は両者の和(黒の実線)である。開放端では同じ向き(Γ = +1), 短絡端では逆向き(Γ = −1)に反射し, "
+               "整合していると反射しない。パルスが戻ってくるまでの時間から, ケーブルの断線や接触不良の位置が分かる(TDR)。")
     examples("p_elec", [
         (r"同軸ケーブルの単位長さあたりのインダクタンスが $L=250\ \mathrm{nH/m}$, 静電容量が $C=100\ \mathrm{pF/m}$ のとき, "
          r"信号の伝わる速さと特性インピーダンスを求めよ。",
@@ -149,23 +161,31 @@ def tab_chem():
                 "- **フィックの第2法則**:物質の保存と合わせて $\\dfrac{\\partial c}{\\partial t}=D\\dfrac{\\partial^2c}{\\partial x^2}$。\n"
                 "- **拡散の距離**:解は $x/\\sqrt{Dt}$ の関数になり, 広がる距離は $\\sqrt{Dt}$ 程度。距離を2倍にするには4倍の時間がかかる。\n"
                 "- **反応と拡散**:反応で物質が消えると $c_t=Dc_{xx}-kc$ のように反応の項が加わる(触媒の粒子内の反応, 生体の模様の形成)。")
-    st.subheader("動かして確かめる:濃度の違う2つの液を接触させる")
+    st.subheader("動かして確かめる:気体・水溶液・ゲルの中の拡散を同時に比べる")
     st.latex(r"c(x,0)=\begin{cases}c_0&(x<0)\\0&(x>0)\end{cases}\ \Longrightarrow\ \frac{c(x,t)}{c_0}=\frac12\,\mathrm{erfc}\!\left(\frac{x}{2\sqrt{Dt}}\right)")
     st.caption("$\\mathrm{erfc}(z)=\\dfrac{2}{\\sqrt\\pi}\\displaystyle\\int_z^\\infty e^{-s^2}ds$(相補誤差関数)。")
-    c = st.columns(2)
-    dn = c[0].radio("拡散する場所", list(DIFF), index=1, key="pa_D")
-    D = DIFF[dn]
-    ts = [1.0, 10.0, 100.0, 1000.0]
-    xmax = 5 * np.sqrt(D * ts[-1])
-    x = np.linspace(-xmax, xmax, 601)
-    unit, sc = ("mm", 1e3) if xmax > 1e-4 else ("μm", 1e6)
-    fig = go.Figure()
-    for tt, col in zip(ts, (C4, C2, C3, C1)):
-        fig.add_trace(go.Scatter(x=sc * x, y=contact_profile(x, tt, D), mode="lines", line=dict(color=col, width=2.5), name=f"t = {tt:g} s(√(Dt) = {sc * np.sqrt(D * tt):.3g} {unit})"))
-    layout(fig, title=f"{dn}:時間 10 倍で広がりは √10 ≈ 3.2 倍", xlab=f"位置 x [{unit}]", ylab="c/c₀", height=320, yrange=(-0.02, 1.02))
+    st.markdown("濃度 $c_0$ の液と濃度 0 の液を $x=0$ で接触させる。**横軸は $-1$ mm 〜 $1$ mm に固定**して, 同じ小さな範囲を3つの物質の中で覗き込む。"
+                "グラフ下の **▶ 再生** を押す(またはスライダーを動かす)と, 時間が 0.01 秒から 1000 秒まで進む。")
+    x = np.linspace(-1e-3, 1e-3, 401)
+    ts = np.logspace(-2, 3, 51)
+    names = list(DIFF)
+    frames = [[contact_profile(x, t, DIFF[nm]) for nm in names] for t in ts]
+    labels = [f"{t:.3g} s" for t in ts]
+    fig = animate(1e3 * x, frames, ["気体中", "水溶液中", "高分子・ゲル中"], labels, colors=[C1, C2, C3],
+                  title="同じ時刻での広がり方の違い(D が 100 万倍違う)", xlab="位置 x [mm](範囲は固定)", ylab="c/c₀",
+                  yrange=(-0.02, 1.05), height=420, duration=120, label_prefix="t = ")
     show(fig)
-    c[1].metric("1 mm 拡散するのにかかる時間の目安 x²/D", f"{1e-6 / D:.3g} s")
-    st.caption("水中での拡散は遅く, 1 mm 広がるのに十数分かかる。かき混ぜる(対流)のは, 拡散だけでは遅すぎるからである。")
+    st.caption("気体ではあっという間に平らにならされるのに, ゲルの中は 1000 秒たっても段差(初めの形)がほとんど崩れない。")
+    st.markdown("**1 mm 広がるのにかかる時間の目安 $x^2/D$**:")
+    st.markdown(r"""
+| 場所 | 拡散係数 $D$ [m²/s] | $x^2/D$($x=1$ mm) | 日常の感覚 |
+|---|---|---|---|
+| 気体中 | $1\times10^{-5}$ | $0.1$ 秒 | まばたきする間に広がる(においがすぐ届く) |
+| 水溶液中 | $1\times10^{-9}$ | $1000$ 秒(約 17 分) | コーヒーにミルクを入れたら, かき混ぜないと待っていられない |
+| 高分子・ゲル中 | $1\times10^{-11}$ | $10^5$ 秒(約 28 時間) | 1 mm しみ込むのに丸1日以上かかる |
+""")
+    st.caption("液体や固体の中では物質が届くのが遅いので, 反応そのものより物質の拡散が全体の速さを決めることが多い(**拡散律速**)。"
+               "時間は距離の2乗に比例するので, 1 cm(10 倍)なら時間は 100 倍になる。")
     examples("p_chem", [
         (r"水中の拡散係数を $D=1\times10^{-9}\ \mathrm{m^2/s}$ とする。物質が $1\ \mathrm{mm}$ 広がるまでの時間の目安を, 拡散の距離 $\sqrt{Dt}$ から求めよ。"
          r"$1\ \mathrm{cm}$ ではどうか。",

@@ -171,27 +171,44 @@ HARMONIC = [(r"x^2-y^2", r"z^2", "実部"), (r"xy", r"\frac{1}{2}z^2", "虚部")
 
 
 def tab_laplace_intro():
-    st.info("時間がたって変化しなくなった状態(定常状態)や, 重力・電気の**ポテンシャル**, 渦のない水の流れは, "
-            "すべて**ラプラス方程式** $\\Delta u=0$ で表される。ラプラス方程式の解を**調和関数**という。")
+    st.info("熱の流れが落ち着いた金属板, 電気の通り道の電位, 渦を巻かずに流れる水。まったく違う3つの現象を数式で追いかけると, "
+            "どれも同じ1つの方程式にたどり着く。この節では, 現象から出発してその方程式に名前を与える。")
 
-    st.subheader("1. ラプラス方程式が現れるところ")
-    st.markdown("**(1) 定常状態の温度**:板(2次元)の熱方程式 $u_t=\\kappa(u_{xx}+u_{yy})$ で, 時間がたって温度が変わらなくなると $u_t=0$ より")
-    st.latex(r"\Delta u=\frac{\partial^2u}{\partial x^2}+\frac{\partial^2u}{\partial y^2}=0")
-    st.markdown("**(2) 重力・静電気のポテンシャル**:電場は電位 $\\phi$ の勾配で $\\boldsymbol E=-\\nabla\\phi$, "
-                "ガウスの法則は $\\nabla\\cdot\\boldsymbol E=\\dfrac{\\rho}{\\varepsilon_0}$($\\rho$ は電荷密度)。合わせると")
-    st.latex(r"\nabla\cdot(\nabla\phi)=\Delta\phi=-\frac{\rho}{\varepsilon_0}\ (\text{ポアソン方程式}),\qquad \text{電荷のないところでは}\ \Delta\phi=0")
-    st.markdown("**(3) 渦のない水の流れ**:水は縮まない($\\nabla\\cdot\\boldsymbol v=0$), 渦がない($\\boldsymbol v=\\nabla\\phi$ と書ける)とすると $\\Delta\\phi=0$(速度ポテンシャル)。\n\n"
-                "**(4) 複素関数**:正則関数 $f(z)=u+iv$ の実部・虚部は, コーシー・リーマンの方程式 $u_x=v_y$, $u_y=-v_x$ から "
-                "$u_{xx}+u_{yy}=v_{yx}-v_{xy}=0$ をみたす(④ 複素関数)。")
-    st.markdown("ここで使った勾配 $\\nabla$, 発散 $\\nabla\\cdot$ は ① ベクトル解析の内容で, $\\Delta=\\nabla\\cdot\\nabla$ である。")
+    st.subheader("1. 3つの現象を数式で追いかける")
+    st.markdown("**(1) 熱が釣り合った金属板**:板(2次元)の温度は熱方程式 $u_t=\\kappa(u_{xx}+u_{yy})$ に従う(導入1. の2次元版)。"
+                "十分に時間がたって温度が変わらなくなると $u_t=0$ なので")
+    st.latex(r"\frac{\partial^2u}{\partial x^2}+\frac{\partial^2u}{\partial y^2}=0")
+    st.markdown("**(2) 電荷のない空間の電位**:電場は電位 $\\phi$ の勾配で $\\boldsymbol E=-\\nabla\\phi$, "
+                "ガウスの法則は $\\nabla\\cdot\\boldsymbol E=\\dfrac{\\rho}{\\varepsilon_0}$($\\rho$ は電荷密度)。合わせると "
+                "$\\nabla\\cdot(\\nabla\\phi)=-\\dfrac{\\rho}{\\varepsilon_0}$(ポアソン方程式)。電荷のないところでは")
+    st.latex(r"\frac{\partial^2\phi}{\partial x^2}+\frac{\partial^2\phi}{\partial y^2}+\frac{\partial^2\phi}{\partial z^2}=0")
+    st.markdown("**(3) 渦を巻かない水の流れ**:水は縮まない($\\nabla\\cdot\\boldsymbol v=0$)。渦がなければ速度は $\\boldsymbol v=\\nabla\\phi$ と書ける(速度ポテンシャル)。合わせると")
+    st.latex(r"\nabla\cdot(\nabla\phi)=\frac{\partial^2\phi}{\partial x^2}+\frac{\partial^2\phi}{\partial y^2}+\frac{\partial^2\phi}{\partial z^2}=0")
+    st.markdown("熱・電気・水という**まったく違う現象なのに, 共通して同じ方程式**にたどり着いた。"
+                "($\\nabla$, $\\nabla\\cdot$ は ① ベクトル解析の勾配と発散で, $\\nabla\\cdot\\nabla$ を $\\Delta$ と書く。)")
+
+    st.subheader("2. 名前を与える:ラプラス方程式と調和関数")
+    st.latex(r"\Delta u=\frac{\partial^2u}{\partial x^2}+\frac{\partial^2u}{\partial y^2}\ \left(+\frac{\partial^2u}{\partial z^2}\right)=0\qquad(\text{ラプラス方程式})")
+    st.markdown("この方程式を**ラプラス方程式**といい, これをみたす関数を特別に**調和関数**と呼ぶ。")
+    st.markdown("**なぜ「調和」か(イメージ)**:3つの現象を振り返ると, $\\Delta u=0$ が成り立つのは")
+    st.markdown("- 熱の場合:板の内部に熱が**湧き出す**ところ(ヒーター)も**吸い込まれる**ところ(冷却)もない\n"
+                "- 電気の場合:内部に電荷がない(ポアソン方程式の右辺が 0)\n"
+                "- 水の場合:内部に水が湧き出す泉も, 吸い込む排水口もない")
+    st.markdown("という状態である。どの点も**湧き出しも吸い込みもなく, 周りと釣り合っている**。"
+                "空間全体のバランスが取れて「調和」している状態, と覚えるとよい。"
+                "この「周りと釣り合っている」というイメージは, 次の 3. で「**各点の値は周りの平均**」という具体的な形になる。")
+    st.caption("用語の由来:英語の harmonic は, 弦の振動の倍音(ハーモニクス)を表す三角関数の仲間である「球面調和関数(spherical harmonics)」"
+               "(トムソンとテイトが 1867 年に命名)とつながっており, 球面調和関数は調和関数を球面に制限したものであることが名前の由来と考えられている。")
+    st.markdown("**もう1つの出会い方(④ 複素関数)**:正則関数 $f(z)=u+iv$ の実部・虚部は, コーシー・リーマンの方程式 $u_x=v_y$, $u_y=-v_x$ から "
+                "$u_{xx}+u_{yy}=v_{yx}-v_{xy}=0$ をみたし, 調和関数になる。")
     st.markdown("**調和関数の例**(どれも $u_{xx}+u_{yy}=0$ を確かめてみよう):")
     st.markdown(" / ".join(f"${u}$(${z}$ の{w})" for u, z, w in HARMONIC))
 
-    st.subheader("2. 「周りの平均」としてのラプラス方程式")
-    st.markdown("格子の間隔 $h$ で $u_{xx}+u_{yy}$ を差分で近似すると")
+    st.subheader("3. 「周りの平均」としてのラプラス方程式")
+    st.markdown("2. の「周りと釣り合っている」を数式で確かめる。格子の間隔 $h$ で $u_{xx}+u_{yy}$ を差分で近似すると")
     st.latex(r"\frac{u(x+h,y)+u(x-h,y)+u(x,y+h)+u(x,y-h)-4u(x,y)}{h^2}=0"
              r"\ \Longleftrightarrow\ u(x,y)=\frac{u(x+h,y)+u(x-h,y)+u(x,y+h)+u(x,y-h)}{4}")
-    st.markdown("つまり**各点の値は上下左右の平均**。これをくり返し計算すると(ヤコビ法), 境界の温度を固定した板の定常状態が求まる。"
+    st.markdown("つまり**各点の値は上下左右の平均**(周りより高すぎも低すぎもしない = 釣り合っている)。これをくり返し計算すると(ヤコビ法), 境界の温度を固定した板の定常状態が求まる。"
                 "反復は「時間を進める」ことにあたり, 熱方程式の解が定常状態に近づく様子と同じである。")
     c = st.columns([1, 2])
     bd = c[0].radio("境界の温度(100℃ を 1 とする)", list(BOUNDS), key="pli_b")
@@ -211,7 +228,7 @@ def tab_laplace_intro():
                "**最大値の原理**:調和関数の最大値・最小値は境界でとる(内部に「熱い点」はできない)。")
     st.markdown("連続の場合も同じで, 調和関数は**平均値の性質**「円の中心の値 = 円周上の平均」をもつ(発展. ラプラス方程式 のページで確かめられる)。")
 
-    st.subheader("3. 歴史")
+    st.subheader("4. 歴史")
     st.markdown(r"""
 | 年 | できごと |
 |---|---|
@@ -240,4 +257,6 @@ def tab_laplace_intro():
            "https://www.maths.tcd.ie/pub/HistMath/People/Laplace/RouseBall/RB_Laplace.html", "回転楕円体の引力とポテンシャル(英語)"),
           ("Wikipedia:An Essay on the Application of Mathematical Analysis to the Theories of Electricity and Magnetism",
            "https://en.wikipedia.org/wiki/An_Essay_on_the_Application_of_Mathematical_Analysis_to_the_Theories_of_Electricity_and_Magnetism",
-           "グリーンの 1828 年の論文:ポテンシャル関数とグリーンの定理(英語)")])
+           "グリーンの 1828 年の論文:ポテンシャル関数とグリーンの定理(英語)"),
+          ("Wikipedia:Spherical harmonics", "https://en.wikipedia.org/wiki/Spherical_harmonics",
+           "球面調和関数の歴史(1867 年のトムソンとテイトによる命名)と, 調和多項式との関係(英語)")])
