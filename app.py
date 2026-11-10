@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, laplace_ode, ex_lode, partial_fraction, ex_pfrac, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, laplace_ode, ex_lode, partial_fraction, ex_pfrac, pde_intro, pde_apps, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -138,6 +138,10 @@ CURRICULUM = {
         ],
     },
     "⑤ 偏微分方程式": {
+        "偏微分方程式の導入": [
+            ("導入1. 波動方程式・熱方程式の導出と歴史", pde_intro.tab_wave_heat_intro),
+            ("導入2. ラプラス方程式の導入と歴史", pde_intro.tab_laplace_intro),
+        ],
         "偏微分方程式の解法": [
             ("0. 変数分離法", pde_sep.tab_separation),
             ("演習(変数分離法)", ex_pde_sep.tab),
@@ -149,6 +153,12 @@ CURRICULUM = {
             ("1+. 時間発展シミュレーション(熱・波動)", pde_sim.tab_sim),
             ("2. フーリエ変換と偏微分方程式", p2.tab_fourier_pde),
             ("発展. ラプラス方程式", pde.tab_laplace),
+        ],
+        "偏微分方程式の応用": [
+            ("機械への応用", pde_apps.tab_mech),
+            ("電気電子への応用", pde_apps.tab_elec),
+            ("化学への応用", pde_apps.tab_chem),
+            ("都市への応用", pde_apps.tab_city),
         ],
     },
     "⑥ その他": {
