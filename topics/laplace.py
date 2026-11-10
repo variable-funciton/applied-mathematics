@@ -189,6 +189,7 @@ def tab_inverse():
     st.latex(r"F(s)=\frac{N(s)}{D(s)}=\sum_k\frac{c_k}{s-p_k},\quad c_k=\frac{N(p_k)}{D'(p_k)}"
              r"\quad\Longrightarrow\quad f(t)=\sum_k c_k\,e^{p_k t}")
     st.caption("$c_k$ は $F(s)$ の $s=p_k$ における**留数**です(④複素関数とつながる)。")
+    st.caption("隠蔽法・重解・$s^2+\\omega^2$ を含む場合の求め方は, 次の「4+. 部分分数分解(ヘヴィサイドの方法)」で詳しく扱う。")
 
     examples = {
         "(s+3)/(s²+3s+2)": ("1, 3", "1, 3, 2"),
