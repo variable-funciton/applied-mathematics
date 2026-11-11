@@ -75,6 +75,7 @@ def tab_mech():
     ])
     refs([("Wikipedia:Fin (extended surface)", "https://en.wikipedia.org/wiki/Fin_(extended_surface)",
            "フィンの方程式, 先端の条件ごとの温度分布(cosh)と放熱量, フィン効率(英語)")])
+    adv_mech()
 
 
 # ============================================================
@@ -141,6 +142,7 @@ def tab_elec():
            "電信方程式, 特性インピーダンス, 進行波, 反射係数・透過係数"),
           ("長崎大学学術研究成果リポジトリ:第17章 分布定数回路", "https://nagasaki-u.repo.nii.ac.jp/record/5525/files/Chapter%2017.pdf",
            "電信方程式, 伝搬定数, 進行波・定在波, 反射とインピーダンス整合(電気回路の教科書の1章)")])
+    adv_elec()
 
 
 # ============================================================
@@ -202,6 +204,7 @@ def tab_chem():
           ("LibreTexts Engineering:Fick's Second Law of Diffusion",
            "https://eng.libretexts.org/Bookshelves/Materials_Science/TLP_Library_I/20%3A_Diffusion/20.02%3A_Fick's_Second_Law_of_Diffusion",
            "拡散方程式と半無限の棒への拡散(英語)")])
+    adv_chem()
 
 
 # ============================================================
@@ -270,3 +273,142 @@ def tab_city():
            "圧密の基礎方程式, 時間係数, 圧密度と級数解"),
           ("NPTEL:Solution of Terzaghi's Theory", "https://archive.nptel.ac.in/content/storage2/courses/105103097/web/chap8final/s6.htm",
            "テルツァギの圧密理論の解と, 時間係数と圧密度の近似式(英語)")])
+    adv_city()
+
+
+
+# ============================================================
+# 発展(流体・量子・半導体)の応用
+# ============================================================
+def adv_mech():
+    st.divider()
+    st.subheader("発展の応用:配管の圧力損失と潤滑(ナヴィエ・ストークス方程式)")
+    st.markdown("- **配管の圧力損失**:層流の円管では, 長さ $\\ell$ の区間の圧力差は $\\Delta p=\\dfrac{8\\mu\\ell Q}{\\pi R^4}$(ハーゲン・ポアズイユの法則)。"
+                "半径を半分にすると, 同じ流量を流すのに 16 倍の圧力(ポンプの力)が要る。\n"
+                "- **すべり軸受の潤滑**:回転する軸と軸受の狭いすき間の油の流れはクエット流れとポアズイユ流れの重ね合わせで, 油膜の圧力が軸を浮かせる(レイノルズの潤滑理論)。\n"
+                "- **カルマン渦**:流れの中の円柱の後ろには渦が交互に放出され, その周期的な力が配管や熱交換器の管を振動させることがある(都市への応用の発展を参照)。")
+    c = st.columns(4)
+    d = c[0].select_slider("管の内径 [mm]", [2, 5, 10, 20, 50], 10, key="pa2_d")
+    Q = c[1].select_slider("流量 [L/min]", [0.1, 0.5, 1.0, 2.0, 5.0], 1.0, key="pa2_Q")
+    ell = c[2].select_slider("管の長さ [m]", [1, 5, 10, 50], 10, key="pa2_l")
+    oil = c[3].radio("流体", ["水(μ = 1.0×10⁻³ Pa·s)", "油(μ = 0.1 Pa·s)"], key="pa2_f")
+    mu, rho = (1e-3, 1000.0) if oil.startswith("水") else (0.1, 900.0)
+    R = d / 2000
+    Qs = Q / 1000 / 60
+    dp = 8 * mu * ell * Qs / (PI * R ** 4)
+    V = Qs / (PI * R * R)
+    Re = rho * V * (2 * R) / mu
+    m = st.columns(3)
+    m[0].metric("平均流速", f"{V:.3g} m/s")
+    m[1].metric("レイノルズ数", f"{Re:,.0f}", delta="層流" if Re < 2300 else "乱流:この式は使えない", delta_color="off")
+    m[2].metric("圧力損失 Δp(層流の式)", f"{dp / 1000:.3g} kPa")
+    st.caption("乱流になると圧力損失は層流の式より大きくなり, 実験式(ダルシー・ワイスバッハの式と管摩擦係数)を使う。")
+    examples("p_mech2", [
+        (r"内径 $10\ \mathrm{mm}$ の管で油($\mu=0.1\ \mathrm{Pa\cdot s}$)を流す。同じ流量で内径を $5\ \mathrm{mm}$ にすると, 圧力損失は何倍になるか(層流とする)。",
+         [r"$\Delta p\propto\dfrac{1}{R^4}$ なので $2^4=16$ 倍。"]),
+        (r"円管のポアズイユ流れ $u(r)=\dfrac{P}{4\mu}(R^2-r^2)$ から流量 $Q=\displaystyle\int_0^Ru\,2\pi r\,dr$ を計算し, ハーゲン・ポアズイユの法則を導け。",
+         [r"$Q=\dfrac{\pi P}{2\mu}\displaystyle\int_0^R(R^2r-r^3)\,dr=\dfrac{\pi P}{2\mu}\cdot\dfrac{R^4}{4}=\dfrac{\pi PR^4}{8\mu}$。",
+          r"$P=\dfrac{\Delta p}{\ell}$ とおくと $\Delta p=\dfrac{8\mu\ell Q}{\pi R^4}$。"]),
+    ])
+    refs([("Wikipedia:Hagen–Poiseuille equation", "https://en.wikipedia.org/wiki/Hagen%E2%80%93Poiseuille_equation", "管の中の層流, 圧力損失の式と歴史(英語)")])
+
+
+def adv_elec():
+    st.divider()
+    st.subheader("発展の応用:pn 接合ダイオード・太陽電池とトンネル効果")
+    st.markdown("- **ダイオード・太陽電池**:ドリフト拡散方程式とポアソン方程式で pn 接合を解くと, ダイオードの電流は $I=I_s(e^{qV/kT}-1)$ になる(ショックレーの式)。"
+                "太陽電池では光で生まれた電子・正孔が接合の電場で分けられ, $I=I_s(e^{qV/kT}-1)-I_L$ となる($I_L$:光電流)。\n"
+                "- **トンネル効果**:シュレディンガー方程式によると, 電子は薄い絶縁膜を通り抜けることがある。"
+                "フラッシュメモリは, 数 nm の酸化膜を通るトンネル電流で電荷を出し入れして記録する。")
+    c = st.columns(2)
+    IL = c[0].slider("光電流 I_L [mA](光の強さ)", 0.0, 40.0, 30.0, 5.0, key="pa2_IL")
+    Is = 1e-12
+    V = np.linspace(0, 0.75, 400)
+    VT = 0.02585
+    I = Is * (np.exp(V / VT) - 1) - IL / 1000
+    P = -V * I
+    Voc = VT * np.log(IL / 1000 / Is + 1) if IL > 0 else 0.0
+    k = int(np.argmax(P))
+    c[1].metric("開放電圧 V_oc", f"{Voc:.3f} V")
+    c[1].metric("最大出力", f"{1000 * P[k]:.2f} mW(V = {V[k]:.3f} V)")
+    fig = go.Figure(go.Scatter(x=V, y=-1000 * I, mode="lines", line=dict(color=C1, width=2.5), name="取り出せる電流 −I [mA]"))
+    fig.add_trace(go.Scatter(x=V, y=1000 * P, mode="lines", line=dict(color=C3, width=2, dash="dash"), name="出力 P = V·(−I) [mW]"))
+    layout(fig, title="太陽電池の電流電圧特性(I_s = 10⁻¹² A, 300 K)", xlab="電圧 V [V]", height=300, yrange=(0, max(45.0, 1.1 * IL)))
+    show(fig)
+    st.caption("光が強いほど電流が増えるが, 開放電圧は $\\frac{kT}{q}\\ln\\frac{I_L}{I_s}$ と対数でしか増えない。")
+    examples("p_elec2", [
+        (r"$I_s=10^{-12}\ \mathrm A$, $I_L=30\ \mathrm{mA}$ の太陽電池の開放電圧 $V_{oc}$ を求めよ($kT/q=0.026\ \mathrm V$, $\ln(3\times10^{10})\approx24.1$)。",
+         [r"$I=0$ より $e^{qV_{oc}/kT}=\dfrac{I_L}{I_s}+1\approx3\times10^{10}$。", r"$V_{oc}\approx0.026\times24.1\approx0.63\ \mathrm V$。"]),
+        (r"トンネル電流が $T\approx e^{-2\kappa a}$ に比例するとし, $\kappa=10\ \mathrm{nm^{-1}}$ のとき, 絶縁膜の厚さ $a$ を $0.1\ \mathrm{nm}$ 増やすと電流は何倍になるか($e^{-2}\approx0.135$)。",
+         [r"$e^{-2\kappa\times0.1}=e^{-2}\approx0.135$ 倍(約 $\frac17$)。わずか 0.1 nm で大きく変わるので, 膜の厚さの精密な制御が必要になる。"]),
+    ])
+    refs([("PVEducation:Ideality Factor and I0", "https://www.pveducation.org/es/fotovoltaica/idealty-factor-and-i0", "理想ダイオードの式と太陽電池(英語)"),
+          ("LibreTexts Engineering:The Diode Equation",
+           "https://eng.libretexts.org/Workbench/Materials_Science_for_Electrical_Engineering/03%3A_Electrical_Properties/3.03%3A_Conductors_Semiconductors_and_Diodes/3.3.07%3A_The_Diode_Equation",
+           "ダイオードの式の説明(英語)")])
+
+
+def adv_chem():
+    st.divider()
+    st.subheader("発展の応用:水素原子のスペクトル(シュレディンガー方程式)と反応器の中の流れ")
+    st.markdown("- **量子化学**:水素原子のシュレディンガー方程式を解くと, エネルギーは $E_n=-\\dfrac{13.6}{n^2}\\ \\mathrm{eV}$ と飛び飛びになる。"
+                "電子が高い準位から低い準位へ移るときに出す光の波長 $\\lambda=\\dfrac{hc}{E_{n_2}-E_{n_1}}$ が, 物質を見分ける分光分析の手がかりになる。"
+                "分子の結合や反応の起こりやすさも, シュレディンガー方程式を(コンピューターで)解いて調べる。\n"
+                "- **反応器の中の対流と拡散**:流れ(ナヴィエ・ストークス方程式)に運ばれながら拡散・反応する物質は $c_t+uc_x=Dc_{xx}-kc$ に従う。"
+                "流れと拡散の比(ペクレ数 $Pe=uL/D$)で, 混ざり方が大きく変わる。")
+    n1 = st.radio("移った先の準位 n₁", [1, 2, 3], index=1, horizontal=True, key="pa2_n1", format_func=lambda v: {1: "1(ライマン系列)", 2: "2(バルマー系列)", 3: "3(パッシェン系列)"}[v])
+    hc = 1239.84   # eV·nm
+    rows = []
+    for n2 in range(n1 + 1, n1 + 6):
+        dE = 13.6 * (1 / n1 ** 2 - 1 / n2 ** 2)
+        rows.append((n2, dE, hc / dE))
+    fig = go.Figure()
+    for n2, dE, lam in rows:
+        col = C3 if 380 <= lam <= 780 else GRAY
+        fig.add_trace(go.Scatter(x=[lam, lam], y=[0, 1], mode="lines", line=dict(color=col, width=4), name=f"n = {n2} → {n1}:{lam:.0f} nm"))
+    fig.add_vrect(x0=380, x1=780, fillcolor="rgba(255,200,0,0.12)", line_width=0)
+    layout(fig, title="水素原子が出す光の波長(黄色の帯が目に見える光)", xlab="波長 λ [nm]", height=280, yrange=(0, 1.1))
+    fig.update_yaxes(showticklabels=False)
+    show(fig)
+    st.caption("バルマー系列(n₁ = 2)の最初の線 n = 3 → 2 は約 656 nm の赤い光。")
+    examples("p_chem2", [
+        (r"水素原子で電子が $n=3$ から $n=2$ の準位へ移るとき, 出す光のエネルギーと波長を求めよ($E_n=-\frac{13.6}{n^2}\ \mathrm{eV}$, $hc=1240\ \mathrm{eV\cdot nm}$)。",
+         [r"$\Delta E=13.6\left(\frac14-\frac19\right)=13.6\times\frac{5}{36}\approx1.89\ \mathrm{eV}$。", r"$\lambda=\dfrac{1240}{1.89}\approx656\ \mathrm{nm}$(赤い光)。"]),
+        (r"管の中を流速 $u=1\ \mathrm{cm/s}$ で流れる水溶液($D=1\times10^{-9}\ \mathrm{m^2/s}$)について, 長さ $L=1\ \mathrm{m}$ でのペクレ数を求め, 流れと拡散のどちらが支配的か答えよ。",
+         [r"$Pe=\dfrac{uL}{D}=\dfrac{0.01\times1}{10^{-9}}=10^7$。", r"$Pe\gg1$ なので流れ(対流)が支配的で, 拡散だけでは管の向きにはほとんど混ざらない。"]),
+    ])
+    refs([("LibreTexts Chemistry:Hydrogen's Atomic Emission Spectrum",
+           "https://chem.libretexts.org/Bookshelves/Physical_and_Theoretical_Chemistry_Textbook_Maps/Supplemental_Modules_(Physical_and_Theoretical_Chemistry)/Electronic_Structure_of_Atoms_and_Molecules/Hydrogen%27s_Atomic_Emission_Spectrum",
+           "水素原子の発光スペクトルと系列(英語)")])
+
+
+def adv_city():
+    st.divider()
+    st.subheader("発展の応用:建物・橋にかかる風とカルマン渦, 川や地下水の流れ")
+    st.markdown("- **カルマン渦**:風の中の煙突・橋のケーブル・高い建物の後ろには, 渦が左右交互に放出される(ナヴィエ・ストークス方程式の解の代表例)。"
+                "放出の振動数は $f=St\\dfrac{U}{D}$($St\\approx0.2$:ストローハル数, $U$:風速, $D$:幅)で, 構造物の固有振動数と一致すると大きく揺れる(渦励振)。\n"
+                "- **川・水路の流れ**:浅い水の流れ(オイラー方程式の近似)で, 洪水の伝わり方や堰の水位を計算する。\n"
+                "- **地下水**:砂や土の中のゆっくりした流れでは, ナヴィエ・ストークス方程式を平均すると「流速 ∝ 水頭の勾配」(ダルシーの法則)になり, "
+                "定常の浸透流は導入2. のラプラス方程式に帰着する。")
+    c = st.columns(3)
+    U = c[0].slider("風速 U [m/s]", 1.0, 40.0, 10.0, 1.0, key="pa2_U")
+    D = c[1].select_slider("幅(直径)D [m]", [0.05, 0.1, 0.5, 1.0, 3.0, 5.0], 1.0, key="pa2_D")
+    fn = c[2].select_slider("構造物の固有振動数 [Hz]", [0.5, 1.0, 2.0, 5.0, 10.0], 2.0, key="pa2_fn")
+    f = 0.2 * U / D
+    Ucr = fn * D / 0.2
+    m = st.columns(2)
+    m[0].metric("渦の放出の振動数 f = 0.2 U/D", f"{f:.3g} Hz")
+    m[1].metric("共振する風速 U = f_n D / 0.2", f"{Ucr:.3g} m/s")
+    Us = np.linspace(0.5, 40, 300)
+    fig = go.Figure(go.Scatter(x=Us, y=0.2 * Us / D, mode="lines", line=dict(color=C1, width=2.5), name="渦の放出の振動数"))
+    fig.add_hline(y=fn, line=dict(color=C3, dash="dash"))
+    fig.add_trace(go.Scatter(x=[Ucr], y=[fn], mode="markers", marker=dict(color=C3, size=11), name="共振(渦励振)"))
+    layout(fig, title="風速とカルマン渦の振動数(破線が固有振動数)", xlab="風速 U [m/s]", ylab="振動数 [Hz]", height=300, xrange=(0, 40))
+    show(fig)
+    examples("p_city2", [
+        (r"直径 $1\ \mathrm m$ の煙突に風速 $10\ \mathrm{m/s}$ の風が当たる。カルマン渦の放出の振動数を求めよ($St=0.2$)。煙突の固有振動数が $1\ \mathrm{Hz}$ なら, 共振する風速はいくらか。",
+         [r"$f=0.2\times\dfrac{10}{1}=2\ \mathrm{Hz}$。", r"$0.2\times\dfrac{U}{1}=1$ より $U=5\ \mathrm{m/s}$ で共振する。"]),
+        (r"ダルシーの法則 $v=-K\dfrac{dh}{dx}$($K$:透水係数)と水の保存 $\dfrac{dv}{dx}=0$ から, 1次元の定常な地下水の水頭 $h(x)$ が1次関数になることを示せ。",
+         [r"$\dfrac{d}{dx}\left(-K\dfrac{dh}{dx}\right)=0$ より $h^{\prime\prime}=0$(1次元のラプラス方程式)。", r"2回積分して $h=px+q$。"]),
+    ])
+    refs([("MONOist:構造物破壊の一要因にもなるカルマン渦の解析", "https://monoist.itmedia.co.jp/mn/articles/1601/12/news027_3.html", "カルマン渦と構造物の振動")])

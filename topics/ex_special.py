@@ -198,7 +198,7 @@ def g_gamma_shift(rng):
     sgn = "+" if d >= 0 else "-"
     bt = rf"(x{'-' if b > 0 else '+'}{abs(b)})" if b else "x"
     sol = [rf"$t=x-{a}$ とおくと $x={a}$ で $t=0$, $dx=dt$, ${xb}=t{sgn}{abs(d)}$, $e^{{-x}}=e^{{-{a}}}e^{{-t}}$。",
-           rf"$$\int_{a}^\infty{bt}(x-{a})^{{{n}}}e^{{-x}}dx=e^{{-{a}}}\int_0^\infty\left(t^{{{n + 1}}}{sgn}{abs(d)}t^{{{n}}}\right)e^{{-t}}dt"
+           rf"$$\int_{a}^\infty {bt}(x-{a})^{{{n}}}e^{{-x}}dx=e^{{-{a}}}\int_0^\infty\left(t^{{{n + 1}}}{sgn}{abs(d)}t^{{{n}}}\right)e^{{-t}}dt"
            rf"=e^{{-{a}}}\left(\Gamma({n + 2}){sgn}{abs(d)}\Gamma({n + 1})\right)$$",
            rf"$$=e^{{-{a}}}\left({math.factorial(n + 1)}{sgn}{abs(d) * math.factorial(n)}\right)={et(K)}$$"]
     return Problem("ガンマ関数(平行移動)", "標準",
