@@ -82,8 +82,9 @@ def tab_l2_distribution():
     dx = 2 * PI / n
     fig.add_trace(go.Bar(x=xk, y=f(xk) * g(xk), width=dx * 0.9, name="f(x_k) g(x_k)(棒の面積の和 = 近似値)",
                          marker=dict(color=C3, opacity=0.35)))
-    layout(fig, f"$(f,g)=\\int_{{-\\pi}}^{{\\pi}}{ft}\\cdot {gt}\\,dx$ の近似", xlab="x", height=380)
+    layout(fig, f"棒の面積の和(n = {n})で内積を近似", xlab="x", height=380)
     with c[1]:
+        st.latex(f"(f,g)=\\int_{{-\\pi}}^{{\\pi}}{ft}\\cdot {gt}\\,dx\\approx\\sum_{{k=1}}^{{{n}}}f(x_k)g(x_k)\\,\\Delta x")
         show(fig)
     st.markdown(r"""
 | ベクトル($\mathbb R^n$) | 関数($[-\pi,\pi]$ 上) |
