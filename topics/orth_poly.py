@@ -533,9 +533,9 @@ def tab_laguerre():
     st.markdown("と表される。$L^{(\\alpha)}_m$ はラゲール多項式を一般化したもの(**ラゲールの陪多項式**, 重み $x^\\alpha e^{-x}$ で直交)。"
                 "距離 $r$ に電子を見つける確率密度は $r^2R_{n\\ell}^2$ で, 節(確率が $0$ の球面)の数は $n-\\ell-1$ 個。")
     c = st.columns([1, 2])
-    n = c[0].select_slider("主量子数 n", [1, 2, 3, 4], 3, key="olq_n")
+    n = c[0].select_slider("主量子数 n", [1, 2, 3, 4], 3, key="olq_hn")
     ls = list(range(n))
-    l_ = c[0].radio("方位量子数 ℓ", ls, format_func=lambda v: f"ℓ = {v}({'spdf'[v]} 軌道)", horizontal=True, key="olq_l")
+    l_ = c[0].radio("方位量子数 ℓ", ls, format_func=lambda v: f"ℓ = {v}({'spdf'[v]} 軌道)", horizontal=True, key="olq_hl")
     l_ = min(l_, n - 1)
     r = np.linspace(1e-6, 40, 4001)
     P = r * r * hydrogen_radial(n, l_, r) ** 2
