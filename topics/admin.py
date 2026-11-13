@@ -9,7 +9,7 @@ import zipfile
 
 import streamlit as st
 
-from topics import ex_ch1, ex_ch2, ex_ch3, ex_dft, ex_fourier, ex_gradient, ex_lp, ex_multiplier, ex_wavelet, ex_wavelet_image, ex_laplace, ex_finance, ex_lode, ex_newton, ex_pde_adv, ex_pde_sep, ex_pfrac, ex_rodrigues, ex_special
+from topics import ex_ch1, ex_ch2, ex_ch3, ex_dft, ex_fourier, ex_gradient, ex_lp, ex_multiplier, ex_wavelet, ex_wavelet_image, ex_laplace, ex_finance, ex_distribution, ex_lode, ex_newton, ex_pde_adv, ex_pde_sep, ex_pfrac, ex_rodrigues, ex_special
 from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, punct, rng_for
 
 # 試験範囲として選べる章(章を増やしたらここに足す)
@@ -34,11 +34,12 @@ CHAPTERS = [
     ("偏微分方程式 発展(流体・量子・半導体)", ex_pde_adv.REGISTRY),
     ("偏微分方程式 発展5. ニュートンポテンシャル", ex_newton.REGISTRY),
     ("偏微分方程式 発展6. ブラック・ショールズ方程式", ex_finance.REGISTRY),
+    ("その他 シュワルツの超関数の理論", ex_distribution.REGISTRY),
     ("特殊関数 ガンマ関数・ベータ関数", ex_special.REGISTRY),
 ]
 GUIDED_NAMES = {**getattr(ex_ch1, "GUIDED_NAMES", {}), **ex_ch2.GUIDED_NAMES, **ex_ch3.GUIDED_NAMES,
                 **ex_laplace.GUIDED_NAMES, **ex_special.GUIDED_NAMES,
-                **ex_rodrigues.GUIDED_NAMES, **ex_gradient.GUIDED_NAMES, **ex_fourier.GUIDED_NAMES, **ex_wavelet.GUIDED_NAMES, **ex_dft.GUIDED_NAMES, **ex_multiplier.GUIDED_NAMES, **ex_lp.GUIDED_NAMES, **ex_wavelet_image.GUIDED_NAMES, **ex_pde_sep.GUIDED_NAMES, **ex_lode.GUIDED_NAMES, **ex_pfrac.GUIDED_NAMES, **ex_pde_adv.GUIDED_NAMES, **ex_newton.GUIDED_NAMES, **ex_finance.GUIDED_NAMES}
+                **ex_rodrigues.GUIDED_NAMES, **ex_gradient.GUIDED_NAMES, **ex_fourier.GUIDED_NAMES, **ex_wavelet.GUIDED_NAMES, **ex_dft.GUIDED_NAMES, **ex_multiplier.GUIDED_NAMES, **ex_lp.GUIDED_NAMES, **ex_wavelet_image.GUIDED_NAMES, **ex_pde_sep.GUIDED_NAMES, **ex_lode.GUIDED_NAMES, **ex_pfrac.GUIDED_NAMES, **ex_pde_adv.GUIDED_NAMES, **ex_newton.GUIDED_NAMES, **ex_finance.GUIDED_NAMES, **ex_distribution.GUIDED_NAMES}
 
 
 def catalog():
