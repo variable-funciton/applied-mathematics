@@ -16,6 +16,7 @@
 | | 2 応用 | 微分方程式 / ばね・ダンパーの振動(アニメーション) / 合成積 / 伝達関数とデルタ関数 / 演算子法 / 演習 | `laplace.py`, `laplace2.py`, `lap_sim.py`, `ex_laplace.py` |
 | ③ フーリエ解析 | 1 フーリエ級数 | 一般周期 / 複素フーリエ級数 / 収束定理とパーセバルの等式 | `fourier.py`, `fourier2.py` |
 | | 2 フーリエ変換 | 積分定理 / 性質と公式 / スペクトル / DFT と複素フーリエ級数(+変換対、FFT とフィルタ) | `fourier.py`, `fourier2.py` |
+| | 発展 | 1. ギブス現象 / 2. ピンスキー現象 / 3. 倉坪現象 / 4. ハール・ウェーブレット / 5. 画像の類似度判定 / 6. ラドン変換 / 7. 関数空間 L² と Lᵖ / 8. ヒルベルト変換 / 9. フーリエマルチプライヤー(4, 5, 7, 8, 9 に演習) | `fourier_adv.py`, `wavelet.py`, `wavelet_image.py`, `radon.py`, `lp_spaces.py`, `hilbert.py`, `multiplier.py`, `ex_wavelet.py`, `ex_wavelet_image.py`, `ex_lp.py`, `ex_hilbert.py`, `ex_multiplier.py` |
 | ④ 複素関数 | 1 正則関数 | 極形式 / 絶対値と偏角 / 複素関数(写像・色付け) / 正則 / コーシー・リーマン / 逆関数 | `complex2.py`, `complex_fn.py` |
 | | 2 積分 | 複素積分 / コーシーの積分定理・積分表示 / 関数の展開 / 留数定理(+実積分) | `complex2.py`, `complex_fn.py` |
 | ⑤ 偏微分方程式 | 波動・熱伝導 | フーリエ級数と熱・波動方程式 / 差分法 / 時間発展シミュレーション(熱・波動) / フーリエ変換と PDE / (発展)ラプラス方程式 | `pde.py`, `pde2.py`, `pde_sim.py` |
