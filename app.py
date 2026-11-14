@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="応用数学ラボ", page_icon="∮", layout="wide")
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_laplace, ex_special, admin, lap_sim, pde_sim, special, wind  # noqa: E402
-from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, laplace_ode, ex_lode, partial_fraction, ex_pfrac, pde_intro, pde_apps, pde_adv, ex_pde_adv, newton_potential, ex_newton, finance, ex_finance, distribution, ex_distribution, l2_distribution, orth_intro, orth_poly, orth_walsh, orth_summary, orth_transplant, ex_orth, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
+from topics import ex_fourier, ex_gradient, fourier3, fourier_adv, fourier_apps, fourier_kernels, references, wavelet, ex_wavelet, wavelet_image, ex_wavelet_image, radon, dft, ex_dft, hilbert, ex_hilbert, multiplier, ex_multiplier, lp_spaces, ex_lp, pde_sep, ex_pde_sep, laplace_ode, ex_lode, partial_fraction, ex_pfrac, pde_intro, pde_apps, pde_adv, ex_pde_adv, newton_potential, ex_newton, finance, ex_finance, distribution, ex_distribution, l2_distribution, orth_intro, orth_poly, orth_walsh, orth_summary, orth_transplant, ex_orth, ex_rodrigues, gradient_descent, rodrigues, vec_apps  # noqa: E402
 from topics import (complex2 as c2, complex_fn as cf, fourier, fourier2 as f2, laplace,  # noqa: E402
                     laplace2 as l2, other, pde, pde2 as p2, vec_functions as vf, vec_integrals as vi, vector)
 
@@ -114,7 +114,9 @@ CURRICULUM = {
             ("6. ラドン変換(R² と R³)", radon.tab_radon),
             ("7. 関数空間 L² と Lᵖ", lp_spaces.tab_lp),
             ("演習(L² と Lᵖ)", ex_lp.tab),
-            ("8. フーリエマルチプライヤー", multiplier.tab_multiplier),
+            ("8. ヒルベルト変換", hilbert.tab_hilbert),
+            ("演習(ヒルベルト変換)", ex_hilbert.tab),
+            ("9. フーリエマルチプライヤー", multiplier.tab_multiplier),
             ("演習(フーリエマルチプライヤー)", ex_multiplier.tab),
         ],
     },

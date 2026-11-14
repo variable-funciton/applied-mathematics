@@ -122,7 +122,7 @@ def tab_newton_potential():
     st.subheader("5. フーリエ変換で見る:リースポテンシャルとのつながり")
     st.markdown("フーリエ変換では微分が掛け算になるので, $-\\Delta$ は $|\\xi|^2$ を掛ける操作になる。したがってその逆のニュートンポテンシャルは")
     st.latex(r"\widehat{-\Delta u}(\xi)=|\xi|^2\hat u(\xi)\ \Longrightarrow\ \widehat{Nf}(\xi)=\frac{\hat f(\xi)}{|\xi|^2}")
-    st.markdown("つまり**マルチプライヤー $|\\xi|^{-2}$** の作用素である(③ 発展8.)。$|\\xi|^{-\\alpha}$ に対応する**リースポテンシャル**")
+    st.markdown("つまり**マルチプライヤー $|\\xi|^{-2}$** の作用素である(③ 発展 9.)。$|\\xi|^{-\\alpha}$ に対応する**リースポテンシャル**")
     st.latex(r"I_\alpha f(x)=c_{n,\alpha}\int_{\mathbb R^n}\frac{f(y)}{|x-y|^{n-\alpha}}\,dy,\qquad c_{n,\alpha}=\frac{\Gamma\left(\frac{n-\alpha}{2}\right)}{\pi^{n/2}2^\alpha\Gamma\left(\frac\alpha2\right)}")
     st.markdown("で $n=3$, $\\alpha=2$ とすると $c_{3,2}=\\dfrac{\\Gamma(\\frac12)}{\\pi^{3/2}\\cdot4\\cdot\\Gamma(1)}=\\dfrac{1}{4\\pi}$ となり, $I_2=N$(ニュートンポテンシャル)である。"
                 "ハーディ・リトルウッド・ソボレフの不等式は, $n$ 次元では $\\dfrac1q=\\dfrac1p-\\dfrac\\alpha n$ のとき $\\|I_\\alpha f\\|_q\\le C\\|f\\|_p$ となり, "
