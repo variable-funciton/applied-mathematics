@@ -301,6 +301,31 @@ REFS = {
              note="ラゲール多項式と直交性(連分数による積分の近似から)。"),
         dict(key="walsh1923", kind="article", level="原論文", authors="J. L. Walsh", title="A closed set of normal orthogonal functions",
              journal="Amer. J. Math.", volume="45", pages="5–24", year=1923, note="ウォルシュ関数系を導入した論文。"),
+        dict(key="masonhandscomb2002", kind="book", level="発展", authors="J. C. Mason, D. C. Handscomb", title="Chebyshev Polynomials",
+             publisher="Chapman & Hall/CRC", year=2002, isbn="978-0-8493-0355-5", note="チェビシェフ多項式の教科書。べき級数の打ち切り(経済化)も扱う(英語)。"),
+        dict(key="guy1960", kind="article", level="原論文", authors="D. L. Guy", title="Hankel multiplier transformations and weighted p-norms",
+             journal="Trans. Amer. Math. Soc.", volume="95", pages="137–189", year=1960, doi="10.1090/S0002-9947-1960-0120506-1",
+             note="ハンケル変換の移植(transplantation)の先がけ。"),
+        dict(key="askeywainger1966", kind="article", level="原論文", authors="R. Askey, S. Wainger", title="A transplantation theorem for ultraspherical coefficients",
+             journal="Pacific J. Math.", volume="16", pages="393–405", year=1966, url="https://msp.org/pjm/1966/16-3/pjm-v16-n3-p02-p.pdf",
+             note="超球(ゲーゲンバウアー)係数とフーリエ余弦係数の重みつき ℓ^p での移植定理。"),
+        dict(key="askeywainger1966b", kind="article", level="原論文", authors="R. Askey, S. Wainger", title="A transplantation theorem between ultraspherical series",
+             journal="Illinois J. Math.", volume="10", pages="", year=1966, note="超球級数どうしの L^p での移植定理。"),
+        dict(key="askey1967", kind="article", level="原論文", authors="R. Askey", title="A transplantation theorem for Jacobi coefficients",
+             journal="Pacific J. Math.", volume="21", pages="393–404", year=1967, url="https://msp.org/pjm/1967/21-3/pjm-v21-n3-p01-p.pdf",
+             note="ヤコビ係数への一般化。"),
+        dict(key="muckenhoupt1986", kind="book", level="発展", authors="B. Muckenhoupt", title="Transplantation Theorems and Multiplier Theorems for Jacobi Series (Mem. Amer. Math. Soc. 64, no. 356)",
+             publisher="American Mathematical Society", year=1986, isbn="0-8218-2418-X", note="ヤコビ級数の重みつき L^p での移植定理とマルチプライヤー定理。"),
+        dict(key="pollard1947", kind="article", level="原論文", authors="H. Pollard", title="The mean convergence of orthogonal series. I",
+             journal="Trans. Amer. Math. Soc.", volume="62", pages="387–403", year=1947, note="ルジャンドル級数が L^p(−1,1) で収束するのは 4/3 < p < 4。"),
+        dict(key="newmanrudin1952", kind="article", level="原論文", authors="J. Newman, W. Rudin", title="Mean convergence of orthogonal series",
+             journal="Proc. Amer. Math. Soc.", volume="3", pages="219–222", year=1952, doi="10.1090/S0002-9939-1952-0047811-2",
+             note="ポラードの条件が必要でもあることを示した。"),
+        dict(key="muckenhoupt1972", kind="article", level="原論文", authors="B. Muckenhoupt", title="Weighted norm inequalities for the Hardy maximal function",
+             journal="Trans. Amer. Math. Soc.", volume="165", pages="207–226", year=1972, doi="10.2307/1995882", note="A_p 条件(マッケンハウプト重み)。"),
+        dict(key="hmw1973", kind="article", level="原論文", authors="R. Hunt, B. Muckenhoupt, R. Wheeden", title="Weighted norm inequalities for the conjugate function and Hilbert transform",
+             journal="Trans. Amer. Math. Soc.", volume="176", pages="227–251", year=1973, doi="10.1090/S0002-9947-1973-0312139-8",
+             note="共役関数・ヒルベルト変換が重みつき L^p で有界 ⇔ A_p。フーリエ級数の重みつき平均収束への応用。"),
     ],
     "応用(学科別)": [
         dict(key="denhartog1985", kind="book", level="応用", authors="J. P. Den Hartog", title="Mechanical Vibrations",
@@ -330,7 +355,7 @@ def fmt(r):
     """数学IB の参考文献の書き方に近い形:和書は『』, 洋書はイタリック, 論文は「」/ 引用符"""
     if r["kind"] == "article":
         t = f"「{r['title']}」" if is_ja(r["title"]) else f"“{r['title']}”"
-        s = f"{r['authors']}, {t}, *{r['journal']}* **{r['volume']}** ({r['year']}), {r['pages']}."
+        s = f"{r['authors']}, {t}, *{r['journal']}* **{r['volume']}** ({r['year']})" + (f", {r['pages']}." if r.get("pages") else ".")
     elif r["kind"] == "web":
         s = f"{r['authors']}, *{r['title']}*, {r['publisher']}."
     elif is_ja(r["title"]):
@@ -341,6 +366,8 @@ def fmt(r):
         s += f" ISBN {r['isbn']}"
     if r.get("url"):
         s += f" [リンク]({r['url']})"
+    elif r.get("doi"):
+        s += f" [DOI](https://doi.org/{r['doi']})"
     return s
 
 
@@ -371,6 +398,10 @@ def bibtex(refs):
             typ = "book"
         if r.get("isbn"):
             f["isbn"] = r["isbn"]
+        if not f.get("pages", True):
+            del f["pages"]
+        if r.get("doi"):
+            f["doi"] = r["doi"]
         if r.get("url"):
             f["url"] = r["url"]
         f["note"] = (extra + "。" if extra and extra != "eds." else "") + r["note"]

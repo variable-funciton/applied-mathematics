@@ -5,7 +5,7 @@
 from fractions import Fraction
 
 from topics.ex_core import Choice, ExamItem, Part, Problem, ProblemType, Retry, render, tex_fr
-from topics.orth_core import POLY, WEIGHTS, gram_schmidt, inner, norm2, p_add, p_scale, p_tex, p_val, trim, walsh_coefs, walsh_matrix
+from topics.orth_core import POLY, WEIGHTS, expansion, gram_schmidt, inner, norm2, p_add, p_scale, p_tex, p_val, trim, walsh_coefs, walsh_matrix
 
 F = Fraction
 NAME = {"legendre": ("ルジャンドル多項式", "P"), "chebyshev": ("チェビシェフ多項式", "T"), "hermite": ("エルミート多項式", "H"), "laguerre": ("ラゲール多項式", "L")}
@@ -330,6 +330,97 @@ def guided_walsh(rng):
                     meta=dict(vals=vals))
 
 
+# ------------------------------------------------------------
+# 9. 移植:x^n のチェビシェフ係数・経済化・ラゲール係数
+# ------------------------------------------------------------
+def cheb_comb(c):
+    """チェビシェフ係数 → T_k の和の TeX"""
+    return "+".join(f"\\left({tex_fr(v)}\\right)T_{{{k}}}" for k, v in enumerate(c) if v) or "0"
+
+
+def from_cheb(c):
+    out = [F(0)] * len(c)
+    for k, v in enumerate(c):
+        for i, t in enumerate(POLY["chebyshev"](k)):
+            out[i] += v * t
+    return trim(out)
+
+
+def g_tcoef(rng):
+    n = rng.choice([3, 4, 5, 6])
+    k = rng.choice([j for j in range(n % 2, n + 1, 2)])
+    c = expansion([F(0)] * n + [F(1)], "chebyshev")
+    val = c[k]
+    ok = tex_fr(val)
+    cands = [(tex_fr(val * 2) if k else tex_fr(val / 2), r"$T_0$ の項だけは係数が半分($2^{-n}\binom{n}{n/2}$)。" if k == 0 else r"$x^n=2^{1-n}\sum\binom nkT_{n-2k}$:$2^{1-n}$ を確かめよう。"),
+             (tex_fr(F(1, 2 ** (n - 1))) if val != F(1, 2 ** (n - 1)) else tex_fr(F(1, 2 ** n)), r"二項係数 $\binom nk$ を掛けたか確かめよう。"),
+             (tex_fr(c[k + 2] if k + 2 <= n else c[k - 2]), "別の $T$ の係数。"), ("0", "$n$ と $k$ の偶奇が同じなら $0$ にはならない。"),
+             (tex_fr(-val), "符号はすべて正。")]
+    return Problem("べきのチェビシェフ展開", "基本",
+                   rf"$x^{{{n}}}$ をチェビシェフ多項式 $T_k$ の和で表すとき, $T_{{{k}}}$ の係数を求めよ。ただし $T_k(\cos\theta)=\cos k\theta$ である。",
+                   distinct(ok, cands), hints=[r"$\cos^n\theta=\left(\dfrac{e^{i\theta}+e^{-i\theta}}{2}\right)^n$ を二項展開する。", r"$x^n=2^{1-n}\sum_{k<n/2}\binom nkT_{n-2k}$($n$ が偶数なら $T_0$ の係数は $2^{-n}\binom{n}{n/2}$)。"],
+                   solution=[rf"$x^{{{n}}}={cheb_comb(c)}$。", rf"$T_{{{k}}}$ の係数は ${ok}$。"], meta=dict(n=n, k=k, val=val))
+
+
+def econ_case(rng):
+    while True:
+        deg = rng.choice([3, 4])
+        f = [F(rng.choice([-2, -1, 0, 1, 2])) for _ in range(deg)] + [F(rng.choice([1, -1, 2, F(1, 2), F(4, 3)]))]
+        c = expansion(f, "chebyshev")
+        q = from_cheb(c[:deg])
+        if len(q) == deg and q != trim(f[:deg]):
+            return deg, f, c, q
+
+
+def g_econ(rng):
+    deg, f, c, q = econ_case(rng)
+    ok = p_tex(q)
+    lead = f[deg]
+    low = trim(f[:deg])
+    bad_scale = p_add(low, p_scale(p_add(q, p_scale(low, -1)), 2))   # 低い次数への移り分を2倍(2^{1-n} の取り違え)
+    flip = trim([f[i] - (q[i] - f[i]) if i < deg else 0 for i in range(deg)])
+    cands = [(p_tex(trim(f[:deg])), r"$x^n$ の項をそのまま捨てるのはテイラー展開の打ち切り。$x^n$ を $T_n$ と低い次数の多項式に分けてから $T_n$ だけを捨てる。"),
+             (p_tex(flip), "低い次数に移る項の符号を確かめよう。"), (p_tex(bad_scale), r"$x^n$ を $T_k$ で表したときの係数($2^{1-n}$ など)を確かめよう。"),
+             (p_tex(trim(q[:-1])) if len(q) > 1 else "0", "残すのは $n-1$ 次まで全部。")]
+    return Problem("経済化(チェビシェフ多項式による次数下げ)", "標準",
+                   rf"区間 $[-1,1]$ で $f(x)={p_tex(f)}$ をチェビシェフ多項式 $T_0,\dots,T_{{{deg}}}$ で表し, $T_{{{deg}}}$ の項を捨てて ${deg - 1}$ 次の多項式にせよ"
+                   rf"(経済化)。ただし $T_{{{deg}}}(x)={p_tex(POLY['chebyshev'](deg))}$ である。",
+                   distinct(ok, cands), hints=[rf"$x^{{{deg}}}=\dfrac{{T_{{{deg}}}+(\text{{低い次数}})}}{{2^{{{deg - 1}}}}}$ と書きかえる。", "捨てた項の大きさは $|T_n|\\le1$ より係数の絶対値以下。"],
+                   solution=[rf"$f={cheb_comb(c)}$。", rf"$T_{{{deg}}}$ の項を捨てると ${ok}$(誤差は高々 ${tex_fr(abs(c[deg]))}$)。"],
+                   meta=dict(f=f, deg=deg, q=q, err=abs(c[deg])))
+
+
+def g_lagcoef(rng):
+    a = rng.choice([F(1), F(3, 2), F(2), F(1, 4), F(1, 6), F(5, 2), F(3)])
+    n = rng.choice([1, 2, 3])
+    h = F(1, 2)
+    val = (a - h) ** n / (a + h) ** (n + 1)
+    ok = tex_fr(val)
+    cands = [(tex_fr((a - h) ** n / (a + h) ** n), "分母は $(a+\\frac12)^{n+1}$。"), (tex_fr((a - 1) ** n / a ** (n + 1)) if a != 1 else tex_fr(1 / a ** (n + 1)),
+              r"$\ell_n=e^{-t/2}L_n$ なので $s=a+\frac12$ で計算する。"),
+             (tex_fr((h - a) ** n / (a + h) ** (n + 1)), "符号:$\\mathcal L[L_n](s)=\\dfrac{(s-1)^n}{s^{n+1}}$。"), (tex_fr(1 / (a + h)), "これは $c_0$。"),
+             (tex_fr((a + h) ** n / (a - h) ** (n + 1)) if a != h else "1", "分子と分母が逆。")]
+    return Problem("ラゲール関数による展開の係数", "基本",
+                   rf"$g(t)=e^{{-{p_tex([a])}t}}$ をラゲール関数 $\ell_k(t)=e^{{-t/2}}L_k(t)$ で $g=\sum c_k\ell_k$ と展開する。"
+                   rf"$c_k=\displaystyle\int_0^\infty g\,\ell_k\,dt$ と $\mathcal L[L_k](s)=\dfrac{{(s-1)^k}}{{s^{{k+1}}}}$ を使って $c_{{{n}}}$ を求めよ。",
+                   distinct(ok, cands), hints=[r"$c_k=\int_0^\infty L_k(t)e^{-(a+\frac12)t}dt=\mathcal L[L_k]\left(a+\tfrac12\right)$。"],
+                   solution=[rf"$c_k=\mathcal L[L_k]\left({tex_fr(a + h)}\right)=\dfrac{{\left({tex_fr(a - h)}\right)^k}}{{\left({tex_fr(a + h)}\right)^{{k+1}}}}$。", rf"$c_{{{n}}}={ok}$。"],
+                   meta=dict(a=a, n=n, val=val))
+
+
+def guided_econ(rng):
+    deg, f, c, q = econ_case(rng)
+    tlist = ",\\ ".join(f"T_{k}={p_tex(POLY['chebyshev'](k))}" for k in range(deg + 1))
+    return ExamItem("チェビシェフ多項式による経済化",
+                    rf"区間 $[-1,1]$ で $f(x)={p_tex(f)}$ を考える. チェビシェフ多項式は ${tlist}$ である. 次の問いに答えよ.",
+                    [Part(rf"$f$ を $T_0,\dots,T_{{{deg}}}$ の和で表せ.", cheb_comb(c),
+                          [rf"$x^{{{deg}}}$ から順に $T_k$ で書きかえる。", rf"$f={cheb_comb(c)}$。"]),
+                     Part(rf"$T_{{{deg}}}$ の項を捨てた ${deg - 1}$ 次の多項式 $q$ を求め, 区間 $[-1,1]$ での誤差 $|f-q|$ の最大値を答えよ.",
+                          rf"q={p_tex(q)},\ \max|f-q|={tex_fr(abs(c[deg]))}",
+                          [rf"$q={p_tex(q)}$。", rf"$f-q={tex_fr(c[deg])}T_{{{deg}}}$ で $\max|T_{{{deg}}}|=1$ より, 誤差の最大値は ${tex_fr(abs(c[deg]))}$。"])],
+                    meta=dict(f=f, deg=deg))
+
+
 REGISTRY = [
     ProblemType("or_rec", "直交多項式の漸化式", "基本", g_rec),
     ProblemType("or_cheb", "チェビシェフ多項式の値", "基本", g_cheb),
@@ -338,10 +429,14 @@ REGISTRY = [
     ProblemType("or_expand", "直交多項式による展開", "標準", g_expand),
     ProblemType("or_moment", "重みつきの積分", "標準", g_moment),
     ProblemType("or_gs", "グラム・シュミットの直交化", "標準", g_gs, guided=guided_gs),
+    ProblemType("or_tcoef", "べきのチェビシェフ展開", "基本", g_tcoef),
+    ProblemType("or_lagc", "ラゲール関数による展開の係数", "基本", g_lagcoef),
+    ProblemType("or_econ", "経済化(チェビシェフ多項式による次数下げ)", "標準", g_econ, guided=guided_econ),
 ]
 GUIDED_NAMES = {"or_series": "漸化式 → 級数解法で多項式解(エルミートの方程式)",
                 "or_walsh": "ウォルシュ係数 → 最初の2項の和",
-                "or_gs": "p₁ → p₂(グラム・シュミットの直交化)"}
+                "or_gs": "p₁ → p₂(グラム・シュミットの直交化)",
+                "or_econ": "チェビシェフ展開 → 経済化と誤差の最大値"}
 
 
 def tab():
