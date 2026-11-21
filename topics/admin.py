@@ -10,6 +10,7 @@ import zipfile
 import streamlit as st
 
 from topics import ex_ch1, ex_ch2, ex_ch3, ex_dft, ex_fourier, ex_gradient, ex_lp, ex_hilbert, ex_multiplier, ex_wavelet, ex_wavelet_image, ex_laplace, ex_finance, ex_distribution, ex_orth, ex_lode, ex_newton, ex_pde_adv, ex_pde_sep, ex_pfrac, ex_rodrigues, ex_special
+from topics import admin_security as sec
 from topics.ex_core import CLASS_LINE, NENDO, PREAMBLE, Retry, build, exam_item_from_problem, md_to_tex, punct, rng_for
 
 # 試験範囲として選べる章(章を増やしたらここに足す)
@@ -217,15 +218,9 @@ def tab():
             "- 手元で動かす場合:`.streamlit/secrets.toml` に同じ1行を書く(このファイルは GitHub に上げない)。"
         )
         return
-    if not st.session_state.get("exam_ok"):
-        given = st.text_input("管理人用パスワード", type="password", key="exam_pw")
-        if given and given == pw:
-            st.session_state["exam_ok"] = True
-        elif given:
-            st.error("パスワードが違います。")
-            return
-        else:
-            return
+    if not sec.gate(pw):
+        return
+    sec.status_panel()
 
     st.info("試験範囲に合わせて、章をまたいで問題の型と題数を選ぶ。1題10点(誘導問題は5点×2で1題)。"
             "数値は問題番号から決まるので、同じ番号なら同じ試験が再現できる。")
@@ -251,7 +246,7 @@ def tab():
     (st.success if total_q == 10 else st.warning)(msg + ("" if total_q == 10 else "。100点にするには10題にする。"))
 
     if "exam_seed" not in st.session_state:
-        st.session_state["exam_seed"] = 10000
+        _new_seed()
     c1, c2 = st.columns(2)
     seed = int(c1.number_input("問題番号", 1, 99999, step=1, key="exam_seed"))
     c2.button("別の数値で作り直す", on_click=_new_seed, key="exam_new")
@@ -259,9 +254,16 @@ def tab():
     rhint = c2.checkbox("ロドリゲスの回転公式をヒントとして問題文に載せる", value=True, key="exam_rhint",
                         help="ロドリゲスの回転公式の型を選んだときだけ効く。導出の時間がない試験向け。")
 
-    items = make_items(chosen, seed, rodrigues_hint=rhint)
+    if sec.secret("exam_salt"):
+        use_salt = not c2.checkbox("秘密の値を混ぜない(以前に作った問題セットを再現する)", key="exam_nosalt",
+                                   help="exam_salt を設定する前に作った問題セットを, 同じ問題番号で作り直すときだけ使う。")
+    else:
+        use_salt = False
+        st.warning("Secrets に exam_salt(問題番号に混ぜる秘密の値)が設定されていない。コードを見られると, 問題番号と範囲から同じ問題セットを再現できてしまう。")
+    gseed = sec.effective_seed(seed, use_salt)
+    items = make_items(chosen, gseed, rodrigues_hint=rhint)
     if shuffle:
-        random.Random(seed).shuffle(items)
+        random.Random(gseed).shuffle(items)
 
     st.subheader("プレビュー")
     for i, it in enumerate(items, 1):
