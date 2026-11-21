@@ -5,6 +5,9 @@
     admin_password = "(長いランダムなパスワード)"
     exam_salt = "(長いランダムな文字列)"        # 問題番号に混ぜる秘密の値
 
+    [exam_watch]                                 # 本番の問題セットの指紋(管理人用ページで作った行を貼る)
+    "R8 後期中間" = ["(16 文字の指紋)", ...]
+
     [notify]                                     # アクセスの通知メール(書かなければ通知しない)
     to = "(通知を受け取るアドレス)"
     smtp_user = "(送信に使う Gmail のアドレス)"
@@ -121,8 +124,9 @@ def _deliver(cfg, subject, body):
             sh["last_error"] = f"{now_jst()} {type(e).__name__}: {e}"
 
 
-def notify(event, details=(), force=False):
-    """event(例:ログイン成功)を通知する。送ったら True。force は上限を無視する(テストメール用)"""
+def notify(event, details=(), force=False, urgent=False):
+    """event(例:ログイン成功)を通知する。送ったら True。force は上限を無視する(テストメール用)。urgent は件名に【緊急】を付け, 上限を無視する"""
+    force = force or urgent
     cfg = notify_config()
     if cfg is None:
         return False
@@ -141,8 +145,12 @@ def notify(event, details=(), force=False):
              f"ブラウザ:{user_agent()}"]
     if suppressed:
         lines.append(f"(上限のため送らなかった通知が {suppressed} 件あります)")
-    lines += ["", "心当たりがない場合は, Secrets の admin_password(と exam_salt)を変更し, アプリを Reboot してください。"]
-    subject = f"[管理人用] {event}"
+    if urgent:
+        lines += ["", "本番の問題セットと同じ問題が, 管理人用ページで作成されました。ご自身の操作でなければ, 問題の差し替えを検討してください。",
+                  "あわせて Secrets の admin_password と exam_salt を変更し, アプリを Reboot してください。"]
+    else:
+        lines += ["", "心当たりがない場合は, Secrets の admin_password(と exam_salt)を変更し, アプリを Reboot してください。"]
+    subject = ("【緊急】" if urgent else "") + f"[管理人用] {event}"
     body = "\n".join(lines) + "\n"
     if ASYNC:
         threading.Thread(target=_deliver, args=(cfg, subject, body), daemon=True).start()
@@ -253,7 +261,8 @@ def status_panel():
                     f"アプリ全体で {GLOBAL_WINDOW_MIN} 分に {GLOBAL_MAX_FAIL} 回間違えると {GLOBAL_LOCK_MIN} 分, 入力を受け付けない"
                     "(自分がロックされたときはアプリを Reboot すると解除される)。\n"
                     f"- 自動ログアウト:操作なし {IDLE_MIN} 分, またはログインから {MAX_LOGIN_MIN} 分。\n"
-                    "- 問題番号に混ぜる秘密の値(exam_salt):" + ("**設定済み**" if secret("exam_salt") else "**未設定**"))
+                    "- 問題番号に混ぜる秘密の値(exam_salt):" + ("**設定済み**" if secret("exam_salt") else "**未設定**") + "\n"
+                    "- 本番の問題セットの登録(exam_watch):" + (", ".join(f"「{k}」{len(v)} 題" for k, v in watch_list().items()) or "**なし**"))
 
 
 # ------------------------------------------------------------
@@ -265,3 +274,55 @@ def effective_seed(seed, use_salt=True):
     if not salt or not use_salt:
         return seed
     return "s" + hmac.new(str(salt).encode(), str(seed).encode(), hashlib.sha256).hexdigest()[:24]
+
+
+# ------------------------------------------------------------
+# 本番の問題セットとの一致の検出
+# ------------------------------------------------------------
+def fingerprint(tex):
+    """1題の問題文(LaTeX)の指紋。空白の違いと出題順には左右されない"""
+    return hashlib.sha256(" ".join(str(tex).split()).encode("utf-8")).hexdigest()[:16]
+
+
+def watch_list():
+    """Secrets の [exam_watch]:{名前: [指紋, ...]}"""
+    w = secret("exam_watch")
+    if not w:
+        return {}
+    try:
+        return {str(k): [str(h) for h in v] for k, v in dict(w).items()}
+    except Exception:
+        return {}
+
+
+def watch_check(texs, titles, action="作成"):
+    """作った問題セットを登録済みの本番と比べる。一致があれば緊急の通知(同じセッション・同じ一致・同じ操作では1回だけ)。
+    戻り値は [(本番の名前, 一致した題の番号(0 始まり), 本番の題数)]"""
+    ss = st.session_state
+    fps = [fingerprint(t) for t in texs]
+    own = ss.get("adm_own_fps", set())
+    hits = []
+    for name, hs in watch_list().items():
+        hset = set(hs)
+        idx = [i for i, f in enumerate(fps) if f in hset]
+        if idx:
+            hits.append((name, idx, len(hset)))
+    alerted = ss.setdefault("adm_alerted", set())
+    for name, idx, n in hits:
+        if all(fps[i] in own for i in idx):          # このセッションで登録したばかりの問題(登録した本人)
+            continue
+        key = (name, tuple(fps[i] for i in idx), action)
+        if key in alerted:
+            continue
+        alerted.add(key)
+        notify(f"本番の問題と一致する問題が{action}されました(「{name}」{len(idx)}/{n} 題)",
+               [f"一致した題:" + ", ".join(f"{i + 1}. {titles[i]}" for i in idx), f"操作:{action}"], urgent=True)
+    return hits
+
+
+def register_snippet(name, texs):
+    """本番として登録する:このセッションでは通知しないようにし, Secrets に貼る1行を返す"""
+    fps = [fingerprint(t) for t in texs]
+    st.session_state.setdefault("adm_own_fps", set()).update(fps)
+    safe = str(name).replace("\\", "").replace('"', "'")
+    return f'"{safe}" = [' + ", ".join(f'"{f}"' for f in fps) + "]"
