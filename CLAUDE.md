@@ -56,10 +56,12 @@ README.md(利用者・管理者向けの説明)から, AI がコードを書く�
 
 ## 6. セキュリティと運用
 
-- 秘密情報(`admin_password` / 旧名 `teacher_password`, `survey_url`, `survey_title`)は Streamlit の Secrets に置く。
+- 秘密情報(`admin_password` / 旧名 `teacher_password`, `exam_salt`, `[notify]`(通知メールの送信先・Gmail のアプリパスワード), `survey_url`, `survey_title`)は Streamlit の Secrets に置く。
   `.streamlit/secrets.toml` は**絶対にコミットしない**。
 - 学生に「試験がアプリから作られている」と分かる表現をしない。メニューや文言は「教員用」ではなく「管理人用」「問題セット」とする。
 - 個人情報(メールアドレスなど)をコードやコメントに書かない。
+- 管理人用のログイン・失敗回数の制限・自動ログアウト・通知メール・問題番号に混ぜる秘密の値は `topics/admin_security.py` にまとめてある。
+  問題を作るときは `admin_security.effective_seed()` を通した種を使う(問題番号そのものを種にしない)。
 
 ## 7. 実装上の注意
 
