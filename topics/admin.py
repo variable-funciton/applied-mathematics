@@ -265,6 +265,12 @@ def tab():
     if shuffle:
         random.Random(gseed).shuffle(items)
 
+    texs = [_item_tex(it, False) for it in items]
+    titles = [it.title for it in items]
+    for name, idx, n in sec.watch_check(texs, titles):
+        st.error(f"登録済みの本番の問題セット「{name}」と同じ問題が {len(idx)} 題あります(" + ", ".join(f"{i + 1}." for i in idx) + ")。"
+                 "管理人の通知先に緊急のメールを送った。")
+
     st.subheader("プレビュー")
     for i, it in enumerate(items, 1):
         with st.container(border=True):
@@ -287,6 +293,21 @@ def tab():
                     from topics.ex_fig import plotly_fig
                     st.plotly_chart(plotly_fig(it.answer_figure, height=320), width="stretch", key=f"exam_afig_{seed}_{i}")
     st.download_button("LaTeX 一式をダウンロード(.zip)", exam_zip(items, title, seed),
-                       file_name=f"試験問題_{seed}.zip", mime="application/zip", key="exam_dl")
+                       file_name=f"試験問題_{seed}.zip", mime="application/zip", key="exam_dl",
+                       on_click=sec.watch_check, args=(texs, titles, "ダウンロード"))
     st.caption("zip の中身:試験問題.tex / 試験問題-Ans.tex(本体)、problems.tex / answers.tex(\\input される問題・解答)。"
                "uplatex + dvipdfmx でコンパイルする。")
+
+    with st.expander("この問題セットを本番として登録する(同じ問題が作られたら緊急の通知を送る)"):
+        st.markdown("本番に使う問題セットを登録しておくと, その後に誰かが同じ問題を(1題でも)作ったりダウンロードしたりしたとき, "
+                    "通知先に【緊急】のメールが届く。登録したこのセッションでは通知しない。")
+        if not use_salt:
+            st.warning("秘密の値を混ぜずに作った問題セットは, 公開されているコードから手元で再現されても検出できない。本番は秘密の値を混ぜて作る。")
+        wname = st.text_input("登録名", title, key="exam_watch_name")
+        if st.button("登録用の行を作る", key="exam_watch_reg"):
+            st.session_state["exam_watch_line"] = sec.register_snippet(wname, texs)
+        if st.session_state.get("exam_watch_line"):
+            st.markdown("Secrets(Settings → Secrets)の `[exam_watch]` の下にこの1行を加えて保存する"
+                        "(`[exam_watch]` がまだなければ, 1行目も加える)。保存してから反映まで1分ほどかかることがある。")
+            st.code("[exam_watch]\n" + st.session_state["exam_watch_line"], language="toml")
+            st.caption("試験が終わったら, その行を Secrets から消してよい。問題を手で直した場合も, 直していない題は検出される。")
